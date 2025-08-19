@@ -1,0 +1,19 @@
+#!/bin/bash
+# Install Homebrew packages from Brewfile
+# This script runs once when chezmoi is first applied
+
+set -eufo pipefail
+
+# Check if Homebrew is installed
+if ! command -v brew >/dev/null 2>&1; then
+    echo "Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# Install packages from Brewfile
+if [ -f "$HOME/.Brewfile" ]; then
+    echo "Installing packages from Brewfile..."
+    brew bundle --file="$HOME/.Brewfile"
+else
+    echo "Brewfile not found, skipping package installation"
+fi

@@ -1,0 +1,18 @@
+# External dependencies managed by chezmoi
+# These will be automatically downloaded/updated when running chezmoi apply
+
+[".oh-my-zsh"]
+type = "git-repo"
+url = "https://github.com/ohmyzsh/ohmyzsh.git"
+refreshPeriod = "168h" # Refresh weekly
+
+[".oh-my-zsh/custom/themes/powerlevel10k"]
+type = "git-repo"
+url = "https://github.com/romkatv/powerlevel10k.git"
+refreshPeriod = "168h"
+
+# Brewfile dependencies (managed via script)
+[".local/bin/install-brew-packages.sh"]
+type = "file"
+url = "https://raw.githubusercontent.com/lv416e/dotfiles-chezmoi/main/run_once_install-packages.sh.tmpl"
+executable = true
