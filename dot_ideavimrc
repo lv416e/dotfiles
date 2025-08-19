@@ -1,0 +1,4 @@
+source ~/dotfiles/.config/nvim-bkup/init.vim
+
+set visualbell
+set noerrorbells

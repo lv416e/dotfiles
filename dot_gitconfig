@@ -1,0 +1,18 @@
+[user]
+	name = lv416e
+	email = ryo169116961@icloud.com
+[core]
+	editor = nvim
+    pager = delta
+[pull]
+	rebase = true
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true    # use n and N to move between diff sections
+    light = false      # set to true if you're in a terminal w/ a light background color (e.g. the default macOS terminal)
+    side-by-side=true
+[merge]
+    conflictstyle = diff3
+[diff]
+    colorMoved = default
