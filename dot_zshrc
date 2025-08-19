@@ -1,0 +1,143 @@
+# Q pre block. Keep at the top of this file.
+[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:/usr/local/bin:$PATH
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# cheat sheet function
+# ch() { cheat $* | bat --style=plain -l sh }
+ch() { cheat $* | bat --paging=never -l sh }
+
+# code serch function
+agg() { ag $* | bat -l sh }
+
+# jgrep function
+jgrep() { jq | gron | grep $* | gron -u }
+
+# history grep function
+hg() { history -1000 | grep $* | tail -r | bat -l sh }
+hc() { history -1000 | awk -v cmd="$1" '$1 == cmd { $1=""; sub(/^ +/, ""); print; exit }' | tr -d '\n' | pbcopy }
+
+# Starship
+eval "$(starship init zsh)"
+export STARSHIP_CONFIG=~/.config/starship.toml
+
+# Alias
+alias la='ls -al'
+alias ll='ls -l'
+alias vim='nvim'
+alias vi='nvim'
+alias v='nvim'
+# exa
+alias e='exa --icons --git --sort=type'
+alias l=e
+alias ls=e
+alias ea='exa -a --icons --git --sort=type'
+alias la=ea
+alias ee='clear & exa -aahl --icons --git --sort=type'
+alias ll=ee
+alias et='exa -T -L 3 -a -I "node_modules|.git|.cache" --icons --sort=type'
+alias lt=et
+alias eta='exa -T -a -I "node_modules|.git|.cache" --color=always --icons --sort=type | less -r'
+alias lta=eta
+alias l='clear && ll'
+# monitoring
+alias top='btm'
+alias bottom='btm'
+# cat and less
+alias less='bat'
+alias cat='bat --paging=never'
+# grep
+alias grep='rg -S'
+alias -g G='| rg -S'
+# change directory
+alias glaze-mp='cd /Users/s23736/Documents/001_develop/002_products/001_mirainage/glaze-mp'
+alias glaze='cd /Users/s23736/Documents/001_develop/002_products/001_mirainage/glaze'
+alias glaze-analytics='cd /Users/s23736/Documents/001_develop/002_products/001_mirainage/glaze-analytics'
+alias d='cd ~/Documents'
+alias dot='cd ~/dotfiles'
+alias obs='cd ~/Google\ Drive/My\ Drive/obsidian/'
+alias ..1='cd ../'
+alias ..2='cd ../../'
+alias ..3='cd ../../../'
+alias ..4='cd ../../../../'
+# history
+alias h1='history -100 | tail -r | bat -l sh'
+alias h10='history -1000 | tail -r | bat -l sh'
+# others
+alias c='clear'
+alias du='dust'
+alias df='duf'
+alias ps='procs --tree'
+alias rm='trash -F'
+alias cl='tty-clock -sc'
+alias vzsh='vim ~/dotfiles/.zshrc'
+alias szsh='source ~/.zshrc'
+alias code='pycharm'
+alias tenki='http wttr.in/Tokyo'
+
+# zoxide
+eval "$(zoxide init --cmd j zsh)"
+
+# Python environment
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+# Node.js
+export PATH=$HOME/.nodebrew/current/bin:$PATH
+
+# Slack CLI
+export PATH="/Users/s23736/.slack/bin:$PATH"
+
+# mask task runner
+export PATH="/Users/s23736/.cargo/bin:$PATH"
+
+# direnv
+eval "$(direnv hook zsh)"
+
+# mysql
+export LDFLAGS="-L/usr/local/opt/mysql-client/lib"
+export CPPFLAGS="-I/usr/local/opt/mysql-client/include"
+export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+# JAVA
+export JAVA_HOME=`/usr/libexec/java_home -v 11`
+
+# solver
+export PMIP_CBC_LIBRARY="/usr/local/lib/libCbc.dylib"
+export LD_LIBRARY_PATH="/home/haroldo/prog/lib/":$LD_LIBRARY_PATH
+
+# HSL for IPOPT
+export METIS_HEADER=/opt/homebrew/Cellar/metis/5.1.0/include
+export METIS_LIBRARY=/opt/homebrew/Cellar/metis/5.1.0/lib
+export MYAPPS=${HOME}/UserApps/IPOPT/HSL/hsl_install
+export MYLIB=${MYAPPS}/lib
+export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MYLIB}
+
+# Alacritty + Hammerspoon
+DOTDIR='/Users/s23736/dotfiles'
+export PATH=$PATH:$DOTDIR/.config/alacritty/bin
+
+# gnu-time
+export PATH="/opt/homebrew/opt/gnu-time/libexec/gnubin:$PATH"
+
+
+[[ -f "$HOME/fig-export/dotfiles/dotfile.zsh" ]] && builtin source "$HOME/fig-export/dotfiles/dotfile.zsh"
+
+# Q post block. Keep at the bottom of this file.
+[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
