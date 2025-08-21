@@ -1,0 +1,257 @@
+-- toggle Alacritty opacity
+hs.hotkey.bind({ "cmd" }, "u", function()
+  hs.execute("toggle_opacity", true)
+end)
+
+-- toggle Alacritty windows
+hs.hotkey.bind({ "⌥" }, "space", function()
+  local appName = "alacritty"
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("Alacritty.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle Warp windows
+hs.hotkey.bind({ "⌥" }, "W", function()
+  local appName = "Warp"
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("Warp.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle Slack windows
+hs.hotkey.bind({ "⌥" }, "S", function()
+  local appName = "Slack"
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("Slack.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle Vivaldi windows
+hs.hotkey.bind({ "⌥" }, "V", function()
+  local appName = "Vivaldi"
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("Vivaldi.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle PyCharm windows
+hs.hotkey.bind({ "⌥" }, "P", function()
+  local appName = "PyCharm" 
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("/Users/s23736/Applications/PyCharm Professional Edition.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle DataGrip windows
+hs.hotkey.bind({ "⌥" }, "D", function()
+  local appName = "DataGrip" 
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("/Users/s23736/Applications/DataSpell.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle Obsidian windows
+hs.hotkey.bind({ "⌥" }, "O", function()
+  local appName = "Obsidian" 
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("Obsidian.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle Finder windows
+hs.hotkey.bind({ "⌥" }, "F", function()
+  local appName = "Finder" 
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus(appName)
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle Notion windows
+hs.hotkey.bind({ "⌥" }, "N", function()
+  local appName = "Notion" 
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("Notion.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle Cursor windows
+hs.hotkey.bind({ "⌥" }, "C", function()
+  local appName = "Cursor" 
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("Cursor.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)
+
+-- toggle IntelliJ IDEA windows
+hs.hotkey.bind({ "⌥" }, "I", function()
+  local appName = "IntelliJ" 
+  local app = hs.application.find(appName)
+  local spaces = require("hs.spaces")
+
+  function MoveActiveScreen(app)
+    local window = app:focusedWindow()
+    local focused = spaces.focusedSpace()
+    spaces.moveWindowToSpace(window:id(), focused)
+    window:focus()
+  end
+
+  print(app)
+  if app == nil then
+    hs.application.launchOrFocus("/Users/s23736/Applications/IntelliJ IDEA Ultimate.app")
+  elseif app ~= nil and app:isFrontmost() then
+    app:hide()
+  else
+    MoveActiveScreen(app)
+  end
+end)

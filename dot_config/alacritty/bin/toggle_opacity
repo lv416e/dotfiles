@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+DOTDIR='/Users/s23736/dotfiles'
+
+## If alacritty.yml does not exist, raise an alert
+[[ ! -f $DOTDIR/.config/alacritty/alacritty.toml ]] && \
+    notify-send "alacritty.toml does not exist" && exit 0
+
+## Fetch opacity from alacritty.yml
+opacity=$(awk '/opacity =/ {print $3; exit}' $DOTDIR/.config/alacritty/alacritty.toml)
+
+## Assign toggle opacity value
+case $opacity in
+  1.0)
+    toggle_opacity=0.85
+    ;;
+  *)
+    toggle_opacity=1.0
+    ;;
+esac
+
+## Escape dots in the opacity value for sed
+escaped_opacity=$(echo $opacity | sed 's/\./\\./g')
+
+## Replace opacity value in alacritty.yml
+sed -i "" "s/opacity = $escaped_opacity/opacity = $toggle_opacity/g" \
+  $DOTDIR/.config/alacritty/alacritty.toml
+
