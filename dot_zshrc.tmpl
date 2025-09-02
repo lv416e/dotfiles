@@ -141,3 +141,12 @@ export PATH="/opt/homebrew/opt/gnu-time/libexec/gnubin:$PATH"
 
 # Q post block. Keep at the bottom of this file.
 [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
+
+# kill current tmux window (only when inside tmux)
+twk() {
+  local id
+  id="$(tmux display -p '#{window_id}' 2>/dev/null)" || {
+    echo "tmux内で実行してください" >&2; return 1
+  }
+  tmux kill-window -t "$id"
+}
