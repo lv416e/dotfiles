@@ -57,7 +57,7 @@ if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
 fi
 
 # --- window 作成 ---
-echo "Creating window: $WINDOW" >&2
+echo "creating window: $WINDOW" >&2
 WINID="$(tmux new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW")"
 
 # --- 6ペインの構造を作る ---
@@ -128,5 +128,9 @@ tmux select-layout -t "${WINID}" "${LAYOUT}"
 tmux select-window -t "${WINID}"
 tmux select-pane -t "$L_TOP"
 
+# 再実行（watchやclaude-monitor対策）
+tmux respawn-pane -k -t "$L_TOP"
+tmux respawn-pane -k -t "$L_BOT"
+
 # 外からの起動ならアタッチ
-if [[ -z "${TMUX-}" ]]; then tmux attach -t "$SESSION"; fis
+if [[ -z "${TMUX-}" ]]; then tmux attach -t "$SESSION"; fi
