@@ -26,3 +26,23 @@ Icon[
 Network Trash Folder
 Temporary Items
 .apdisk
+
+Library/Application Support/com.raycast.macos/**
+Library/Preferences/com.raycast.macos.plist
+Library/Caches/com.raycast.macos/**
+Library/Logs/Raycast/**
+Library/Saved Application State/com.raycast.macos.savedState/**
+Library/Application Support/Raycast/**
+Library/Preferences/Raycast*.plist
+Library/Caches/Raycast/**
+dot_config/raycast/scripts/**/.env*
+dot_config/raycast/scripts/**/*-secrets.*
+dot_config/raycast/scripts/**/*.{pem,key}
+dot_config/raycast/scripts/**/.DS_Store
+raycast-extensions/**/node_modules/
+raycast-extensions/**/dist/
+raycast-extensions/**/build/
+raycast-extensions/**/.raycast/
+raycast-extensions/**/.vercel/
+raycast-extensions/**/.DS_Store
+raycast-extensions/**/.env*
