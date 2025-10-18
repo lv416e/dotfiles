@@ -110,7 +110,7 @@ hs.hotkey.bind({ "⌥" }, "P", function()
 
   print(app)
   if app == nil then
-    hs.application.launchOrFocus("/Users/s23736/Applications/PyCharm Professional Edition.app")
+    hs.application.launchOrFocus("{{ .chezmoi.homeDir }}/Applications/PyCharm Professional Edition.app")
   elseif app ~= nil and app:isFrontmost() then
     app:hide()
   else
@@ -133,7 +133,7 @@ hs.hotkey.bind({ "⌥" }, "D", function()
 
   print(app)
   if app == nil then
-    hs.application.launchOrFocus("/Users/s23736/Applications/DataSpell.app")
+    hs.application.launchOrFocus("{{ .chezmoi.homeDir }}/Applications/DataSpell.app")
   elseif app ~= nil and app:isFrontmost() then
     app:hide()
   else
@@ -248,7 +248,7 @@ hs.hotkey.bind({ "⌥" }, "I", function()
 
   print(app)
   if app == nil then
-    hs.application.launchOrFocus("/Users/s23736/Applications/IntelliJ IDEA Ultimate.app")
+    hs.application.launchOrFocus("{{ .chezmoi.homeDir }}/Applications/IntelliJ IDEA Ultimate.app")
   elseif app ~= nil and app:isFrontmost() then
     app:hide()
   else
