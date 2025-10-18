@@ -280,9 +280,6 @@ local wifiItem = hs.menubar.new(false)
 local function updateWiFi()
   local ssid = hs.wifi.currentNetwork()
 
-  -- Debug notification
-  hs.notify.new({title="WiFi Debug", informativeText="SSID: " .. tostring(ssid)}):send()
-
   if ssid == nil then
     wifiItem:returnToMenuBar()
     wifiItem:setTitle("📶×")
