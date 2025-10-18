@@ -115,7 +115,7 @@ tmux respawn-pane -k -t "$L_BOT" "cd \"${LEFT_DIR}\" && exec zsh"
 
 # 右側の上・中段
 tmux respawn-pane -k -t "$R_TOP" "watch -n 10 \"ccusage daily --since \$(date -v -3d +%Y%m%d) --no-color\""
-tmux respawn-pane -k -t "$R_MID" "claude-monitor --plan max20"
+tmux respawn-pane -k -t "$R_MID" "claude-monitor --plan max5"
 
 # 右下段（左右）を実行
 tmux respawn-pane -k -t "$R_BRIGHT" "tty-clock -sc"
