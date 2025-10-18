@@ -1,8 +1,8 @@
 # chezmoi configuration template
 [data]
-    name = "{{ .chezmoi.username }}"
-    email = "mary.lv416e@gmail.com"
-    
+    name = "{{ output "git" "config" "user.name" | trim }}"
+    email = "{{ output "git" "config" "user.email" | trim }}"
+
 [git]
     autoCommit = true
     autoPush = true
