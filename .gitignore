@@ -46,3 +46,6 @@ raycast-extensions/**/.raycast/
 raycast-extensions/**/.vercel/
 raycast-extensions/**/.DS_Store
 raycast-extensions/**/.env*
+
+# Raycast settings and extensions (too large, contains tokens)
+dot_config/raycast/
