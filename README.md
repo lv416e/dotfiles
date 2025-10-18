@@ -38,8 +38,14 @@ chezmoi apply
 ### Committing changes
 
 ```sh
+chezmoi git add -A
+chezmoi git -- commit -m "Update configuration"
+chezmoi git push
+```
+
+Or use a single shell session:
+
+```sh
 chezmoi cd
-git add .
-git commit -m "Update configuration"
-git push
+git add -A && git commit -m "Update configuration" && git push
 ```
