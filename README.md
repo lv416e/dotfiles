@@ -2,39 +2,39 @@
 
 Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/)
 
-## 新規セットアップ
+## Fresh Setup
 
-### 前提条件
+### Prerequisites
 
-このdotfilesはgit configから名前とメールアドレスを動的に取得します。
-まず、git configを設定してください：
+These dotfiles dynamically retrieve your name and email from git config.
+First, configure your git credentials:
 
 ```sh
 git config --global user.name "your-name"
 git config --global user.email "your-email@example.com"
 ```
 
-### インストール
+### Installation
 
 ```sh
 chezmoi init --apply lv416e/dotfiles
 ```
 
-## 既存環境での使い方
+## Usage on Existing Environment
 
-### 設定を変更する
+### Edit configuration
 
 ```sh
 chezmoi edit ~/.zshrc
 ```
 
-### 設定を適用する
+### Apply changes
 
 ```sh
 chezmoi apply
 ```
 
-### 変更をコミット・プッシュ
+### Commit and push changes
 
 ```sh
 chezmoi cd
