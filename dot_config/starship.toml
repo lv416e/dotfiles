@@ -3,14 +3,11 @@ format = """
 $username\
 $directory\
 $git_branch\
-$git_commit\
-$git_state\
-$git_metrics\
+($git_commit)\
+($git_state)\
+($git_metrics)\
 $git_status\
-$aws\
-$gcloud\
-$memory_usage\
-$time
+($memory_usage)
 $character"""
 
 # プロンプト間の空行を削減
@@ -78,16 +75,12 @@ style = "bold dimmed yellow"
 format = "[$symbol${ram_pct}]($style)"
 symbol = "🧠 "
 
-# クラウド情報：シンボルのみでコンパクトに
+# クラウド情報：無効化（スペース節約のため）
 [aws]
-format = '[$symbol($profile )]($style)[➯](bold bright-black) '
-symbol = "☁️ "
-style = "bold yellow"
+disabled = true
 
 [gcloud]
-format = '[$symbol($account)]($style) [➯](bold bright-black) '
-symbol = "☁️ "
-style = "bold blue"
+disabled = true
 
 [package]
 disabled = true
