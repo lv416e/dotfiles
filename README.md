@@ -27,7 +27,8 @@ git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 ```
 
-> **Note:** This setup reads your name and email directly from git config, so no personal information is hardcoded in the repository.
+> [!NOTE]
+> This setup reads your name and email directly from git config, so no personal information is hardcoded in the repository.
 
 ### Install on a new machine
 
