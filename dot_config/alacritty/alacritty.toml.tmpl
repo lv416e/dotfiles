@@ -3,7 +3,11 @@
 [terminal.shell]
 # Example
 # args = ["--login"]
+{{- if eq .chezmoi.arch "arm64" }}
 args = ["-l", "-c", "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u"]
+{{- else }}
+args = ["-l", "-c", "/usr/local/bin/tmux a -t 0 || /usr/local/bin/tmux -u"]
+{{- end }}
 program = "/bin/zsh"
 
 # ====================== ENV ======================

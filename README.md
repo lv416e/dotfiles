@@ -6,6 +6,20 @@ My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 
 ### Prerequisites
 
+#### 1. Install Homebrew (if not already installed)
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+#### 2. Install chezmoi
+
+```sh
+brew install chezmoi
+```
+
+#### 3. Configure git
+
 Before installing, make sure your git config is set up:
 
 ```sh
