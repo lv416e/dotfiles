@@ -12,5 +12,8 @@ ruby = "3.3"           # Ruby 3.3
 "npm:git-open" = "latest"                   # Open GitHub repo from terminal
 "npm:ccusage" = "latest"                    # Claude Code usage tracker
 
+# Python tools (pipx/uvx)
+"pipx:claude-monitor" = "latest"            # Claude Code usage monitor
+
 [settings]
 experimental = true
