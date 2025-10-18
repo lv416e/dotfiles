@@ -1,8 +1,8 @@
 [tools]
 node = "lts"           # Node.js LTS version
 python = "3.13"        # Python 3.13 (stable)
-ruby = "3.3"           # Ruby 3.3
 go = "latest"          # Latest Go version
+# ruby = "3.3"         # TODO: Fix Ruby build error with LDFLAGS
 
 [settings]
 experimental = true
