@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DOTDIR='/Users/s23736/dotfiles'
+DOTDIR='{{ .chezmoi.homeDir }}/dotfiles'
 
 ## If alacritty.yml does not exist, raise an alert
 [[ ! -f $DOTDIR/.config/alacritty/alacritty.toml ]] && \
