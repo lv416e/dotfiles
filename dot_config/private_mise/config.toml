@@ -7,6 +7,7 @@ ruby = "3.3"           # Ruby 3.3
 # npm global packages
 "npm:@anthropic-ai/claude-code" = "latest"  # Claude Code CLI
 "npm:@google/gemini-cli" = "latest"         # Gemini CLI
+"npm:@openai/codex" = "latest"              # OpenAI Codex CLI
 "npm:@slidev/cli" = "latest"                # Slidev presentation tool
 "npm:git-open" = "latest"                   # Open GitHub repo from terminal
 "npm:ccusage" = "latest"                    # Claude Code usage tracker
