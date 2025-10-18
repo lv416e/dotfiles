@@ -1,40 +1,41 @@
 # dotfiles
 
-Personal dotfiles managed with [chezmoi](https://www.chezmoi.io/)
+My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 
-## Fresh Setup
+## Installation
 
 ### Prerequisites
 
-These dotfiles dynamically retrieve your name and email from git config.
-First, configure your git credentials:
+Before installing, make sure your git config is set up:
 
 ```sh
-git config --global user.name "your-name"
-git config --global user.email "your-email@example.com"
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
 ```
 
-### Installation
+> **Note:** This setup reads your name and email directly from git config, so no personal information is hardcoded in the repository.
+
+### Install on a new machine
 
 ```sh
 chezmoi init --apply lv416e/dotfiles
 ```
 
-## Usage on Existing Environment
+## Daily Usage
 
-### Edit configuration
+### Editing files
 
 ```sh
 chezmoi edit ~/.zshrc
 ```
 
-### Apply changes
+### Applying changes
 
 ```sh
 chezmoi apply
 ```
 
-### Commit and push changes
+### Committing changes
 
 ```sh
 chezmoi cd
