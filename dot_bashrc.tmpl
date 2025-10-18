@@ -10,7 +10,7 @@
 [[ -f "${HOME}/Library/Application Support/amazon-q/shell/bashrc.post.bash" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/bashrc.post.bash"
 
 # Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/s23736/.lmstudio/bin"
+export PATH="$PATH:{{ .chezmoi.homeDir }}/.lmstudio/bin"
 # End of LM Studio CLI section
 
 
