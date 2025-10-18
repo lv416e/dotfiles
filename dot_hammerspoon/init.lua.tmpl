@@ -9,20 +9,29 @@ hs.hotkey.bind({ "⌥" }, "space", function()
   local app = hs.application.find(appName)
   local spaces = require("hs.spaces")
 
-  function GetWindowInCurrentSpace(app)
+  function MoveWindowToCurrentSpace(app)
     local focused = spaces.focusedSpace()
     local windows = app:allWindows()
+
+    -- Check if there's already a window in the current space
     for _, win in ipairs(windows) do
       local winSpaces = spaces.windowSpaces(win)
       if winSpaces then
         for _, sp in ipairs(winSpaces) do
           if sp == focused then
-            return win
+            win:focus()
+            return
           end
         end
       end
     end
-    return nil
+
+    -- If no window in current space, move the first window here
+    if #windows > 0 then
+      local window = windows[1]
+      spaces.moveWindowToSpace(window:id(), focused)
+      window:focus()
+    end
   end
 
   print(app)
@@ -31,13 +40,7 @@ hs.hotkey.bind({ "⌥" }, "space", function()
   elseif app ~= nil and app:isFrontmost() then
     app:hide()
   else
-    local currentSpaceWindow = GetWindowInCurrentSpace(app)
-    if currentSpaceWindow then
-      currentSpaceWindow:focus()
-    else
-      -- Launch a new instance in current space
-      hs.application.launchOrFocus("Alacritty.app")
-    end
+    MoveWindowToCurrentSpace(app)
   end
 end)
 
