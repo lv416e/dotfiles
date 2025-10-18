@@ -7,6 +7,7 @@ $git_branch\
 ($git_state)\
 ($git_metrics)\
 $git_status\
+($battery)\
 ($memory_usage)
 $character"""
 
@@ -68,12 +69,33 @@ staged = "+${count}"
 renamed = "»${count}"
 deleted = "✘${count}"
 
+[battery]
+disabled = false
+full_symbol = "🔋"
+charging_symbol = "⚡"
+discharging_symbol = "💀"
+unknown_symbol = "❓"
+empty_symbol = "🪫"
+format = "[$symbol$percentage]($style) "
+
+[[battery.display]]
+threshold = 10
+style = "bold red"
+
+[[battery.display]]
+threshold = 30
+style = "bold yellow"
+
+[[battery.display]]
+threshold = 100
+style = "bold green"
+
 [memory_usage]
 disabled = false
 threshold = 75  # 75%を超えたときのみ表示
 style = "bold dimmed yellow"
 format = "[$symbol${ram_pct}]($style)"
-symbol = "🧠 "
+symbol = "🧠"
 
 # クラウド情報：無効化（スペース節約のため）
 [aws]
