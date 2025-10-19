@@ -75,7 +75,16 @@ brew "zoxide"
 brew "zsh-autosuggestions"
 brew "zsh-completions"
 brew "zsh-syntax-highlighting"
-cask "alacritty"
+# Additional useful tools
+brew "tldr"           # Simplified man pages
+brew "yq"             # YAML processor (jq for YAML)
+brew "tig"            # Git text-mode interface
+brew "tokei"          # Code statistics
+brew "hyperfine"      # Benchmarking tool
+brew "bandwhich"      # Network bandwidth monitor
+brew "doggo"          # DNS client (dig alternative)
+cask "alacritty"  # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
+cask "kitty"      # GPU-accelerated terminal (alternative to alacritty)
 cask "arc"
 cask "chromedriver"
 cask "claude"
