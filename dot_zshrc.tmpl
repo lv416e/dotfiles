@@ -8,18 +8,23 @@ eval "$(/usr/local/bin/brew shellenv)"
 HOMEBREW_PREFIX="/usr/local"
 {{- end }}
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# Prompt configuration
+# Set PROMPT_THEME to either "starship" or "p10k"
+# To switch to Powerlevel10k, uncomment the line below:
+# export PROMPT_THEME=p10k
+export PROMPT_THEME="${PROMPT_THEME:-starship}"
+
+if [[ "$PROMPT_THEME" == "p10k" ]]; then
+  # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+  # Initialization code that may require console input (password prompts, [y/n]
+  # confirmations, etc.) must go above this block; everything else may go below.
+  if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+  fi
 fi
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # cheat sheet function
 # ch() { cheat $* | bat --style=plain -l sh }
@@ -35,9 +40,17 @@ jgrep() { jq | gron | grep $* | gron -u }
 hg() { history -1000 | grep $* | tail -r | bat -l sh }
 hc() { history -1000 | awk -v cmd="$1" '$1 == cmd { $1=""; sub(/^ +/, ""); print; exit }' | tr -d '\n' | pbcopy }
 
-# Starship
-eval "$(starship init zsh)"
-export STARSHIP_CONFIG=~/.config/starship.toml
+# Prompt initialization
+if [[ "$PROMPT_THEME" == "starship" ]]; then
+  # Starship
+  eval "$(starship init zsh)"
+  export STARSHIP_CONFIG=~/.config/starship.toml
+elif [[ "$PROMPT_THEME" == "p10k" ]]; then
+  # Powerlevel10k
+  source ~/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme
+  # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+  [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+fi
 
 # Alias
 alias la='ls -al'
@@ -69,7 +82,7 @@ alias grep='rg -S'
 alias -g G='| rg -S'
 # change directory
 alias d='cd ~/Documents'
-alias dot='cd ~/dotfiles'
+alias dot='cd ~/.local/share/chezmoi'
 alias obs='cd ~/Google\ Drive/My\ Drive/obsidian/'
 alias ..1='cd ../'
 alias ..2='cd ../../'
@@ -85,15 +98,34 @@ alias df='duf'
 alias ps='procs --tree'
 alias rm='trash'
 alias cl='tty-clock -sc'
-alias vzsh='vim ~/dotfiles/.zshrc'
-alias szsh='source ~/.zshrc'
-# alias code='pycharm'
 alias tenki='http wttr.in/Tokyo'
 alias twork='tmux-work'
 alias tw='tmux-work'
+# chezmoi
+alias vzsh='chezmoi edit ~/.zshrc'
+alias vbrew='chezmoi edit ~/.Brewfile'
+alias szsh='source ~/.zshrc'
+alias cdot='chezmoi cd'
+alias adot='chezmoi apply'
 
 # zoxide
 eval "$(zoxide init --cmd j zsh)"
+
+# fzf configuration
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS='
+  --height 40%
+  --layout=reverse
+  --border
+  --preview "bat --color=always --style=numbers --line-range=:500 {}"
+'
+# fzf key bindings and fuzzy completion
+if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh" ]]; then
+  source "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh"
+fi
+if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh" ]]; then
+  source "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh"
+fi
 
 # mise (unified version management for node, python, go, ruby, etc.)
 eval "$(mise activate zsh)"
@@ -156,6 +188,13 @@ export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
 
 
 [[ -f "$HOME/fig-export/dotfiles/dotfile.zsh" ]] && builtin source "$HOME/fig-export/dotfiles/dotfile.zsh"
+
+# zsh-completions
+if type brew &>/dev/null; then
+  FPATH="${HOMEBREW_PREFIX}/share/zsh-completions:$FPATH"
+  autoload -Uz compinit
+  compinit
+fi
 
 # zsh-autosuggestions (Fish-like autosuggestions)
 source ${HOMEBREW_PREFIX}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
