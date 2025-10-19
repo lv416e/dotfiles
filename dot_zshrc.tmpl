@@ -131,6 +131,9 @@ export JAVA_HOME=`/usr/libexec/java_home -v 11`
 export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
 export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
 export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
+export SDKROOT="$(xcrun --show-sdk-path)"
+export CFLAGS="-isysroot ${SDKROOT}"
+export CXXFLAGS="-isysroot ${SDKROOT}"
 export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c++"
 
 # solver
