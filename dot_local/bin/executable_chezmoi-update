@@ -22,6 +22,12 @@ echo "🧹 Cleaning up Homebrew..."
 brew cleanup
 
 echo ""
+echo "🔄 Updating mise tools..."
+mise install || echo "⚠️  Some mise tools failed to install, but continuing..."
+mise upgrade || echo "⚠️  Some mise tools failed to upgrade, but continuing..."
+mise prune -y
+
+echo ""
 echo "🔄 Updating chezmoi and applying changes..."
 chezmoi update
 
@@ -31,8 +37,10 @@ echo ""
 echo "📊 Summary:"
 formula_count=$(brew list --formula | wc -l | xargs)
 cask_count=$(brew list --cask | wc -l | xargs)
-total=$((formula_count + cask_count))
+brew_total=$((formula_count + cask_count))
+mise_count=$(mise list | wc -l | xargs)
 echo "  - Homebrew formulae: $formula_count"
 echo "  - Homebrew casks: $cask_count"
-echo "  - Total: $total packages"
+echo "  - Homebrew total: $brew_total packages"
+echo "  - mise tools: $mise_count"
 echo "  - Dotfiles: managed by chezmoi"
