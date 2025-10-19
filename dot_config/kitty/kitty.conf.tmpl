@@ -60,9 +60,14 @@ map cmd+return toggle_fullscreen
 # ====================== MACOS SPECIFIC ======================
 macos_option_as_alt no
 macos_quit_when_last_window_closed yes
+macos_traditional_fullscreen yes
 
 # Hide title bar
 hide_window_decorations titlebar-only
+
+# Fix Ctrl key handling on macOS
+# This ensures Ctrl+A, Ctrl+E, Ctrl+K work correctly in shell
+macos_colorspace default
 
 # ====================== PERFORMANCE ======================
 repaint_delay 10
