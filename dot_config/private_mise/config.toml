@@ -17,3 +17,14 @@ ruby = "3.3"           # Ruby 3.3
 
 [settings]
 experimental = true
+
+[tasks.update]
+description = "Update all tools and packages"
+run = [
+  "mise upgrade",
+  "mise prune -y",
+]
+
+[tasks.doctor]
+description = "Check mise installation and configuration"
+run = "mise doctor"
