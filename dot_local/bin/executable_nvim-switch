@@ -1,0 +1,80 @@
+#!/bin/bash
+# Neovim configuration switcher
+# Usage: nvim-switch [astronvim|lazyvim]
+
+set -e
+
+NVIM_DIR="${HOME}/.config/nvim"
+ASTRONVIM_DIR="${HOME}/.config/nvim-astronvim"
+LAZYVIM_DIR="${HOME}/.config/nvim-lazyvim"
+
+# Function to show current config
+show_current() {
+  if [ -L "$NVIM_DIR" ]; then
+    local target=$(readlink "$NVIM_DIR")
+    echo "Current Neovim config: $(basename "$target")"
+  elif [ -d "$NVIM_DIR" ]; then
+    echo "Current Neovim config: nvim (not a symlink)"
+  else
+    echo "No Neovim config found"
+  fi
+}
+
+# Function to switch config
+switch_to() {
+  local target_dir="$1"
+  local config_name="$2"
+
+  if [ ! -d "$target_dir" ]; then
+    echo "❌ Error: $target_dir does not exist"
+    exit 1
+  fi
+
+  # Remove existing nvim config
+  if [ -L "$NVIM_DIR" ]; then
+    rm "$NVIM_DIR"
+  elif [ -d "$NVIM_DIR" ]; then
+    echo "⚠️  Warning: $NVIM_DIR is not a symlink, backing up..."
+    mv "$NVIM_DIR" "${NVIM_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
+  fi
+
+  # Create symlink
+  ln -s "$target_dir" "$NVIM_DIR"
+  echo "✅ Switched to $config_name"
+
+  # Clean plugin cache
+  if [ -d "${HOME}/.local/share/nvim" ]; then
+    echo "🧹 Cleaning plugin cache..."
+    rm -rf "${HOME}/.local/share/nvim"
+  fi
+
+  if [ -d "${HOME}/.local/state/nvim" ]; then
+    rm -rf "${HOME}/.local/state/nvim"
+  fi
+
+  echo "💡 Tip: Run 'nvim' to complete the setup"
+}
+
+# Main logic
+case "${1:-}" in
+  astronvim|astro)
+    switch_to "$ASTRONVIM_DIR" "AstroNvim"
+    ;;
+  lazyvim|lazy)
+    switch_to "$LAZYVIM_DIR" "LazyVim"
+    ;;
+  status|"")
+    show_current
+    echo ""
+    echo "Available configs:"
+    echo "  - astronvim (AstroNvim)"
+    echo "  - lazyvim   (LazyVim)"
+    echo ""
+    echo "Usage: nvim-switch [astronvim|lazyvim]"
+    ;;
+  *)
+    echo "❌ Error: Unknown config '$1'"
+    echo "Usage: nvim-switch [astronvim|lazyvim]"
+    exit 1
+    ;;
+esac

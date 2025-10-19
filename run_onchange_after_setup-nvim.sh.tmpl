@@ -1,0 +1,71 @@
+#!/bin/bash
+# Setup Neovim configuration symlink
+# This script runs when nvim config changes
+
+NVIM_DIR="{{ .chezmoi.homeDir }}/.config/nvim"
+LAZYVIM_DIR="{{ .chezmoi.homeDir }}/.config/nvim-lazyvim"
+ASTRONVIM_DIR="{{ .chezmoi.homeDir }}/.config/nvim-astronvim"
+
+# Default to LazyVim (can be changed by setting NVIM_CONFIG environment variable)
+NVIM_CONFIG="${NVIM_CONFIG:-lazyvim}"
+
+echo "🔧 Setting up Neovim configuration..."
+
+# If nvim is already a symlink pointing to the correct location, skip
+if [ -L "$NVIM_DIR" ]; then
+  current_target=$(readlink "$NVIM_DIR")
+  case "$NVIM_CONFIG" in
+    lazyvim)
+      if [ "$current_target" = "$LAZYVIM_DIR" ]; then
+        echo "✅ Already using LazyVim"
+        exit 0
+      fi
+      ;;
+    astronvim)
+      if [ "$current_target" = "$ASTRONVIM_DIR" ]; then
+        echo "✅ Already using AstroNvim"
+        exit 0
+      fi
+      ;;
+  esac
+fi
+
+# Backup existing config if it's not a symlink
+if [ -d "$NVIM_DIR" ] && [ ! -L "$NVIM_DIR" ]; then
+  backup_name="${NVIM_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
+  echo "⚠️  Backing up existing config to $backup_name"
+  mv "$NVIM_DIR" "$backup_name"
+fi
+
+# Remove symlink if it exists
+if [ -L "$NVIM_DIR" ]; then
+  rm "$NVIM_DIR"
+fi
+
+# Create symlink based on NVIM_CONFIG
+case "$NVIM_CONFIG" in
+  lazyvim)
+    if [ -d "$LAZYVIM_DIR" ]; then
+      ln -s "$LAZYVIM_DIR" "$NVIM_DIR"
+      echo "✅ Linked to LazyVim"
+    else
+      echo "❌ LazyVim directory not found: $LAZYVIM_DIR"
+      exit 1
+    fi
+    ;;
+  astronvim)
+    if [ -d "$ASTRONVIM_DIR" ]; then
+      ln -s "$ASTRONVIM_DIR" "$NVIM_DIR"
+      echo "✅ Linked to AstroNvim"
+    else
+      echo "❌ AstroNvim directory not found: $ASTRONVIM_DIR"
+      exit 1
+    fi
+    ;;
+  *)
+    echo "❌ Unknown NVIM_CONFIG: $NVIM_CONFIG (use 'lazyvim' or 'astronvim')"
+    exit 1
+    ;;
+esac
+
+echo "💡 Use 'nvim-switch' command to switch between configurations"

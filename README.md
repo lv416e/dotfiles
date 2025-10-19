@@ -64,3 +64,46 @@ Or use a single shell session:
 chezmoi cd
 git add -A && git commit -m "Update configuration" && git push
 ```
+
+## Neovim Configuration
+
+This dotfiles setup includes both **LazyVim** and **AstroNvim** configurations, allowing you to easily switch between them.
+
+### Default Configuration
+
+By default, **LazyVim** is used. The setup is automatically configured when you run `chezmoi apply`.
+
+### Switching Between Configurations
+
+Use the `nvim-switch` command to switch between configurations:
+
+```sh
+# Switch to LazyVim
+nvim-switch lazyvim
+
+# Switch to AstroNvim
+nvim-switch astronvim
+
+# Check current configuration
+nvim-switch status
+```
+
+### Manual Configuration (Advanced)
+
+To set a specific configuration as default, set the `NVIM_CONFIG` environment variable before running `chezmoi apply`:
+
+```sh
+# Use AstroNvim by default
+export NVIM_CONFIG=astronvim
+chezmoi apply
+
+# Use LazyVim by default
+export NVIM_CONFIG=lazyvim
+chezmoi apply
+```
+
+### Configuration Locations
+
+- **LazyVim**: `~/.config/nvim-lazyvim/`
+- **AstroNvim**: `~/.config/nvim-astronvim/`
+- **Active Config** (symlink): `~/.config/nvim/`
