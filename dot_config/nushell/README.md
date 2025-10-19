@@ -2,6 +2,50 @@
 
 Modern, rich shell configuration with all your favorite zsh aliases and powerful Nushell-specific commands.
 
+## 📁 Configuration Structure
+
+This Nushell configuration is **modularized** for better maintainability and performance:
+
+```
+~/.config/nushell/
+├── config.nu              # Core settings (372 lines)
+├── env.nu                 # Environment variables
+├── README.md              # This file
+├── scripts/               # Tool integration scripts
+│   ├── mise.nu           # mise version manager
+│   ├── zoxide.nu         # zoxide smart jumping
+│   └── atuin.nu          # atuin history
+└── autoload/             # ✨ Modular configurations (auto-loaded)
+    ├── 01-theme.nu       # Color theme & syntax highlighting
+    ├── 02-aliases.nu     # All command aliases (zsh-compatible)
+    ├── 03-commands.nu    # Custom commands & functions
+    └── 04-integrations.nu # External tool integrations
+```
+
+### Benefits of Modular Structure
+
+- **🚀 Faster startup**: Core config reduced from 704 → 372 lines
+- **📦 Better organization**: Each file has a focused purpose
+- **🔧 Easier maintenance**: Find and edit specific features quickly
+- **📚 Best practices**: Follows Nushell 0.108.0 recommendations
+
+### Adding Custom Configurations
+
+To add your own configurations:
+
+1. Create a `.nu` file in `~/.config/nushell/autoload/`
+2. Name it with a number prefix to control load order (e.g., `05-custom.nu`)
+3. Files are loaded alphabetically at startup
+
+Example:
+```nu
+# ~/.config/nushell/autoload/05-work.nu
+alias deploy = kubectl apply -f deployment.yaml
+def my-custom-command [] {
+    # your code here
+}
+```
+
 ## 📋 Quick Reference
 
 ### Aliases (zsh-compatible)
@@ -37,10 +81,11 @@ Modern, rich shell configuration with all your favorite zsh aliases and powerful
 - `..1` through `..4` → go up 1-4 levels
 
 #### tmux Workspaces
-- `twork`, `tw`, `twk` → tmux-work
-- `tvim`, `tv` → tmux-nvim
-- `tnu`, `tn` → tmux-nu (Nushell workspace)
-- `tcc`, `tc` → tmux-claude
+- `twork`, `tw` → tmux-work (open workspace)
+- `tvim`, `tv` → tmux-nvim (open nvim workspace)
+- `tnu`, `tn` → tmux-nu (open Nushell workspace)
+- `tcc`, `tc` → tmux-claude (open claude workspace)
+- `twk` → kill current tmux window
 
 #### Git Shortcuts
 - `gs` → git status
