@@ -127,6 +127,12 @@ export PATH="${HOMEBREW_PREFIX}/opt/libpq/bin:$PATH"
 # JAVA
 export JAVA_HOME=`/usr/libexec/java_home -v 11`
 
+# C++ Development (LLVM/Clang for C++23)
+export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
+export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
+export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
+export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c++"
+
 # solver
 export PMIP_CBC_LIBRARY="/usr/local/lib/libCbc.dylib"
 export LD_LIBRARY_PATH="/home/haroldo/prog/lib/":$LD_LIBRARY_PATH
