@@ -9,16 +9,22 @@
 [interactive]
     diffFilter = delta --color-only
 [delta]
-    navigate = true              # use n and N to move between diff sections
-    light = false                # set to true if you're in a terminal w/ a light background color
-    side-by-side = true          # show diffs side-by-side
-    line-numbers = true          # show line numbers
+    navigate = true
+    light = false
+    side-by-side = true
+    line-numbers = true
     syntax-theme = Monokai Extended
     whitespace-error-style = 22 reverse
 [merge]
-    conflictstyle = zdiff3       # more detailed 3-way merge
+    conflictstyle = zdiff3
 [diff]
     colorMoved = default
-    algorithm = histogram        # better diff algorithm
+    algorithm = histogram
 [rerere]
-    enabled = true               # remember conflict resolutions
+    enabled = true
+[push]
+    autoSetupRemote = true
+[fetch]
+    prune = true
+[branch]
+    sort = -committerdate

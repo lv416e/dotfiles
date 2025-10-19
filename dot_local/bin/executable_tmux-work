@@ -3,7 +3,7 @@ set -euo pipefail
 
 ANIMALS=(
   "tiger" "leopard" "lion" "panther" "jaguar" "cheetah"
-  "wolf" "fox" "bear" "eagle" "hawk" "falcon" "ziraffe"
+  "wolf" "fox" "bear" "eagle" "hawk" "falcon" "giraffe"
   "dolphin" "whale" "shark" "octopus" "turtle" "seal"
   "cobra" "viper" "dragon" "phoenix" "griffin" "unicorn"
 )
@@ -13,13 +13,13 @@ generate_random_name() {
   echo "${base}-${suffix}"
 }
 
-# window名の決定（指定なしならランダム生成）
+# Window name
 if [[ -n "${1:-}" ]]; then
   WINDOW="$1"
-  ALLOW_DUPLICATE="${ALLOW_DUPLICATE:-0}"  # 明示的に指定された場合のみ重複チェック
+  ALLOW_DUPLICATE="${ALLOW_DUPLICATE:-0}"
 else
   WINDOW=$(generate_random_name)
-  ALLOW_DUPLICATE=1  # ランダム名なら重複OK
+  ALLOW_DUPLICATE=1
 fi
 
 SESSION_DEFAULT="desk"
@@ -28,7 +28,7 @@ FORCE="${FORCE:-0}"
 
 LAYOUT='776f,227x76,0,0{112x76,0,0[112x57,0,0,39,112x18,0,58,43],114x76,113,0[114x32,113,0,40,114x24,113,33,41,114x18,113,58{57x18,113,58,42,56x18,171,58,44}]}'
 
-# --- セッション決定 ---
+# Session
 if [[ -n "${TMUX-}" ]]; then
   SESSION="$(tmux display -p '#S')"
 else
@@ -36,7 +36,7 @@ else
   tmux has-session -t "$SESSION" 2>/dev/null || tmux new-session -d -s "$SESSION" -n tmp
 fi
 
-# --- 同名 window の扱い ---
+# Duplicate handling
 if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
   EXIST_ID="$(tmux list-windows -t "$SESSION" -F '#{window_name} #{window_id}' \
     | awk -v w="$WINDOW" '$1==w{print $2}')"
@@ -44,7 +44,6 @@ if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
     if [[ "$FORCE" == "1" ]]; then
       tmux kill-window -t "$EXIST_ID"
     else
-      # 同名windowが存在する場合、番号を付けて新しい名前を生成
       COUNT=2
       ORIGINAL_WINDOW="$WINDOW"
       while tmux list-windows -t "$SESSION" -F '#{window_name}' | grep -q "^${WINDOW}$"; do
@@ -56,29 +55,28 @@ if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
   fi
 fi
 
-# --- window 作成 ---
+# Create window
 echo "creating window: $WINDOW" >&2
 WINID="$(tmux new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW")"
 
-# --- 6ペインの構造を作る ---
-tmux split-window -h          -t "${WINID}.0"      # -> 1
+# Create 6-pane structure
+tmux split-window -h          -t "${WINID}.0"
 tmux select-pane              -t "${WINID}.0"
-tmux split-window -v -p 24    -t "${WINID}.0"      # -> 2
+tmux split-window -v -p 24    -t "${WINID}.0"
 tmux select-pane              -t "${WINID}.1"
-tmux split-window -v -p 58    -t "${WINID}.1"      # -> 3
+tmux split-window -v -p 58    -t "${WINID}.1"
 tmux select-pane              -t "${WINID}.1"
-tmux split-window -v -p 33    -t "${WINID}.1"      # -> 4
+tmux split-window -v -p 33    -t "${WINID}.1"
 tmux select-pane              -t "${WINID}.4"
-tmux split-window -h -p 50    -t "${WINID}.4"      # -> 5
+tmux split-window -h -p 50    -t "${WINID}.4"
 
-# --- レイアウト固定 ---
+# Fix layout
 tmux select-layout -t "${WINID}" "${LAYOUT}"
 sleep 0.1
 
-# --- 座標でペインを特定 ---
+# Identify panes by coordinates
 readarray -t PINFO < <(tmux list-panes -t "${WINID}" -F '#{pane_id} #{pane_left} #{pane_top}')
 
-# 左列/右列を left 座標で分割
 LEFTS=(); RIGHTS=()
 for l in "${PINFO[@]}"; do
   read -r id x y <<<"$l"
@@ -89,48 +87,43 @@ for l in "${PINFO[@]}"; do
   fi
 done
 
-# 左列：上/下（top 小さい順）
+# Left column: top/bottom
 L_TOP=$(printf '%s\n' "${LEFTS[@]}"  | sort -nk3 | sed -n '1p' | awk '{print $1}')
 L_BOT=$(printf '%s\n' "${LEFTS[@]}"  | sort -nk3 | sed -n '2p' | awk '{print $1}')
 
-# 右列：top値のユニークな値を取得してソート
+# Right column: unique top values
 UNIQUE_TOPS=$(printf '%s\n' "${RIGHTS[@]}" | awk '{print $3}' | sort -nu)
 TOP1=$(echo "$UNIQUE_TOPS" | sed -n '1p')
 TOP2=$(echo "$UNIQUE_TOPS" | sed -n '2p')
 TOP3=$(echo "$UNIQUE_TOPS" | sed -n '3p')
 
-# 各段のペインを取得
 R_TOP=$(printf '%s\n' "${RIGHTS[@]}" | awk -v t="$TOP1" '$3==t{print $1}')
 R_MID=$(printf '%s\n' "${RIGHTS[@]}" | awk -v t="$TOP2" '$3==t{print $1}')
 
-# 下段の2つのペインをleft座標でソート
 R_BOTTOM_PANES=$(printf '%s\n' "${RIGHTS[@]}" | awk -v t="$TOP3" '$3==t')
 R_BLEFT=$(echo "$R_BOTTOM_PANES" | sort -nk2 | sed -n '1p' | awk '{print $1}')
 R_BRIGHT=$(echo "$R_BOTTOM_PANES" | sort -nk2 | sed -n '2p' | awk '{print $1}')
 
-# --- 各ペインでコマンドを実行 ---
-# 左側のペインから実行
+# Commands
 tmux respawn-pane -k -t "$L_TOP" "cd \"${LEFT_DIR}\" && exec zsh"
 tmux respawn-pane -k -t "$L_BOT" "cd \"${LEFT_DIR}\" && exec zsh"
 
-# 右側の上・中段
 tmux respawn-pane -k -t "$R_TOP" "watch -n 10 \"ccusage daily --since \$(date -v -3d +%Y%m%d) --no-color\""
 tmux respawn-pane -k -t "$R_MID" "claude-monitor --plan max5"
 
-# 右下段（左右）を実行
 tmux respawn-pane -k -t "$R_BRIGHT" "tty-clock -sc"
 tmux respawn-pane -k -t "$R_BLEFT" "btm"
 
-# レイアウトを再適用
+# Reapply layout
 tmux select-layout -t "${WINID}" "${LAYOUT}"
 
-# フォーカスを左上に
+# Focus top-left
 tmux select-window -t "${WINID}"
 tmux select-pane -t "$L_TOP"
 
-# 再実行（watchやclaude-monitor対策）
+# Stabilize
 tmux respawn-pane -k -t "$L_TOP"
 tmux respawn-pane -k -t "$L_BOT"
 
-# 外からの起動ならアタッチ
+# Attach if not in tmux
 if [[ -z "${TMUX-}" ]]; then tmux attach -t "$SESSION"; fi

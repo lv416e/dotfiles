@@ -202,9 +202,6 @@ export PATH=$PATH:$DOTDIR/.config/alacritty/bin
 # gnu-time
 export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
 
-
-[[ -f "$HOME/fig-export/dotfiles/dotfile.zsh" ]] && builtin source "$HOME/fig-export/dotfiles/dotfile.zsh"
-
 # zsh-completions
 if type brew &>/dev/null; then
   FPATH="${HOMEBREW_PREFIX}/share/zsh-completions:$FPATH"

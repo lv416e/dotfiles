@@ -1,0 +1,24 @@
+#!/bin/bash
+# Setup tmux plugin manager (TPM) and install plugins
+# This script runs when tmux.conf changes
+# tmux.conf hash: {{ include "dot_tmux.conf" | sha256sum }}
+
+set -eufo pipefail
+
+echo "Setting up tmux plugin manager (TPM)..."
+
+# Install TPM if not already installed
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+    echo "Installing TPM..."
+    git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+else
+    echo "TPM already installed, updating..."
+    cd "$HOME/.tmux/plugins/tpm" && git pull
+fi
+
+# Install/update plugins
+echo "Installing tmux plugins..."
+"$HOME/.tmux/plugins/tpm/bin/install_plugins"
+
+echo "✓ tmux setup complete!"
+echo "Note: Press 'prefix + I' (Ctrl+g then I) in tmux to manually install/update plugins"

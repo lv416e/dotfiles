@@ -1,4 +1,3 @@
-# 2行プロンプト：情報を1行目、入力を2行目に表示
 format = """
 $username\
 $directory\
@@ -11,7 +10,6 @@ $git_status\
 ($memory_usage)
 $character"""
 
-# プロンプト間の空行を削減
 add_newline = false
 
 [character]
@@ -23,11 +21,11 @@ style_user = "white bold"
 style_root = "black bold"
 format = "[$user]($style) [➯](bold bright-black) "
 disabled = false
-show_always = true  # 常に表示
+show_always = true
 
 [directory]
 truncation_length = 3
-truncate_to_repo = true  # Gitリポジトリのルートから表示
+truncate_to_repo = true
 format = "[$path]($style)[$read_only]($read_only_style) [➯](bold bright-black) "
 style = "bold cyan"
 
@@ -92,12 +90,11 @@ style = "bold green"
 
 [memory_usage]
 disabled = false
-threshold = 75  # 75%を超えたときのみ表示
+threshold = 75
 style = "bold dimmed yellow"
 format = "[$symbol${ram_pct}]($style)"
 symbol = "🧠"
 
-# クラウド情報：無効化（スペース節約のため）
 [aws]
 disabled = true
 
@@ -108,5 +105,5 @@ disabled = true
 disabled = true
 
 [time]
-disabled = true  # デフォルトでは非表示（必要に応じて有効化）
+disabled = true
 format = '[\[$time\]]($style) '

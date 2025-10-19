@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ===== Config（環境変数で上書き可）=====
+# Config (can override with env vars)
 SESSION_DEFAULT="${SESSION_DEFAULT:-desk}"
 LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
 
-# 上段ペイン数: 2 または 1
-TOP_PANES="${TOP_PANES:-1}"          # 2=上段左右 / 1=上段フル幅1ペイン
-TOP_SPLIT="${TOP_SPLIT:-55}"         # 上段が2ペイン時の左右比[%]
+# Top panes: 2 or 1
+TOP_PANES="${TOP_PANES:-1}"
+TOP_SPLIT="${TOP_SPLIT:-55}"
 
-# 下段の高さ（行数 or 比率）
-BOTTOM_LINES="${BOTTOM_LINES:-}"     # 例: BOTTOM_LINES=18
-BOTTOM_PCT_DEFAULT=24                # 旧LAYOUT相当（76行中18≒24%）
+# Bottom pane height: lines or percentage
+BOTTOM_LINES="${BOTTOM_LINES:-}"
+BOTTOM_PCT_DEFAULT=24
 
-# 右下の左右比（tty-clock 側=新規ペインの幅[%]）
+# Right bottom split
 RIGHT_BOTTOM_SPLIT="${RIGHT_BOTTOM_SPLIT:-55}"
 
 CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
@@ -32,14 +32,14 @@ generate_random_name() {
   echo "${base}-${suffix}"
 }
 
-# ===== Window名 =====
+# Window name
 if [[ -n "${1:-}" ]]; then
   WINDOW="$1"; ALLOW_DUPLICATE="${ALLOW_DUPLICATE:-0}"
 else
   WINDOW=$(generate_random_name); ALLOW_DUPLICATE=1
 fi
 
-# ===== Session =====
+# Session
 if [[ -n "${TMUX-}" ]]; then
   SESSION="$(tmux display -p '#S')"
 else
@@ -47,7 +47,7 @@ else
   tmux has-session -t "$SESSION" 2>/dev/null || tmux new-session -d -s "$SESSION" -n tmp
 fi
 
-# ===== Duplicate handling =====
+# Duplicate handling
 if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
   EXIST_ID="$(tmux list-windows -t "$SESSION" -F '#{window_name} #{window_id}' \
     | awk -v w="$WINDOW" '$1==w{print $2}')"
@@ -64,11 +64,11 @@ if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
   fi
 fi
 
-# ===== Create window =====
+# Create window
 echo "creating window: $WINDOW" >&2
 WINID="$(tmux new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW")"
 
-# 下段の高さ[%]を決定（行数があれば優先）
+# Calculate BOTTOM_PCT from terminal height (lines take priority)
 WINH="$(tmux display -p -t "$WINID" '#{window_height}')"
 if [[ -n "${BOTTOM_LINES}" ]]; then
   bp=$(( (BOTTOM_LINES * 100 + WINH/2) / WINH ))
@@ -79,42 +79,35 @@ else
   BOTTOM_PCT="${BOTTOM_PCT:-$BOTTOM_PCT_DEFAULT}"
 fi
 
-# ===== Pane graph =====
-# 1) 上下に分割
+# Pane layout
 TOP="$(tmux display -p -t "${WINID}.0" '#{pane_id}')"
 BOT="$(tmux split-window -v -p "$BOTTOM_PCT" -t "$TOP" -P -F '#{pane_id}')"
 
-# 2) 上段：TOP_PANES に応じて分割
 RTOP=""
 if [[ "$TOP_PANES" -eq 2 ]]; then
   RTOP="$(tmux split-window -h -p "$TOP_SPLIT" -t "$TOP" -P -F '#{pane_id}')"
   LTOP="$TOP"
 else
-  # 上段は1ペイン（フル幅）
   LTOP="$TOP"
 fi
 
-# 3) 下段：右をさらに左右へ（tty-clock側を新規作成）
 RB1="$(tmux split-window -h -p 50 -t "$BOT" -P -F '#{pane_id}')"
 LBOT="$BOT"
 RBR="$(tmux split-window -h -p "$RIGHT_BOTTOM_SPLIT" -t "$RB1" -P -F '#{pane_id}')"
 RBL="$RB1"
 
-# ===== Commands =====
-# 上段 Doc
+# Commands
 tmux respawn-pane -k -t "$LTOP" "cd \"${LEFT_DIR}\" && exec zsh"
 if [[ -n "$RTOP" ]]; then
   tmux respawn-pane -k -t "$RTOP" "cd \"${LEFT_DIR}\" && exec zsh"
 fi
 
-# 下段 左: claude-monitor
 if command -v claude-monitor >/dev/null 2>&1; then
   tmux respawn-pane -k -t "$LBOT" "claude-monitor --plan ${CLAUDE_PLAN}"
 else
   tmux respawn-pane -k -t "$LBOT" "bash -lc 'echo \"[warn] claude-monitor not found\"; exec zsh'"
 fi
 
-# 下段 右: 左= btm/htop/top, 右= tty-clock or watch date
 tmux respawn-pane -k -t "$RBL"  "bash -lc 'btm || htop || top'"
 if command -v tty-clock >/dev/null 2>&1; then
   tmux respawn-pane -k -t "$RBR" "tty-clock -sc"
@@ -122,13 +115,13 @@ else
   tmux respawn-pane -k -t "$RBR" "watch -n 1 \"date +%H:%M:%S\""
 fi
 
-# 初期フォーカスは上段
+# Initial focus
 tmux select-window -t "${WINID}"
 tmux select-pane   -t "$LTOP"
 
-# 安定化（必要なら）
+# Stabilize
 tmux respawn-pane -k -t "$LTOP"
 tmux respawn-pane -k -t "$LBOT"
 
-# アタッチ（tmux外）
+# Attach if not in tmux
 if [[ -z "${TMUX-}" ]]; then tmux attach -t "$SESSION"; fi
