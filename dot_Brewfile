@@ -75,7 +75,6 @@ brew "zsh-autosuggestions"
 brew "zsh-completions"
 brew "zsh-syntax-highlighting"
 # Additional useful tools
-brew "tldr"           # Simplified man pages
 brew "yq"             # YAML processor (jq for YAML)
 brew "tig"            # Git text-mode interface
 brew "tokei"          # Code statistics
@@ -88,6 +87,7 @@ brew "lazydocker"      # Docker TUI manager
 brew "viddy"           # Modern watch command with time machine
 brew "navi"            # Interactive cheatsheet tool
 brew "xh"              # Fast HTTPie alternative
+brew "tealdeer"        # Fast tldr client (Rust implementation)
 cask "alacritty"  # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
 cask "kitty"      # GPU-accelerated terminal (alternative to alacritty)
 cask "arc"
