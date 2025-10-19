@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Setup Nushell configuration symlinks for macOS
+# Setup Nushell configuration for macOS
 # macOS uses ~/Library/Application Support/nushell/ instead of ~/.config/nushell/
 
 set -euo pipefail
@@ -7,11 +7,18 @@ set -euo pipefail
 NUSHELL_SUPPORT_DIR="$HOME/Library/Application Support/nushell"
 NUSHELL_CONFIG_DIR="$HOME/.config/nushell"
 
-# Create directory if it doesn't exist
+# Create directories if they don't exist
 mkdir -p "$NUSHELL_SUPPORT_DIR"
+mkdir -p "$NUSHELL_SUPPORT_DIR/autoload"
 
-# Create symlinks
+# Create symlinks for main config files
 ln -sf "$NUSHELL_CONFIG_DIR/config.nu" "$NUSHELL_SUPPORT_DIR/config.nu"
 ln -sf "$NUSHELL_CONFIG_DIR/env.nu" "$NUSHELL_SUPPORT_DIR/env.nu"
 
-echo "✅ Nushell configuration symlinks created successfully"
+# Copy autoload directory (symlinks don't work for autoload on macOS)
+if [ -d "$NUSHELL_CONFIG_DIR/autoload" ]; then
+    rsync -a --delete "$NUSHELL_CONFIG_DIR/autoload/" "$NUSHELL_SUPPORT_DIR/autoload/"
+    echo "✅ Nushell autoload files synced"
+fi
+
+echo "✅ Nushell configuration setup completed successfully"
