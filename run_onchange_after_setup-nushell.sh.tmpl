@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Setup Nushell configuration symlinks for macOS
+# macOS uses ~/Library/Application Support/nushell/ instead of ~/.config/nushell/
+
+set -euo pipefail
+
+NUSHELL_SUPPORT_DIR="$HOME/Library/Application Support/nushell"
+NUSHELL_CONFIG_DIR="$HOME/.config/nushell"
+
+# Create directory if it doesn't exist
+mkdir -p "$NUSHELL_SUPPORT_DIR"
+
+# Create symlinks
+ln -sf "$NUSHELL_CONFIG_DIR/config.nu" "$NUSHELL_SUPPORT_DIR/config.nu"
+ln -sf "$NUSHELL_CONFIG_DIR/env.nu" "$NUSHELL_SUPPORT_DIR/env.nu"
+
+echo "✅ Nushell configuration symlinks created successfully"

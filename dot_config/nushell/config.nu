@@ -362,41 +362,66 @@ $env.PROMPT_MULTILINE_INDICATOR = "::: "
 # Aliases (zsh-like)
 # ========================================
 
-# Modern CLI tools
-alias ls = eza --icons
-alias ll = eza --icons -l
-alias la = eza --icons -la
-alias cat = bat
-alias find = fd
-alias grep = rg
-alias vim = nvim
-alias vi = nvim
+# Modern CLI tools (use ^ for external commands)
+alias ls = ^eza --icons
+alias ll = ^eza --icons -l
+alias la = ^eza --icons -la
+alias cat = ^bat
+alias find = ^fd
+alias grep = ^rg
+alias vim = ^nvim
+alias vi = ^nvim
+alias ps = ^procs
 
 # Git aliases
-alias gs = git status
-alias ga = git add
-alias gc = git commit
-alias gp = git push
-alias gl = git log --oneline --graph --decorate
-alias gd = git diff
+alias gs = ^git status
+alias ga = ^git add
+alias gc = ^git commit
+alias gp = ^git push
+alias gl = ^git log --oneline --graph --decorate
+alias gd = ^git diff
 
 # tmux
-alias twork = tmux-work
-alias tvim = tmux-nvim
-alias tw = tmux-work
-alias tv = tmux-nvim
+alias twork = ^tmux-work
+alias tvim = ^tmux-nvim
+alias tnu = ^tmux-nu
+alias tcc = ^tmux-claude
+alias tw = ^tmux-work
+alias tv = ^tmux-nvim
+alias tn = ^tmux-nu
+alias tc = ^tmux-claude
 
 # chezmoi
-alias cdot = cd ~/.local/share/chezmoi
-alias adot = chezmoi add
-alias vzsh = chezmoi edit ~/.zshrc
-alias vbrew = chezmoi edit ~/.Brewfile
-alias vnu = chezmoi edit ~/.config/nushell/config.nu
+alias cdot = ^chezmoi cd
+alias adot = ^chezmoi apply
+alias vzsh = ^chezmoi edit ~/.zshrc
+alias vbrew = ^chezmoi edit ~/.Brewfile
+alias vnu = ^chezmoi edit ~/.config/nushell/config.nu
+alias szsh = source ~/.zshrc
 
 # System
-alias cl = clear
+alias c = clear
+alias cl = ^tty-clock -sc
 alias .. = cd ..
 alias ... = cd ../..
+alias ..3 = cd ../../..
+alias ..4 = cd ../../../..
+
+# Modern CLI replacements
+alias du = ^dust
+alias df = ^duf
+alias rm = ^trash
+alias tenki = ^http wttr.in/Tokyo
+
+# Additional useful aliases
+alias dust = ^dust
+alias duf = ^duf
+alias bat = ^bat
+alias fd = ^fd
+alias rg = ^rg
+alias eza = ^eza
+alias procs = ^procs
+alias trash = ^trash
 
 # ========================================
 # Custom Commands

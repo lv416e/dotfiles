@@ -7,7 +7,7 @@ LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
 
 # 上段ペイン数: 2 または 1
 TOP_PANES="${TOP_PANES:-2}"          # 2=上段左右(Nushell x2) / 1=上段フル幅1ペイン
-TOP_SPLIT="${TOP_SPLIT:-55}"         # 上段が2ペイン時の左右比[%]
+TOP_SPLIT="${TOP_SPLIT:-50}"         # 上段が2ペイン時の左右比[%]
 
 # 下段の高さ（行数 or 比率）
 BOTTOM_LINES="${BOTTOM_LINES:-}"     # 例: BOTTOM_LINES=18
