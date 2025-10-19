@@ -3,6 +3,17 @@
     name = "{{ output "git" "config" "user.name" | trim }}"
     email = "{{ output "git" "config" "user.email" | trim }}"
 
+[edit]
+    command = "nvim"
+    apply = true
+
+[add]
+    secrets = "error"
+
 [git]
     autoCommit = true
     autoPush = true
+
+[merge]
+    command = "nvim"
+    args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}"]
