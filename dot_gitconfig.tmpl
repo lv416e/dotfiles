@@ -9,10 +9,16 @@
 [interactive]
     diffFilter = delta --color-only
 [delta]
-    navigate = true    # use n and N to move between diff sections
-    light = false      # set to true if you're in a terminal w/ a light background color (e.g. the default macOS terminal)
-    side-by-side=true
+    navigate = true              # use n and N to move between diff sections
+    light = false                # set to true if you're in a terminal w/ a light background color
+    side-by-side = true          # show diffs side-by-side
+    line-numbers = true          # show line numbers
+    syntax-theme = Monokai Extended
+    whitespace-error-style = 22 reverse
 [merge]
-    conflictstyle = diff3
+    conflictstyle = zdiff3       # more detailed 3-way merge
 [diff]
     colorMoved = default
+    algorithm = histogram        # better diff algorithm
+[rerere]
+    enabled = true               # remember conflict resolutions
