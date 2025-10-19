@@ -135,13 +135,6 @@ export FZF_DEFAULT_OPTS='
   --border
   --preview "bat --color=always --style=numbers --line-range=:500 {}"
 '
-# fzf key bindings and fuzzy completion
-if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh" ]]; then
-  source "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh"
-fi
-if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh" ]]; then
-  source "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh"
-fi
 
 # mise (unified version management for node, python, go, ruby, etc.)
 eval "$(mise activate zsh)"
@@ -202,27 +195,25 @@ export PATH=$PATH:$DOTDIR/.config/alacritty/bin
 # gnu-time
 export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
 
-# zsh-completions
-if type brew &>/dev/null; then
-  FPATH="${HOMEBREW_PREFIX}/share/zsh-completions:$FPATH"
-  autoload -Uz compinit
-  compinit
+# sheldon - zsh plugin manager
+eval "$(sheldon source)"
+
+# fzf key bindings and fuzzy completion (loaded via Homebrew)
+if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh" ]]; then
+  zsh-defer source "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh"
 fi
-
-# zsh-autosuggestions (Fish-like autosuggestions)
-source ${HOMEBREW_PREFIX}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-
-# zsh-syntax-highlighting (must be loaded at the end)
-source ${HOMEBREW_PREFIX}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh" ]]; then
+  zsh-defer source "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh"
+fi
 
 # Q post block. Keep at the bottom of this file.
 [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
 
-# kill current tmux window (only when inside tmux)
+# Kill current tmux window (only when inside tmux)
 twk() {
   local id
   id="$(tmux display -p '#{window_id}' 2>/dev/null)" || {
-    echo "tmux内で実行してください" >&2; return 1
+    echo "Run inside tmux session" >&2; return 1
   }
   tmux kill-window -t "$id"
 }
