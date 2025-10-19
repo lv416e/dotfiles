@@ -70,10 +70,7 @@ brew "watch"
 brew "yarn"
 brew "zlib"
 brew "zoxide"
-brew "zsh-autosuggestions"
 brew "zsh-completions"
-brew "zsh-syntax-highlighting"
-brew "sheldon"          # Fast zsh plugin manager
 # Additional useful tools
 brew "yq"             # YAML processor (jq for YAML)
 brew "tig"            # Git text-mode interface
