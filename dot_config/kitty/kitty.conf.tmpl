@@ -1,0 +1,70 @@
+# kitty configuration
+# https://sw.kovidgoyal.net/kitty/conf.html
+
+# ====================== FONT ======================
+font_family      HackGen35 Console NF Regular
+bold_font        HackGen35 Console NF Bold
+italic_font      HackGen35 Console NF Italic
+bold_italic_font HackGen35 Console NF Bold Italic
+font_size        11.0
+
+# ====================== CURSOR ======================
+cursor_shape block
+cursor_blink_interval 0.75
+cursor_stop_blinking_after 5.0
+
+# ====================== SCROLLBACK ======================
+scrollback_lines 100000
+
+# ====================== MOUSE ======================
+copy_on_select yes
+strip_trailing_spaces smart
+
+# ====================== WINDOW ======================
+background_opacity 0.85
+window_padding_width 8
+
+# Remember window size
+remember_window_size yes
+initial_window_width  200c
+initial_window_height 50c
+
+# ====================== TAB BAR ======================
+tab_bar_style powerline
+tab_powerline_style slanted
+
+# ====================== SHELL ======================
+{{- if eq .chezmoi.arch "arm64" }}
+shell /bin/zsh --login -c "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u"
+{{- else }}
+shell /bin/zsh --login -c "/usr/local/bin/tmux a -t 0 || /usr/local/bin/tmux -u"
+{{- end }}
+
+# ====================== COLORS ======================
+# You can import color schemes here
+# Example: include ./themes/argonaut.conf
+
+# Default terminal
+term xterm-256color
+
+# ====================== KEYBOARD SHORTCUTS ======================
+# Create new window
+map ctrl+shift+n new_window_with_cwd
+
+# Create new tab
+map ctrl+shift+t new_tab_with_cwd
+
+# Toggle fullscreen
+map cmd+return toggle_fullscreen
+
+# ====================== MACOS SPECIFIC ======================
+macos_option_as_alt no
+macos_quit_when_last_window_closed yes
+
+# Hide title bar
+hide_window_decorations titlebar-only
+
+# ====================== PERFORMANCE ======================
+repaint_delay 10
+input_delay 3
+sync_to_monitor yes
