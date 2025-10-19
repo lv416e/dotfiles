@@ -11,4 +11,9 @@ type = "git-repo"
 url = "https://github.com/romkatv/powerlevel10k.git"
 refreshPeriod = "168h"
 
-# Brewfile dependencies are now managed locally via run_once_install-packages.sh.tmpl
+[".tmux/plugins/tpm"]
+type = "git-repo"
+url = "https://github.com/tmux-plugins/tpm.git"
+refreshPeriod = "168h"
+
+# Brewfile dependencies are now managed locally via run_onchange_install-packages.sh.tmpl
