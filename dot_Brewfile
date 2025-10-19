@@ -83,6 +83,7 @@ brew "hyperfine"      # Benchmarking tool
 brew "bandwhich"      # Network bandwidth monitor
 brew "doggo"          # DNS client (dig alternative)
 brew "gitui"           # Blazing fast Git TUI (replacement for lazygit)
+brew "atuin"           # Magical shell history sync & search
 cask "alacritty"  # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
 cask "kitty"      # GPU-accelerated terminal (alternative to alacritty)
 cask "arc"
