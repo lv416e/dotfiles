@@ -413,7 +413,6 @@ alias tw = ^tmux-work
 alias tv = ^tmux-nvim
 alias tn = ^tmux-nu
 alias tc = ^tmux-claude
-alias twk = ^tmux-work  # Added for compatibility
 
 # Git aliases
 alias gs = ^git status
@@ -463,6 +462,17 @@ def hs [search: string] {
 # ========================================
 # Custom Commands (Nushell-enhanced)
 # ========================================
+
+# Kill current tmux window (tmux window kill)
+def twk [] {
+    let result = (^tmux display -p '#{window_id}' | complete)
+    if $result.exit_code != 0 {
+        print $"(ansi red)tmux内で実行してください(ansi reset)"
+        return
+    }
+    let id = ($result.stdout | str trim)
+    ^tmux kill-window -t $id
+}
 
 # Create directory and cd into it
 def mkcd [dir: string] {
