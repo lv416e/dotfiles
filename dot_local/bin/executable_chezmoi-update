@@ -1,0 +1,38 @@
+#!/bin/bash
+# Update chezmoi and system packages
+# Usage: chezmoi-update
+
+set -e
+
+echo "🔄 Updating system packages..."
+echo ""
+
+echo "📦 Updating Homebrew..."
+brew update
+
+echo ""
+echo "⬆️  Upgrading Homebrew packages..."
+# Continue even if some packages fail to upgrade
+brew upgrade || {
+    echo "⚠️  Some packages failed to upgrade, but continuing..."
+}
+
+echo ""
+echo "🧹 Cleaning up Homebrew..."
+brew cleanup
+
+echo ""
+echo "🔄 Updating chezmoi and applying changes..."
+chezmoi update
+
+echo ""
+echo "✅ All updates complete!"
+echo ""
+echo "📊 Summary:"
+formula_count=$(brew list --formula | wc -l | xargs)
+cask_count=$(brew list --cask | wc -l | xargs)
+total=$((formula_count + cask_count))
+echo "  - Homebrew formulae: $formula_count"
+echo "  - Homebrew casks: $cask_count"
+echo "  - Total: $total packages"
+echo "  - Dotfiles: managed by chezmoi"
