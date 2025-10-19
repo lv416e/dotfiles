@@ -15,6 +15,9 @@ ruby = "3.3"           # Ruby 3.3
 # Python tools (pipx/uvx)
 "pipx:claude-monitor" = "latest"            # Claude Code usage monitor
 
+# Modern shell (experimental)
+"cargo:nu" = "latest"                       # Nushell - modern shell with structured data
+
 [settings]
 experimental = true
 
