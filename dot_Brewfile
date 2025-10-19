@@ -71,6 +71,7 @@ brew "yarn"
 brew "zlib"
 brew "zoxide"
 brew "zsh-completions"
+brew "sheldon"          # Fast zsh plugin manager (Rust-based)
 # Additional useful tools
 brew "yq"             # YAML processor (jq for YAML)
 brew "tig"            # Git text-mode interface

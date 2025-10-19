@@ -1,0 +1,23 @@
+shell = "zsh"
+
+# Templates for deferred loading
+[templates]
+defer = "{{ hooks?.pre | nl }}{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}{{ hooks?.post | nl }}"
+
+# zsh-defer must be loaded first
+[plugins.zsh-defer]
+github = "romkatv/zsh-defer"
+
+# Completions - no defer needed
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+
+# Autosuggestions - DO NOT USE DEFER (causes infinite recursion)
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+use = ["{{ name }}.zsh"]
+
+# Syntax highlighting - can use defer safely
+[plugins.zsh-syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"
+apply = ["defer"]
