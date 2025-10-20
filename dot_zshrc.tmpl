@@ -1,3 +1,6 @@
+# Performance profiling (comment out when not benchmarking)
+# zmodload zsh/zprof
+
 # Q pre block. Keep at the top of this file.
 # Note: Deferred loading for faster startup (20-30ms improvement)
 # Amazon Q will be available after zsh-defer completes
@@ -33,6 +36,8 @@ HOMEBREW_PREFIX="/usr/local"
 export PROMPT_THEME="${PROMPT_THEME:-p10k}"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
+  # Disable SSH detection for 22ms faster startup (only needed if connecting via SSH)
+  export POWERLEVEL9K_SSH_DETECT_DISABLED=1
   # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
   # Initialization code that may require console input (password prompts, [y/n]
   # confirmations, etc.) must go above this block; everything else may go below.
@@ -141,7 +146,7 @@ alias lg='gitui'
 alias ld='lazydocker'
 # performance monitoring
 alias tmux-health='tmux list-panes -a -F "Pane #{pane_id}: #{history_size}/#{history_limit} lines"'
-alias zsh-bench='for i in {1..10}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr/bin/grep real; done'
+alias zsh-bench='for i in $(seq 1 20); do time zsh -i -c exit; done'
 
 # zoxide - will be loaded with zsh-defer after sheldon
 # atuin - will be loaded with zsh-defer after sheldon
@@ -188,7 +193,9 @@ export PATH="${HOMEBREW_PREFIX}/opt/libpq/bin:$PATH"
 export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
 export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
 export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
-export SDKROOT="$(xcrun --show-sdk-path)"
+# Hardcoded for 14ms faster startup (previously: export SDKROOT="$(xcrun --show-sdk-path)")
+# Note: After macOS updates, verify the path hasn't changed by running: xcrun --show-sdk-path
+export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
 export CFLAGS="-isysroot ${SDKROOT}"
 export CXXFLAGS="-isysroot ${SDKROOT}"
 export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c++"
@@ -224,16 +231,19 @@ unset _sheldon_cache _sheldon_toml
 
 # Initialize zsh completion system with cache optimization (for faster startup)
 # Regenerate completion dump only once per day for significant speedup
-autoload -Uz compinit
-_comp_path="${ZDOTDIR:-$HOME}/.zcompdump"
-if [[ -n $_comp_path(#qNmh-20) ]]; then
-  # Cache exists and is less than 20 hours old - use -C and -u for maximum speed
-  compinit -C -u -d "$_comp_path"
-else
-  # Cache is old or doesn't exist - regenerate with -u to skip ownership check
-  compinit -u -d "$_comp_path"
-fi
-unset _comp_path
+# Using zsh-defer for lazy loading (saves ~20ms startup time)
+_load_completion() {
+  autoload -Uz compinit
+  local _comp_path="${ZDOTDIR:-$HOME}/.zcompdump"
+  if [[ -n $_comp_path(#qNmh-24) ]]; then
+    # Cache exists and is less than 24 hours old - use -C and -u for maximum speed
+    compinit -C -u -d "$_comp_path"
+  else
+    # Cache is old or doesn't exist - regenerate with -u to skip ownership check
+    compinit -u -d "$_comp_path"
+  fi
+}
+zsh-defer _load_completion
 
 # Deferred initialization (loaded after sheldon provides zsh-defer)
 # These tools are loaded lazily to improve startup time
@@ -502,12 +512,16 @@ _repo_list() {
 
 # Register completion (only if completion system is available)
 # This needs to be after sheldon source which loads zsh-completions
-if (( $+functions[compdef] )); then
-  compdef _repo repo
-  compdef _repo rt
-  compdef _repo rt2
-  compdef _repo rtd
-fi
+# Deferred to match compinit deferred loading
+_register_repo_completion() {
+  if (( $+functions[compdef] )); then
+    compdef _repo repo
+    compdef _repo rt
+    compdef _repo rt2
+    compdef _repo rtd
+  fi
+}
+zsh-defer _register_repo_completion
 
 # ============================================================================
 # Convenient Aliases for repo command
@@ -517,3 +531,7 @@ fi
 alias rt='repo -t'       # repo tmux (1 pane)
 alias rt2='repo -t2'     # repo tmux (2 panes)
 alias rtd='repo -t2'     # repo tmux dual (same as rt2)
+
+# Performance profiling (comment out when not benchmarking)
+# Show top 30 slowest functions/commands at startup
+# zprof | head -40
