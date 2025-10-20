@@ -19,9 +19,18 @@ HOMEBREW_PREFIX="/usr/local"
 
 # Prompt configuration
 # Set PROMPT_THEME to either "starship" or "p10k"
-# To switch to Powerlevel10k, uncomment the line below:
-# export PROMPT_THEME=p10k
-export PROMPT_THEME="${PROMPT_THEME:-starship}"
+#
+# Performance (measured with zsh-bench):
+#   P10k:     first_prompt_lag=45.9ms, command_lag=42.9ms (faster)
+#   Starship: first_prompt_lag=83.5ms, command_lag=83.8ms (cross-shell)
+#
+# To switch between prompts:
+#   1. Set environment variable before starting zsh:
+#      export PROMPT_THEME=starship  # or p10k
+#   2. Or use the switch-prompt command (see below)
+#
+# Default: P10k (45% faster first prompt, 49% faster commands)
+export PROMPT_THEME="${PROMPT_THEME:-p10k}"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
   # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
@@ -56,8 +65,8 @@ if [[ "$PROMPT_THEME" == "starship" ]]; then
   eval "$(starship init zsh)"
   export STARSHIP_CONFIG=~/.config/starship.toml
 elif [[ "$PROMPT_THEME" == "p10k" ]]; then
-  # Powerlevel10k
-  source ~/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme
+  # Powerlevel10k (standalone, no Oh-My-Zsh)
+  source ~/powerlevel10k/powerlevel10k.zsh-theme
   # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 fi
@@ -273,6 +282,38 @@ zsh-refresh() {
   echo "Clearing completion cache..."
   rm -f "${ZDOTDIR:-$HOME}/.zcompdump"
   echo "Restarting zsh..."
+  exec zsh
+}
+
+# Switch between Starship and Powerlevel10k prompts
+# Usage: switch-prompt [starship|p10k]
+switch-prompt() {
+  local theme="${1:-}"
+  local zshenv_local="${ZDOTDIR:-$HOME}/.zshenv.local"
+
+  if [[ -z "$theme" ]]; then
+    echo "Current prompt: $PROMPT_THEME"
+    echo ""
+    echo "Usage: switch-prompt [starship|p10k]"
+    echo ""
+    echo "Performance (zsh-bench):"
+    echo "  P10k:     first_prompt=45.9ms, command=42.9ms  (faster)"
+    echo "  Starship: first_prompt=83.5ms, command=83.8ms  (cross-shell)"
+    return 0
+  fi
+
+  if [[ "$theme" != "starship" && "$theme" != "p10k" ]]; then
+    echo "Error: theme must be 'starship' or 'p10k'" >&2
+    return 1
+  fi
+
+  # Write to .zshenv.local (not managed by chezmoi, machine-specific)
+  echo "# Prompt theme override (managed by switch-prompt command)" > "$zshenv_local"
+  echo "export PROMPT_THEME=$theme" >> "$zshenv_local"
+
+  echo "✅ Prompt switched to: $theme"
+  echo "📝 Saved to: ~/.zshenv.local (not in chezmoi)"
+  echo "🔄 Restarting zsh..."
   exec zsh
 }
 

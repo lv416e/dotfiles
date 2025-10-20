@@ -1,15 +1,8 @@
 # External dependencies managed by chezmoi
 # These will be automatically downloaded/updated when running chezmoi apply
 
-[".oh-my-zsh"]
-type = "git-repo"
-url = "https://github.com/ohmyzsh/ohmyzsh.git"
-refreshPeriod = "168h" # Refresh weekly
-
-[".oh-my-zsh/custom/themes/powerlevel10k"]
-type = "git-repo"
-url = "https://github.com/romkatv/powerlevel10k.git"
-refreshPeriod = "168h"
+# Note: oh-my-zsh removed (not used, causes 1-3s startup delay)
+# Powerlevel10k now installed standalone via run_once script
 
 [".tmux/plugins/tpm"]
 type = "git-repo"

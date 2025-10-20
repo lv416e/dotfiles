@@ -1,0 +1,22 @@
+#!/bin/bash
+# Install Powerlevel10k standalone (no Oh-My-Zsh)
+# This script runs only once per machine
+
+set -e
+
+P10K_DIR="$HOME/powerlevel10k"
+
+if [[ -d "$P10K_DIR" ]]; then
+  echo "✅ Powerlevel10k already installed at: $P10K_DIR"
+  exit 0
+fi
+
+echo "📦 Installing Powerlevel10k standalone..."
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
+
+echo "✅ Powerlevel10k installed successfully"
+echo "📍 Location: $P10K_DIR"
+echo ""
+echo "💡 To switch prompts:"
+echo "   switch-prompt p10k      # Use Powerlevel10k"
+echo "   switch-prompt starship  # Use Starship"

@@ -1,0 +1,20 @@
+#
+# Defines environment variables.
+#
+# Authors:
+#   Sorin Ionescu <sorin.ionescu@gmail.com>
+#
+
+# Ensure that a non-login, non-interactive shell has a defined environment.
+if [[ ( "$SHLVL" -eq 1 && ! -o LOGIN ) && -s "${ZDOTDIR:-$HOME}/.zprofile" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zprofile"
+fi
+
+# Cargo environment
+. "$HOME/.cargo/env"
+
+# Load local overrides (not managed by chezmoi)
+# Use this file for machine-specific environment variables like PROMPT_THEME
+if [[ -f "${ZDOTDIR:-$HOME}/.zshenv.local" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zshenv.local"
+fi

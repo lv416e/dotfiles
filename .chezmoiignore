@@ -1,0 +1,2 @@
+# Local override files (not managed by chezmoi)
+.zshenv.local
