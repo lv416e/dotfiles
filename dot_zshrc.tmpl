@@ -41,6 +41,7 @@ hg() { history -1000 | grep $* | tail -r | bat -l sh }
 hc() { history -1000 | awk -v cmd="$1" '$1 == cmd { $1=""; sub(/^ +/, ""); print; exit }' | tr -d '\n' | pbcopy }
 
 # Prompt initialization
+# Note: Starship loads immediately (not deferred) because prompt is needed right away
 if [[ "$PROMPT_THEME" == "starship" ]]; then
   # Starship
   eval "$(starship init zsh)"
@@ -121,11 +122,8 @@ alias adot='chezmoi apply'
 alias lg='gitui'
 alias ld='lazydocker'
 
-# zoxide
-eval "$(zoxide init --cmd j zsh)"
-
-# atuin - magical shell history
-eval "$(atuin init zsh)"
+# zoxide - will be loaded with zsh-defer after sheldon
+# atuin - will be loaded with zsh-defer after sheldon
 
 # fzf configuration
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
@@ -150,8 +148,7 @@ export PATH="{{ .chezmoi.homeDir }}/.slack/bin:$PATH"
 # mask task runner
 export PATH="{{ .chezmoi.homeDir }}/.cargo/bin:$PATH"
 
-# direnv
-eval "$(direnv hook zsh)"
+# direnv - will be loaded with zsh-defer after sheldon
 
 # mysql
 # Note: LDFLAGS commented out as it causes Ruby build errors
@@ -195,9 +192,22 @@ export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
 # sheldon - zsh plugin manager
 eval "$(sheldon source)"
 
+# Deferred initialization (loaded after sheldon provides zsh-defer)
+# These tools are loaded lazily to improve startup time
+
+# zoxide (deferred for faster startup)
+zsh-defer -c 'eval "$(zoxide init --cmd j zsh)"'
+
+# atuin - magical shell history (deferred for faster startup)
+zsh-defer -c 'eval "$(atuin init zsh)"'
+
+# direnv (deferred for faster startup)
+# Note: With deferred loading, .envrc will be loaded on first cd
+zsh-defer -c 'eval "$(direnv hook zsh)"'
+
 # mise (unified version management for node, python, go, ruby, etc.)
 # Use zsh-defer for lazy loading to improve startup time (must be after sheldon)
-zsh-defer eval "$(mise activate zsh)"
+zsh-defer -c 'eval "$(mise activate zsh)"'
 
 # fzf key bindings and fuzzy completion (loaded via Homebrew)
 if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh" ]]; then
