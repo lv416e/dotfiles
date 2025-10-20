@@ -14,7 +14,7 @@ BOTTOM_LINES="${BOTTOM_LINES:-}"
 BOTTOM_PCT_DEFAULT=24
 
 # Right bottom split
-RIGHT_BOTTOM_SPLIT="${RIGHT_BOTTOM_SPLIT:-45}"
+RIGHT_BOTTOM_SPLIT="${RIGHT_BOTTOM_SPLIT:-40}"
 
 CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
 FORCE="${FORCE:-0}"
@@ -34,9 +34,11 @@ generate_random_name() {
 
 # Window name
 if [[ -n "${1:-}" ]]; then
-  WINDOW="$1"; ALLOW_DUPLICATE="${ALLOW_DUPLICATE:-0}"
+  WINDOW="$1"
+  ALLOW_DUPLICATE="${ALLOW_DUPLICATE:-0}"
 else
-  WINDOW=$(generate_random_name); ALLOW_DUPLICATE=1
+  WINDOW=$(generate_random_name)
+  ALLOW_DUPLICATE=1
 fi
 
 # Session
@@ -49,15 +51,17 @@ fi
 
 # Duplicate handling
 if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
-  EXIST_ID="$(tmux list-windows -t "$SESSION" -F '#{window_name} #{window_id}' \
-    | awk -v w="$WINDOW" '$1==w{print $2}')"
+  EXIST_ID="$(tmux list-windows -t "$SESSION" -F '#{window_name} #{window_id}' |
+    awk -v w="$WINDOW" '$1==w{print $2}')"
   if [[ -n "${EXIST_ID:-}" ]]; then
     if [[ "$FORCE" == "1" ]]; then
       tmux kill-window -t "$EXIST_ID"
     else
-      COUNT=2; ORIGINAL_WINDOW="$WINDOW"
+      COUNT=2
+      ORIGINAL_WINDOW="$WINDOW"
       while tmux list-windows -t "$SESSION" -F '#{window_name}' | grep -q "^${WINDOW}$"; do
-        WINDOW="${ORIGINAL_WINDOW}-${COUNT}"; COUNT=$((COUNT + 1))
+        WINDOW="${ORIGINAL_WINDOW}-${COUNT}"
+        COUNT=$((COUNT + 1))
       done
       echo "Window '$ORIGINAL_WINDOW' exists. Creating as '$WINDOW' instead." >&2
     fi
@@ -71,9 +75,9 @@ WINID="$(tmux new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW")"
 # Calculate BOTTOM_PCT from terminal height (lines take priority)
 WINH="$(tmux display -p -t "$WINID" '#{window_height}')"
 if [[ -n "${BOTTOM_LINES}" ]]; then
-  bp=$(( (BOTTOM_LINES * 100 + WINH/2) / WINH ))
-  (( bp < 5 ))  && bp=5
-  (( bp > 95 )) && bp=95
+  bp=$(((BOTTOM_LINES * 100 + WINH / 2) / WINH))
+  ((bp < 5)) && bp=5
+  ((bp > 95)) && bp=95
   BOTTOM_PCT="$bp"
 else
   BOTTOM_PCT="${BOTTOM_PCT:-$BOTTOM_PCT_DEFAULT}"
@@ -108,7 +112,7 @@ else
   tmux respawn-pane -k -t "$LBOT" "bash -lc 'echo \"[warn] claude-monitor not found\"; exec zsh'"
 fi
 
-tmux respawn-pane -k -t "$RBL"  "bash -lc 'btm || htop || top'"
+tmux respawn-pane -k -t "$RBL" "bash -lc 'btm || htop || top'"
 if command -v tty-clock >/dev/null 2>&1; then
   tmux respawn-pane -k -t "$RBR" "tty-clock -sc"
 else
@@ -117,7 +121,7 @@ fi
 
 # Initial focus
 tmux select-window -t "${WINID}"
-tmux select-pane   -t "$LTOP"
+tmux select-pane -t "$LTOP"
 
 # Stabilize
 tmux respawn-pane -k -t "$LTOP" "cd \"${LEFT_DIR}\" && exec nvim"
