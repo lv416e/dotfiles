@@ -238,7 +238,7 @@ repo() {
 
     if [ "$launch_tmux" = true ]; then
       local repo_name=$(basename "$repo")
-      tmux-work "$repo_name"
+      LEFT_DIR="$repo_path" tmux-work "$repo_name"
     fi
   fi
 }
@@ -295,7 +295,7 @@ tmux-repo() {
 
   # Launch tmux-work
   if [ -n "$repo_path" ]; then
-    cd "$repo_path" && tmux-work "$repo_name"
+    cd "$repo_path" && LEFT_DIR="$repo_path" tmux-work "$repo_name"
   fi
 }
 

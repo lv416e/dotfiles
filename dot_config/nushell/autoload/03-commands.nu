@@ -248,11 +248,14 @@ def --env show-tip [] {
 def repo [--tmux (-t)] {
   let selection = (ghq list | fzf --preview $"bat --color=always --style=header,grid (ghq root)/\{}/README.md 2>/dev/null || eza -al --tree --level=2 (ghq root)/\{}")
   if $selection != "" {
-    cd $"(ghq root)/($selection)"
+    let repo_path = $"(ghq root)/($selection)"
+    cd $repo_path
 
     if $tmux {
       let repo_name = ($selection | path basename)
-      tmux-work $repo_name
+      with-env {LEFT_DIR: $repo_path} {
+        tmux-work $repo_name
+      }
     }
   }
 }
@@ -300,7 +303,9 @@ def tmux-repo [repo_name?: string] {
   if ($repo_path | is-not-empty) {
     cd $repo_path
     let name = ($repo_path | path basename)
-    tmux-work $name
+    with-env {LEFT_DIR: $repo_path} {
+      tmux-work $name
+    }
   }
 }
 
