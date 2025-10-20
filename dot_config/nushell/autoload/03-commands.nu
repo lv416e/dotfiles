@@ -249,13 +249,16 @@ def repo [--tmux (-t)] {
   let selection = (ghq list | fzf --preview $"bat --color=always --style=header,grid (ghq root)/\{}/README.md 2>/dev/null || eza -al --tree --level=2 (ghq root)/\{}")
   if $selection != "" {
     let repo_path = $"(ghq root)/($selection)"
-    cd $repo_path
 
     if $tmux {
+      # Launch tmux without changing current directory
       let repo_name = ($selection | path basename)
       with-env {LEFT_DIR: $repo_path} {
         tmux-work $repo_name
       }
+    } else {
+      # Change directory only when not launching tmux
+      cd $repo_path
     }
   }
 }
@@ -299,9 +302,8 @@ def tmux-repo [repo_name?: string] {
     }
   }
 
-  # Launch tmux-work
+  # Launch tmux-work without changing current directory
   if ($repo_path | is-not-empty) {
-    cd $repo_path
     let name = ($repo_path | path basename)
     with-env {LEFT_DIR: $repo_path} {
       tmux-work $name

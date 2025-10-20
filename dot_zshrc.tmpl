@@ -234,11 +234,14 @@ repo() {
   local repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
   if [ -n "$repo" ]; then
     local repo_path=$(ghq root)/$repo
-    cd "$repo_path"
 
     if [ "$launch_tmux" = true ]; then
+      # Launch tmux without changing current directory
       local repo_name=$(basename "$repo")
       LEFT_DIR="$repo_path" tmux-work "$repo_name"
+    else
+      # Change directory only when not launching tmux
+      cd "$repo_path"
     fi
   fi
 }
@@ -293,9 +296,9 @@ tmux-repo() {
     fi
   fi
 
-  # Launch tmux-work
+  # Launch tmux-work without changing current directory
   if [ -n "$repo_path" ]; then
-    cd "$repo_path" && LEFT_DIR="$repo_path" tmux-work "$repo_name"
+    LEFT_DIR="$repo_path" tmux-work "$repo_name"
   fi
 }
 
