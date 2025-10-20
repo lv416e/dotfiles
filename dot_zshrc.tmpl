@@ -134,7 +134,6 @@ alias zsh-bench='for i in {1..5}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr
 
 # zoxide - will be loaded with zsh-defer after sheldon
 # atuin - will be loaded with zsh-defer after sheldon
-
 # fzf configuration
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='
@@ -243,25 +242,69 @@ twk() {
 
 # ghq + fzf integration
 # Quick repository navigation with fzf
-# Usage: repo [--tmux|-t]
-#   repo       - Select and cd to repository
-#   repo -t    - Select repo and launch tmux-nvim (no cd)
+# Usage: repo [OPTIONS] [REPO_NAME]
+#   repo                  - Select and cd to repository
+#   repo <name>           - cd to repository matching <name> (fuzzy)
+#   repo -t               - Select repo and launch tmux-nvim with 1 pane
+#   repo -t <name>        - Launch tmux-nvim for matching repo with 1 pane
+#   repo -t2              - Select repo and launch tmux-nvim with 2 panes
+#   repo -t2 <name>       - Launch tmux-nvim for matching repo with 2 panes
+#   repo -t --dual        - Select repo and launch tmux-nvim with 2 panes
+#   TOP_PANES=2 repo -t   - Environment variable also works
 repo() {
   local launch_tmux=false
+  local top_panes="${TOP_PANES:-1}"  # Default from env or 1
+  local repo_arg=""
 
   # Parse arguments
-  if [[ "$1" == "--tmux" || "$1" == "-t" ]]; then
-    launch_tmux=true
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --tmux|-t)
+        launch_tmux=true
+        shift
+        ;;
+      -t2)
+        launch_tmux=true
+        top_panes=2
+        shift
+        ;;
+      --dual)
+        top_panes=2
+        shift
+        ;;
+      *)
+        # Non-option argument is treated as repo name
+        repo_arg="$1"
+        shift
+        ;;
+    esac
+  done
+
+  local repo=""
+
+  # If repo name provided, try to find matching repository
+  if [ -n "$repo_arg" ]; then
+    local matched=$(ghq list | grep -i "$repo_arg" | head -1)
+    if [ -n "$matched" ]; then
+      repo="$matched"
+    else
+      echo "No repository matching '$repo_arg' found" >&2
+      echo "Available repositories:" >&2
+      ghq list | grep -i "$repo_arg" >&2
+      return 1
+    fi
+  else
+    # No repo name provided, use fzf to select
+    repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
   fi
 
-  local repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
   if [ -n "$repo" ]; then
     local repo_path=$(ghq root)/$repo
 
     if [ "$launch_tmux" = true ]; then
       # Launch tmux-nvim without changing current directory
       local repo_name=$(basename "$repo")
-      LEFT_DIR="$repo_path" tmux-nvim "$repo_name"
+      LEFT_DIR="$repo_path" TOP_PANES="$top_panes" tmux-nvim "$repo_name"
     else
       # Change directory only when not launching tmux
       cd "$repo_path"
@@ -280,22 +323,42 @@ clone() {
 }
 
 # Repository navigation with tmux-nvim integration
-# Usage: tmux-repo [repo-name]
-#   tmux-repo         - If in ghq repo: launch tmux-nvim here
-#                       Otherwise: select with fzf
-#   tmux-repo <name>  - Select specific repo (fuzzy match)
+# Usage: tmux-repo [repo-name] [--dual|-2]
+#   tmux-repo            - If in ghq repo: launch tmux-nvim here
+#                          Otherwise: select with fzf (1 pane)
+#   tmux-repo -2         - Launch with 2 panes
+#   tmux-repo --dual     - Launch with 2 panes
+#   tmux-repo <name>     - Select specific repo (fuzzy match, 1 pane)
+#   tmux-repo <name> -2  - Select specific repo with 2 panes
+#   TOP_PANES=2 tmux-repo - Environment variable also works
 tmux-repo() {
   local repo_path=""
   local repo_name=""
+  local top_panes="${TOP_PANES:-1}"  # Default from env or 1
+  local repo_arg=""
 
-  if [ -n "$1" ]; then
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dual|-2)
+        top_panes=2
+        shift
+        ;;
+      *)
+        repo_arg="$1"
+        shift
+        ;;
+    esac
+  done
+
+  if [ -n "$repo_arg" ]; then
     # Argument provided: fuzzy match
-    local matched=$(ghq list | grep -i "$1" | head -1)
+    local matched=$(ghq list | grep -i "$repo_arg" | head -1)
     if [ -n "$matched" ]; then
       repo_path=$(ghq root)/$matched
       repo_name=$(basename "$matched")
     else
-      echo "No repository matching '$1' found" >&2
+      echo "No repository matching '$repo_arg' found" >&2
       return 1
     fi
   else
@@ -321,7 +384,7 @@ tmux-repo() {
 
   # Launch tmux-nvim without changing current directory
   if [ -n "$repo_path" ]; then
-    LEFT_DIR="$repo_path" tmux-nvim "$repo_name"
+    LEFT_DIR="$repo_path" TOP_PANES="$top_panes" tmux-nvim "$repo_name"
   fi
 }
 
@@ -338,3 +401,40 @@ ghq-stats() {
     echo "  $(basename $repo_path): $last_commit"
   done
 }
+
+# ============================================================================
+# Zsh Completion Functions
+# ============================================================================
+
+# Completion function for repo command
+_repo() {
+  local -a repos
+  repos=(${(f)"$(ghq list 2>/dev/null)"})
+
+  _arguments \
+    '(-t --tmux)'{-t,--tmux}'[Launch tmux-nvim with 1 pane]' \
+    '-t2[Launch tmux-nvim with 2 panes]' \
+    '--dual[Use 2 panes layout]' \
+    '1:repository:->repos'
+
+  case $state in
+    repos)
+      _describe -t repos 'ghq repositories' repos
+      ;;
+  esac
+}
+
+# Register completion (only if completion system is available)
+# This needs to be after sheldon source which loads zsh-completions
+if (( $+functions[compdef] )); then
+  compdef _repo repo
+fi
+
+# ============================================================================
+# Convenient Aliases for repo command
+# ============================================================================
+
+# Quick shortcuts for repo command (2025 ergonomic design)
+alias rt='repo -t'       # repo tmux (1 pane)
+alias rt2='repo -t2'     # repo tmux (2 panes)
+alias rtd='repo -t2'     # repo tmux dual (same as rt2)
