@@ -97,7 +97,7 @@ RBR="$(tmux split-window -h -p "$RIGHT_BOTTOM_SPLIT" -t "$RB1" -P -F '#{pane_id}
 RBL="$RB1"
 
 # Commands
-tmux respawn-pane -k -t "$LTOP" "cd \"${LEFT_DIR}\" && exec zsh"
+tmux respawn-pane -k -t "$LTOP" "cd \"${LEFT_DIR}\" && exec nvim"
 if [[ -n "$RTOP" ]]; then
   tmux respawn-pane -k -t "$RTOP" "cd \"${LEFT_DIR}\" && exec zsh"
 fi
@@ -120,7 +120,7 @@ tmux select-window -t "${WINID}"
 tmux select-pane   -t "$LTOP"
 
 # Stabilize
-tmux respawn-pane -k -t "$LTOP"
+tmux respawn-pane -k -t "$LTOP" "cd \"${LEFT_DIR}\" && exec nvim"
 tmux respawn-pane -k -t "$LBOT"
 
 # Attach if not in tmux
