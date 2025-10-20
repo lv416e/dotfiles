@@ -7,14 +7,14 @@ LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
 
 # Top panes: 2 or 1
 TOP_PANES="${TOP_PANES:-1}"
-TOP_SPLIT="${TOP_SPLIT:-50}"
+TOP_SPLIT="${TOP_SPLIT:-58}"
 
 # Bottom pane height: lines or percentage
 BOTTOM_LINES="${BOTTOM_LINES:-}"
 BOTTOM_PCT_DEFAULT=24
 
 # Right bottom split
-RIGHT_BOTTOM_SPLIT="${RIGHT_BOTTOM_SPLIT:-45}"
+RIGHT_BOTTOM_SPLIT="${RIGHT_BOTTOM_SPLIT:-40}"
 
 CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
 FORCE="${FORCE:-0}"
@@ -95,7 +95,7 @@ else
   LTOP="$TOP"
 fi
 
-RB1="$(tmux split-window -h -p 60 -t "$BOT" -P -F '#{pane_id}')"
+RB1="$(tmux split-window -h -p 58 -t "$BOT" -P -F '#{pane_id}')"
 LBOT="$BOT"
 RBR="$(tmux split-window -h -p "$RIGHT_BOTTOM_SPLIT" -t "$RB1" -P -F '#{pane_id}')"
 RBL="$RB1"
@@ -112,9 +112,9 @@ else
   tmux respawn-pane -k -t "$LBOT" "bash -lc 'echo \"[warn] claude-monitor not found\"; exec zsh'"
 fi
 
-tmux respawn-pane -k -t "$RBL" "bash -lc 'btm || htop || top'"
+tmux respawn-pane -k -t "$RBL" "gitui"
 if command -v tty-clock >/dev/null 2>&1; then
-  tmux respawn-pane -k -t "$RBR" "tty-clock -sc"
+  tmux respawn-pane -k -t "$RBR" "bash -lc 'btm || htop || top'"
 else
   tmux respawn-pane -k -t "$RBR" "watch -n 1 \"date +%H:%M:%S\""
 fi
