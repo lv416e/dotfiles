@@ -101,7 +101,7 @@ else
 fi
 
 # tmux respawn-pane -k -t "$RBL" "bash -lc 'btm || htop || top'"
-tmux respawn-pane -k -t "$RBL" "gitui"
+tmux respawn-pane -k -t "$RBL" "cd \"${LEFT_DIR}\" && gitui"
 if command -v tty-clock >/dev/null 2>&1; then
   tmux respawn-pane -k -t "$RBR" "bash -lc 'btm || htop || top'"
 else
