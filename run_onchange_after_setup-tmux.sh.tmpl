@@ -16,9 +16,12 @@ else
     cd "$HOME/.tmux/plugins/tpm" && git pull
 fi
 
-# Install/update plugins
-echo "Installing tmux plugins..."
-"$HOME/.tmux/plugins/tpm/bin/install_plugins"
+# Note: Plugin installation must be done inside a tmux session
+# Automatic installation doesn't work outside tmux
 
 echo "✓ tmux setup complete!"
-echo "Note: Press 'prefix + I' (Ctrl+g then I) in tmux to manually install/update plugins"
+echo ""
+echo "📝 To install/update tmux plugins:"
+echo "   1. Start or attach to a tmux session"
+echo "   2. Press 'prefix + I' (Ctrl+g then I) to install plugins"
+echo "   3. Press 'prefix + U' (Ctrl+g then U) to update plugins"
