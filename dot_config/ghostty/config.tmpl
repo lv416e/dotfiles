@@ -1,0 +1,79 @@
+# Ghostty configuration
+# https://ghostty.org/docs/config
+
+# ====================== FONT ======================
+# Nerd Font options (requires Nerd Font to be installed):
+# - HackGen35 Console NF (current in kitty)
+# - JetBrains Mono Nerd Font
+# - Fira Code Nerd Font
+# - Hack Nerd Font
+font-family = HackGen35 Console NF
+font-size = 11
+
+# ====================== CURSOR ======================
+cursor-style = block
+
+# ====================== WINDOW ======================
+window-padding-x = 8
+window-padding-y = 8
+window-padding-balance = true
+
+# Background opacity
+background-opacity = 0.8
+
+# Window size
+window-width = 200
+window-height = 50
+
+# ====================== SHELL ======================
+{{- if eq .chezmoi.arch "arm64" }}
+shell-integration = zsh
+shell-integration-features = cursor,sudo,title
+command = /bin/zsh --login -c "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u"
+{{- else }}
+shell-integration = zsh
+shell-integration-features = cursor,sudo,title
+command = /bin/zsh --login -c "/usr/local/bin/tmux a -t 0 || /usr/local/bin/tmux -u"
+{{- end }}
+
+# ====================== COLORS ======================
+# Match kitty's default look (high contrast, clean)
+# Options:
+# - No theme = Ghostty default (similar to kitty default)
+# - "Builtin Dark" = Ghostty's default dark theme
+# - "Argonaut" = Similar to kitty default with good contrast
+
+# Use default theme (closest to kitty)
+# theme =
+
+# Or try these high-contrast alternatives:
+# theme = Builtin Dark
+# theme = Argonaut
+theme = 3024 Night
+
+# High contrast setting
+minimum-contrast = 4.0
+
+# ====================== MACOS SPECIFIC ======================
+macos-option-as-alt = false
+quit-after-last-window-closed = true
+window-decoration = false
+
+# ====================== MOUSE ======================
+copy-on-select = true
+
+# ====================== CLIPBOARD ======================
+# Allow clipboard access for image pasting
+clipboard-read = allow
+clipboard-write = allow
+
+# ====================== SCROLLBACK ======================
+scrollback-limit = 100000
+
+# ====================== PERFORMANCE ======================
+# Ghostty is optimized by default, minimal config needed
+
+# ====================== KEYBOARD SHORTCUTS ======================
+# Ghostty uses different keybinding syntax
+# Most shortcuts work out of the box
+# Default keybindings are already good, no custom ones needed

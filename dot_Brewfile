@@ -90,6 +90,7 @@ brew "tealdeer"        # Fast tldr client (Rust implementation)
 brew "act"             # Run GitHub Actions locally
 cask "alacritty"  # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
 cask "kitty"      # GPU-accelerated terminal (alternative to alacritty)
+cask "ghostty"    # Fast, native, GPU-accelerated terminal (Zig-based, experimental)
 cask "orbstack"   # Fast, lightweight Docker Desktop alternative
 cask "arc"
 cask "chromedriver"

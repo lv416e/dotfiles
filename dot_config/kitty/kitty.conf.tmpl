@@ -20,6 +20,14 @@ scrollback_lines 100000
 copy_on_select yes
 strip_trailing_spaces smart
 
+# ====================== CLIPBOARD ======================
+# Allow clipboard read/write without prompts (for Claude Code image paste)
+clipboard_control write-clipboard write-primary read-clipboard read-primary
+
+# Enable remote control for clipboard operations (socket-only for security)
+allow_remote_control socket-only
+listen_on unix:/tmp/kitty-${KITTY_PID}
+
 # ====================== WINDOW ======================
 background_opacity 0.8
 window_padding_width 8
