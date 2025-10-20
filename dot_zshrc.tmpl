@@ -132,7 +132,7 @@ alias lg='gitui'
 alias ld='lazydocker'
 # performance monitoring
 alias tmux-health='tmux list-panes -a -F "Pane #{pane_id}: #{history_size}/#{history_limit} lines"'
-alias zsh-bench='for i in {1..5}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr/bin/grep real; done'
+alias zsh-bench='for i in {1..10}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr/bin/grep real; done'
 
 # zoxide - will be loaded with zsh-defer after sheldon
 # atuin - will be loaded with zsh-defer after sheldon
@@ -267,7 +267,7 @@ twk() {
 
 # Clear zsh caches and restart shell
 # Use this after updating plugins or installing new commands
-refresh-zsh() {
+zsh-refresh() {
   echo "Clearing sheldon cache..."
   rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
   echo "Clearing completion cache..."
