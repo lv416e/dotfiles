@@ -136,9 +136,6 @@ export FZF_DEFAULT_OPTS='
   --preview "bat --color=always --style=numbers --line-range=:500 {}"
 '
 
-# mise (unified version management for node, python, go, ruby, etc.)
-eval "$(mise activate zsh)"
-
 # Python environment (replaced by mise)
 # export PYENV_ROOT="$HOME/.pyenv"
 # export PATH="$PYENV_ROOT/bin:$PATH"
@@ -197,6 +194,10 @@ export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
 
 # sheldon - zsh plugin manager
 eval "$(sheldon source)"
+
+# mise (unified version management for node, python, go, ruby, etc.)
+# Use zsh-defer for lazy loading to improve startup time (must be after sheldon)
+zsh-defer eval "$(mise activate zsh)"
 
 # fzf key bindings and fuzzy completion (loaded via Homebrew)
 if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh" ]]; then
