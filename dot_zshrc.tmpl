@@ -121,6 +121,9 @@ alias adot='chezmoi apply'
 # git
 alias lg='gitui'
 alias ld='lazydocker'
+# performance monitoring
+alias tmux-health='tmux list-panes -a -F "Pane #{pane_id}: #{history_size}/#{history_limit} lines"'
+alias zsh-bench='for i in {1..5}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr/bin/grep real; done'
 
 # zoxide - will be loaded with zsh-defer after sheldon
 # atuin - will be loaded with zsh-defer after sheldon
