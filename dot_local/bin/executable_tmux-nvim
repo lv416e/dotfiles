@@ -101,9 +101,17 @@ RBR="$(tmux split-window -h -p "$RIGHT_BOTTOM_SPLIT" -t "$RB1" -P -F '#{pane_id}
 RBL="$RB1"
 
 # Commands
-tmux respawn-pane -k -t "$LTOP" "cd \"${LEFT_DIR}\" && exec zsh && exec nvim"
+tmux respawn-pane -k -t "$LTOP" "zsh -lc ' \
+  cd -- \"$LEFT_DIR\" 2>/dev/null || cd ~; \
+  nvim; \
+  exec zsh \
+'"
 if [[ -n "$RTOP" ]]; then
-  tmux respawn-pane -k -t "$RTOP" "cd \"${LEFT_DIR}\" && exec zsh"
+  tmux respawn-pane -k -t "$RTOP" "zsh -lc ' \
+  cd -- \"$LEFT_DIR\" 2>/dev/null || cd ~; \
+  claude; \
+  exec zsh \
+'"
 fi
 
 if command -v claude-monitor >/dev/null 2>&1; then
@@ -112,20 +120,24 @@ else
   tmux respawn-pane -k -t "$LBOT" "bash -lc 'echo \"[warn] claude-monitor not found\"; exec zsh'"
 fi
 
-tmux respawn-pane -k -t "$RBL" "cd \"${LEFT_DIR}\" && gitui"
-if command -v tty-clock >/dev/null 2>&1; then
-  tmux respawn-pane -k -t "$RBR" "bash -lc 'btm || htop || top'"
-else
-  tmux respawn-pane -k -t "$RBR" "watch -n 1 \"date +%H:%M:%S\""
-fi
+tmux respawn-pane -k -t "$RBL" "zsh -lc '
+  DIR=\"$LEFT_DIR\"
+  if ! command -v gitui >/dev/null 2>&1; then
+    echo \"[warn] gitui not found. e.g. brew install gitui\"; exec zsh
+  fi
+  ROOT=\$(git -C \"\$DIR\" rev-parse --show-toplevel 2>/dev/null || echo \"\$DIR\")
+  cd \"\$ROOT\"
+  gitui; exec zsh
+'"
+tmux respawn-pane -k -t "$RBR" "bash -lc 'btm || htop || top'"
 
 # Initial focus
 tmux select-window -t "${WINID}"
-tmux select-pane -t "$LTOP"
+tmux select-pane -t "$RTOP"
 
 # Stabilize
-tmux respawn-pane -k -t "$LTOP" "cd \"${LEFT_DIR}\" && exec nvim"
-tmux respawn-pane -k -t "$LBOT"
+# tmux respawn-pane -k -t "$LTOP"
+# tmux respawn-pane -k -t "$LBOT"
 
 # Attach if not in tmux
 if [[ -z "${TMUX-}" ]]; then tmux attach -t "$SESSION"; fi

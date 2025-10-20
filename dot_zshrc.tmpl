@@ -1,5 +1,7 @@
 # Q pre block. Keep at the top of this file.
-[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"
+# Note: Deferred loading for faster startup (20-30ms improvement)
+# Amazon Q will be available after zsh-defer completes
+# [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"
 {{- if eq .chezmoi.arch "arm64" }}
 # Homebrew environment (hardcoded for 20ms faster startup)
 # Previously: eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -229,7 +231,9 @@ if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh" ]]; then
 fi
 
 # Q post block. Keep at the bottom of this file.
-[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
+# Note: Deferred loading for faster startup (works after sheldon loads zsh-defer)
+zsh-defer -c '[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"'
+zsh-defer -c '[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"'
 
 # Kill current tmux window (only when inside tmux)
 twk() {
@@ -407,21 +411,20 @@ ghq-stats() {
 # ============================================================================
 
 # Completion function for repo command
+# Note: ghq list is called only when TAB is pressed, not on shell startup
 _repo() {
-  local -a repos
-  repos=(${(f)"$(ghq list 2>/dev/null)"})
-
   _arguments \
     '(-t --tmux)'{-t,--tmux}'[Launch tmux-nvim with 1 pane]' \
     '-t2[Launch tmux-nvim with 2 panes]' \
     '--dual[Use 2 panes layout]' \
-    '1:repository:->repos'
+    '1:repository:_repo_list'
+}
 
-  case $state in
-    repos)
-      _describe -t repos 'ghq repositories' repos
-      ;;
-  esac
+# Helper function to get repository list (called only during completion)
+_repo_list() {
+  local -a repos
+  repos=(${(f)"$(ghq list 2>/dev/null)"})
+  _describe -t repos 'ghq repositories' repos
 }
 
 # Register completion (only if completion system is available)
