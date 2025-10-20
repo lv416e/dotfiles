@@ -3,6 +3,7 @@ node = "lts"           # Node.js LTS version
 python = "3.13"        # Python 3.13 (stable)
 go = "latest"          # Latest Go version
 ruby = "3.3"           # Ruby 3.3
+java = "temurin-11"    # Java 11 (Temurin LTS, supported until 2029)
 
 # npm global packages
 "npm:@anthropic-ai/claude-code" = "latest"  # Claude Code CLI
