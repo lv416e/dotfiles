@@ -205,6 +205,9 @@ export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
 # sheldon - zsh plugin manager
 eval "$(sheldon source)"
 
+# Initialize zsh completion system (required for compdef to work)
+autoload -Uz compinit && compinit
+
 # Deferred initialization (loaded after sheldon provides zsh-defer)
 # These tools are loaded lazily to improve startup time
 
