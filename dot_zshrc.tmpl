@@ -202,11 +202,29 @@ export PATH=$PATH:$DOTDIR/.config/alacritty/bin
 # gnu-time
 export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
 
-# sheldon - zsh plugin manager
-eval "$(sheldon source)"
+# sheldon - zsh plugin manager with cache optimization
+# Cache sheldon output for faster startup (regenerate only when plugins.toml changes)
+_sheldon_cache="${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
+_sheldon_toml="${XDG_CONFIG_HOME:-$HOME/.config}/sheldon/plugins.toml"
+if [[ ! -r "$_sheldon_cache" || "$_sheldon_toml" -nt "$_sheldon_cache" ]]; then
+  mkdir -p "${_sheldon_cache:h}"
+  sheldon source > "$_sheldon_cache"
+fi
+source "$_sheldon_cache"
+unset _sheldon_cache _sheldon_toml
 
-# Initialize zsh completion system (required for compdef to work)
-autoload -Uz compinit && compinit
+# Initialize zsh completion system with cache optimization (for faster startup)
+# Regenerate completion dump only once per day for significant speedup
+autoload -Uz compinit
+_comp_path="${ZDOTDIR:-$HOME}/.zcompdump"
+if [[ -n $_comp_path(#qNmh-20) ]]; then
+  # Cache exists and is less than 20 hours old - use -C and -u for maximum speed
+  compinit -C -u -d "$_comp_path"
+else
+  # Cache is old or doesn't exist - regenerate with -u to skip ownership check
+  compinit -u -d "$_comp_path"
+fi
+unset _comp_path
 
 # Deferred initialization (loaded after sheldon provides zsh-defer)
 # These tools are loaded lazily to improve startup time
@@ -245,6 +263,17 @@ twk() {
     echo "Run inside tmux session" >&2; return 1
   }
   tmux kill-window -t "$id"
+}
+
+# Clear zsh caches and restart shell
+# Use this after updating plugins or installing new commands
+refresh-zsh() {
+  echo "Clearing sheldon cache..."
+  rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
+  echo "Clearing completion cache..."
+  rm -f "${ZDOTDIR:-$HOME}/.zcompdump"
+  echo "Restarting zsh..."
+  exec zsh
 }
 
 # ghq + fzf integration
