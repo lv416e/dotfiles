@@ -222,7 +222,7 @@ twk() {
 # Quick repository navigation with fzf
 # Usage: repo [--tmux|-t]
 #   repo       - Select and cd to repository
-#   repo -t    - Select, cd, and launch tmux-work
+#   repo -t    - Select repo and launch tmux-nvim (no cd)
 repo() {
   local launch_tmux=false
 
@@ -236,9 +236,9 @@ repo() {
     local repo_path=$(ghq root)/$repo
 
     if [ "$launch_tmux" = true ]; then
-      # Launch tmux without changing current directory
+      # Launch tmux-nvim without changing current directory
       local repo_name=$(basename "$repo")
-      LEFT_DIR="$repo_path" tmux-work "$repo_name"
+      LEFT_DIR="$repo_path" tmux-nvim "$repo_name"
     else
       # Change directory only when not launching tmux
       cd "$repo_path"
@@ -256,9 +256,9 @@ clone() {
   ghq get "$1" && cd $(ghq root)/$(ghq list | tail -1)
 }
 
-# Repository navigation with tmux-work integration
+# Repository navigation with tmux-nvim integration
 # Usage: tmux-repo [repo-name]
-#   tmux-repo         - If in ghq repo: launch tmux-work here
+#   tmux-repo         - If in ghq repo: launch tmux-nvim here
 #                       Otherwise: select with fzf
 #   tmux-repo <name>  - Select specific repo (fuzzy match)
 tmux-repo() {
@@ -296,9 +296,9 @@ tmux-repo() {
     fi
   fi
 
-  # Launch tmux-work without changing current directory
+  # Launch tmux-nvim without changing current directory
   if [ -n "$repo_path" ]; then
-    LEFT_DIR="$repo_path" tmux-work "$repo_name"
+    LEFT_DIR="$repo_path" tmux-nvim "$repo_name"
   fi
 }
 

@@ -244,17 +244,17 @@ def --env show-tip [] {
 # Quick repository navigation with fzf
 # Usage: repo [--tmux]
 #   repo       - Select and cd to repository
-#   repo --tmux - Select, cd, and launch tmux-work
-def repo [--tmux (-t)] {
+#   repo --tmux - Select repo and launch tmux-nvim (no cd)
+def --env repo [--tmux (-t)] {
   let selection = (ghq list | fzf --preview $"bat --color=always --style=header,grid (ghq root)/\{}/README.md 2>/dev/null || eza -al --tree --level=2 (ghq root)/\{}")
   if $selection != "" {
     let repo_path = $"(ghq root)/($selection)"
 
     if $tmux {
-      # Launch tmux without changing current directory
+      # Launch tmux-nvim without changing current directory
       let repo_name = ($selection | path basename)
       with-env {LEFT_DIR: $repo_path} {
-        tmux-work $repo_name
+        tmux-nvim $repo_name
       }
     } else {
       # Change directory only when not launching tmux
@@ -270,9 +270,9 @@ def clone [url: string] {
   cd $"(ghq root)/($latest)"
 }
 
-# Repository navigation with tmux-work integration
+# Repository navigation with tmux-nvim integration
 # Usage: tmux-repo [repo-name]
-#   tmux-repo         - If in ghq repo: launch tmux-work here
+#   tmux-repo         - If in ghq repo: launch tmux-nvim here
 #                       Otherwise: select with fzf
 #   tmux-repo <name>  - Select specific repo (fuzzy match)
 def tmux-repo [repo_name?: string] {
@@ -302,11 +302,11 @@ def tmux-repo [repo_name?: string] {
     }
   }
 
-  # Launch tmux-work without changing current directory
+  # Launch tmux-nvim without changing current directory
   if ($repo_path | is-not-empty) {
     let name = ($repo_path | path basename)
     with-env {LEFT_DIR: $repo_path} {
-      tmux-work $name
+      tmux-nvim $name
     }
   }
 }
