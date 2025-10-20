@@ -1,12 +1,12 @@
 # Default colors
 [colors.primary]
-background = '#292C3E'
-foreground = '#EBEBEB'
+background = '#000000'
+foreground = '#FFFFFF'
 
 # Cursor colors
 [colors.cursor]
-text = '#EBEBEB'
-cursor = '#FF261E'
+text = '#000000'
+cursor = '#00FF00'
 
 # Normal colors
 [colors.normal]
