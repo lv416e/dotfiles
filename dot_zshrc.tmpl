@@ -217,3 +217,46 @@ twk() {
   }
   tmux kill-window -t "$id"
 }
+
+# ghq + fzf integration
+# Quick repository navigation with fzf
+repo() {
+  local repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
+  if [ -n "$repo" ]; then
+    cd $(ghq root)/$repo
+  fi
+}
+
+# Clone repository with ghq and cd into it
+clone() {
+  if [ -z "$1" ]; then
+    echo "Usage: clone <repo-url>" >&2
+    echo "Example: clone github.com/anthropics/claude-code" >&2
+    return 1
+  fi
+  ghq get "$1" && cd $(ghq root)/$(ghq list | tail -1)
+}
+
+# Repository navigation with tmux-work integration
+tmux-repo() {
+  local repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
+  if [ -n "$repo" ]; then
+    local repo_name=$(basename "$repo")
+    local repo_path=$(ghq root)/$repo
+    cd "$repo_path" && tmux-work "$repo_name"
+  fi
+}
+
+# Show ghq repository statistics
+ghq-stats() {
+  echo "Total repositories: $(ghq list | wc -l | tr -d ' ')"
+  echo "GitHub: $(ghq list | grep github.com | wc -l | tr -d ' ')"
+  echo "GitLab: $(ghq list | grep gitlab.com | wc -l | tr -d ' ')"
+  echo "Bitbucket: $(ghq list | grep bitbucket.org | wc -l | tr -d ' ')"
+  echo ""
+  echo "Most recently updated repositories:"
+  ghq list --full-path | head -5 | while read repo_path; do
+    local last_commit=$(git -C "$repo_path" log -1 --format='%ar' 2>/dev/null || echo "unknown")
+    echo "  $(basename $repo_path): $last_commit"
+  done
+}

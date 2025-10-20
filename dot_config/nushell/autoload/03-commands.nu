@@ -236,3 +236,63 @@ def --env show-tip [] {
 
 # Uncomment to show tip on startup
 # show-tip
+
+# ============================================================================
+# ghq + fzf Integration
+# ============================================================================
+
+# Quick repository navigation with fzf
+def repo [] {
+  let selection = (ghq list | fzf --preview $"bat --color=always --style=header,grid (ghq root)/\{}/README.md 2>/dev/null || eza -al --tree --level=2 (ghq root)/\{}")
+  if $selection != "" {
+    cd $"(ghq root)/($selection)"
+  }
+}
+
+# Clone repository with ghq and cd into it
+def clone [url: string] {
+  ghq get $url
+  let latest = (ghq list | lines | last)
+  cd $"(ghq root)/($latest)"
+}
+
+# List all repositories with metadata
+def repos [] {
+  ghq list --full-path
+  | lines
+  | each { |path|
+      let name = ($path | path basename)
+      let host = ($path | path dirname | path basename)
+      let owner = ($path | path dirname | path dirname | path basename)
+      let updated = (do -i { ls -l $path | get modified | first } | default (date now))
+
+      {
+        name: $name,
+        owner: $owner,
+        host: $host,
+        path: $path,
+        updated: $updated
+      }
+    }
+  | sort-by updated --reverse
+}
+
+# Show repository statistics
+def ghq-stats [] {
+  let all_repos = (ghq list | lines)
+  let total = ($all_repos | length)
+  let github = ($all_repos | where {|it| $it =~ "github.com"} | length)
+  let gitlab = ($all_repos | where {|it| $it =~ "gitlab.com"} | length)
+  let bitbucket = ($all_repos | where {|it| $it =~ "bitbucket.org"} | length)
+
+  print $"Total repositories: ($total)"
+  print $"GitHub: ($github)"
+  print $"GitLab: ($gitlab)"
+  print $"Bitbucket: ($bitbucket)"
+  print ""
+  print "Most recently updated repositories:"
+
+  repos | first 5 | each { |repo|
+    print $"  ($repo.name): ($repo.updated | format date '%Y-%m-%d')"
+  }
+}
