@@ -431,6 +431,9 @@ _repo_list() {
 # This needs to be after sheldon source which loads zsh-completions
 if (( $+functions[compdef] )); then
   compdef _repo repo
+  compdef _repo rt
+  compdef _repo rt2
+  compdef _repo rtd
 fi
 
 # ============================================================================
