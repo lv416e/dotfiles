@@ -242,10 +242,18 @@ def --env show-tip [] {
 # ============================================================================
 
 # Quick repository navigation with fzf
-def repo [] {
+# Usage: repo [--tmux]
+#   repo       - Select and cd to repository
+#   repo --tmux - Select, cd, and launch tmux-work
+def repo [--tmux (-t)] {
   let selection = (ghq list | fzf --preview $"bat --color=always --style=header,grid (ghq root)/\{}/README.md 2>/dev/null || eza -al --tree --level=2 (ghq root)/\{}")
   if $selection != "" {
     cd $"(ghq root)/($selection)"
+
+    if $tmux {
+      let repo_name = ($selection | path basename)
+      tmux-work $repo_name
+    }
   }
 }
 
@@ -254,6 +262,46 @@ def clone [url: string] {
   ghq get $url
   let latest = (ghq list | lines | last)
   cd $"(ghq root)/($latest)"
+}
+
+# Repository navigation with tmux-work integration
+# Usage: tmux-repo [repo-name]
+#   tmux-repo         - If in ghq repo: launch tmux-work here
+#                       Otherwise: select with fzf
+#   tmux-repo <name>  - Select specific repo (fuzzy match)
+def tmux-repo [repo_name?: string] {
+  let repo_path = if ($repo_name != null) {
+    # Argument provided: fuzzy match
+    let matched = (ghq list | lines | where {|it| $it =~ $repo_name} | first)
+    if ($matched | is-empty) {
+      print $"No repository matching '($repo_name)' found"
+      return
+    }
+    $"(ghq root)/($matched)"
+  } else {
+    # No argument: check if current dir is in ghq
+    let current_path = (pwd)
+    let ghq_root = (ghq root)
+
+    if ($current_path | str starts-with $ghq_root) {
+      # Already in a ghq repository
+      $current_path
+    } else {
+      # Not in ghq: select with fzf
+      let selection = (ghq list | fzf --preview $"bat --color=always --style=header,grid (ghq root)/\{}/README.md 2>/dev/null || eza -al --tree --level=2 (ghq root)/\{}")
+      if ($selection | is-empty) {
+        return
+      }
+      $"(ghq_root)/($selection)"
+    }
+  }
+
+  # Launch tmux-work
+  if ($repo_path | is-not-empty) {
+    cd $repo_path
+    let name = ($repo_path | path basename)
+    tmux-work $name
+  }
 }
 
 # List all repositories with metadata

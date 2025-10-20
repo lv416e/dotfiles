@@ -220,10 +220,26 @@ twk() {
 
 # ghq + fzf integration
 # Quick repository navigation with fzf
+# Usage: repo [--tmux|-t]
+#   repo       - Select and cd to repository
+#   repo -t    - Select, cd, and launch tmux-work
 repo() {
+  local launch_tmux=false
+
+  # Parse arguments
+  if [[ "$1" == "--tmux" || "$1" == "-t" ]]; then
+    launch_tmux=true
+  fi
+
   local repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
   if [ -n "$repo" ]; then
-    cd $(ghq root)/$repo
+    local repo_path=$(ghq root)/$repo
+    cd "$repo_path"
+
+    if [ "$launch_tmux" = true ]; then
+      local repo_name=$(basename "$repo")
+      tmux-work "$repo_name"
+    fi
   fi
 }
 
@@ -238,11 +254,47 @@ clone() {
 }
 
 # Repository navigation with tmux-work integration
+# Usage: tmux-repo [repo-name]
+#   tmux-repo         - If in ghq repo: launch tmux-work here
+#                       Otherwise: select with fzf
+#   tmux-repo <name>  - Select specific repo (fuzzy match)
 tmux-repo() {
-  local repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
-  if [ -n "$repo" ]; then
-    local repo_name=$(basename "$repo")
-    local repo_path=$(ghq root)/$repo
+  local repo_path=""
+  local repo_name=""
+
+  if [ -n "$1" ]; then
+    # Argument provided: fuzzy match
+    local matched=$(ghq list | grep -i "$1" | head -1)
+    if [ -n "$matched" ]; then
+      repo_path=$(ghq root)/$matched
+      repo_name=$(basename "$matched")
+    else
+      echo "No repository matching '$1' found" >&2
+      return 1
+    fi
+  else
+    # No argument: check if current dir is in ghq
+    local current_path=$(pwd)
+    local ghq_root=$(ghq root)
+
+    if [[ "$current_path" == "$ghq_root"* ]]; then
+      # Already in a ghq repository
+      repo_path="$current_path"
+      repo_name=$(basename "$current_path")
+    else
+      # Not in ghq: select with fzf
+      local repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
+      if [ -n "$repo" ]; then
+        repo_path=$(ghq root)/$repo
+        repo_name=$(basename "$repo")
+      else
+        return 0
+      fi
+    fi
+  fi
+
+  # Launch tmux-work
+  if [ -n "$repo_path" ]; then
     cd "$repo_path" && tmux-work "$repo_name"
   fi
 }
