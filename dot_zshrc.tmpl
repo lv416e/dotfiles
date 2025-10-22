@@ -143,7 +143,15 @@ alias cdot='chezmoi cd'
 alias adot='chezmoi apply'
 # claude code
 alias ai='claude'
-alias ask='claude -p'
+ask() {
+  if [[ $# -eq 0 ]]; then
+    echo "Enter your prompt (press Ctrl+D on a new line to finish):"
+    local input="$(cat)"
+    [[ -n "$input" ]] && claude -p "$input"
+  else
+    claude -p "$*"
+  fi
+}
 # git
 alias lg='gitui'
 alias ld='lazydocker'
@@ -531,7 +539,7 @@ zsh-defer _register_repo_completion
 # Convenient Aliases for repo command
 # ============================================================================
 
-# Quick shortcuts for repo command (2025 ergonomic design)
+# Quick shortcuts for repo command
 alias rt='repo -t'       # repo tmux (1 pane)
 alias rt2='repo -t2'     # repo tmux (2 panes)
 alias rtd='repo -t2'     # repo tmux dual (same as rt2)
