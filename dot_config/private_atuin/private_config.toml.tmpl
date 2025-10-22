@@ -1,52 +1,52 @@
 ## where to store your database, default is your system data directory
-## linux/mac: ~/.local/share/atuin/history.db
-## windows: %USERPROFILE%/.local/share/atuin/history.db
-# db_path = "~/.history.db"
+## linux{{ .chezmoi.pathSeparator }}mac{{ .chezmoi.pathListSeparator }} ~{{ .chezmoi.pathSeparator }}.local{{ .chezmoi.pathSeparator }}share{{ .chezmoi.pathSeparator }}atuin{{ .chezmoi.pathSeparator }}history.db
+## windows{{ .chezmoi.pathListSeparator }} %USERPROFILE%{{ .chezmoi.pathSeparator }}.local{{ .chezmoi.pathSeparator }}share{{ .chezmoi.pathSeparator }}atuin{{ .chezmoi.pathSeparator }}history.db
+# db_path = "~{{ .chezmoi.pathSeparator }}.history.db"
 
 ## where to store your encryption key, default is your system data directory
-## linux/mac: ~/.local/share/atuin/key
-## windows: %USERPROFILE%/.local/share/atuin/key
-# key_path = "~/.key"
+## linux{{ .chezmoi.pathSeparator }}mac{{ .chezmoi.pathListSeparator }} ~{{ .chezmoi.pathSeparator }}.local{{ .chezmoi.pathSeparator }}share{{ .chezmoi.pathSeparator }}atuin{{ .chezmoi.pathSeparator }}key
+## windows{{ .chezmoi.pathListSeparator }} %USERPROFILE%{{ .chezmoi.pathSeparator }}.local{{ .chezmoi.pathSeparator }}share{{ .chezmoi.pathSeparator }}atuin{{ .chezmoi.pathSeparator }}key
+# key_path = "~{{ .chezmoi.pathSeparator }}.key"
 
 ## where to store your auth session token, default is your system data directory
-## linux/mac: ~/.local/share/atuin/session
-## windows: %USERPROFILE%/.local/share/atuin/session
-# session_path = "~/.session"
+## linux{{ .chezmoi.pathSeparator }}mac{{ .chezmoi.pathListSeparator }} ~{{ .chezmoi.pathSeparator }}.local{{ .chezmoi.pathSeparator }}share{{ .chezmoi.pathSeparator }}atuin{{ .chezmoi.pathSeparator }}session
+## windows{{ .chezmoi.pathListSeparator }} %USERPROFILE%{{ .chezmoi.pathSeparator }}.local{{ .chezmoi.pathSeparator }}share{{ .chezmoi.pathSeparator }}atuin{{ .chezmoi.pathSeparator }}session
+# session_path = "~{{ .chezmoi.pathSeparator }}.session"
 
 ## date format used, either "us" or "uk"
 # dialect = "us"
 
 ## default timezone to use when displaying time
 ## either "l", "local" to use the system's current local timezone, or an offset
-## from UTC in the format of "<+|->H[H][:M[M][:S[S]]]"
-## for example: "+9", "-05", "+03:30", "-01:23:45", etc.
+## from UTC in the format of "<+|->H[H][{{ .chezmoi.pathListSeparator }}M[M][{{ .chezmoi.pathListSeparator }}S[S]]]"
+## for example{{ .chezmoi.pathListSeparator }} "+9", "-05", "+03{{ .chezmoi.pathListSeparator }}30", "-01{{ .chezmoi.pathListSeparator }}23{{ .chezmoi.pathListSeparator }}45", etc.
 # timezone = "local"
 
 ## enable or disable automatic sync
-# auto_sync = true
+# {{ .chezmoi.config.color }}_sync = true
 
 ## enable or disable automatic update checks
 # update_check = true
 
 ## address of the sync server
-# sync_address = "https://api.atuin.sh"
+# sync_address = "https{{ .chezmoi.pathListSeparator }}{{ .chezmoi.pathSeparator }}{{ .chezmoi.pathSeparator }}api.atuin.sh"
 
 ## how often to sync history. note that this is only triggered when a command
 ## is ran, so sync intervals may well be longer
 ## set it to 0 to sync after every command
-# sync_frequency = "10m"
+sync_frequency = "10m"
 
 ## which search mode to use
-## possible values: prefix, fulltext, fuzzy, skim
-# search_mode = "fuzzy"
+## possible values{{ .chezmoi.pathListSeparator }} prefix, fulltext, fuzzy, skim
+search_mode = "fuzzy"
 
 ## which filter mode to use by default
-## possible values: "global", "host", "session", "directory", "workspace"
+## possible values{{ .chezmoi.pathListSeparator }} "global", "host", "session", "directory", "workspace"
 ## consider using search.filters to customize the enablement and order of filter modes
 # filter_mode = "global"
 
 ## With workspace filtering enabled, Atuin will filter for commands executed
-## in any directory within a git repository tree (default: false).
+## in any directory within a {{ .chezmoi.config.git.command }} repository tree (default{{ .chezmoi.pathListSeparator }} false).
 ##
 ## To use workspace mode by default when available, set this to true and
 ## set filter_mode to "workspace" or leave it unspecified and 
@@ -56,7 +56,7 @@
 ## which filter mode to use when atuin is invoked from a shell up-key binding
 ## the accepted values are identical to those of "filter_mode"
 ## leave unspecified to use same mode set in "filter_mode"
-# filter_mode_shell_up_key_binding = "global"
+filter_mode_shell_up_key_binding = "session"
 
 ## which search mode to use when atuin is invoked from a shell up-key binding
 ## the accepted values are identical to those of "search_mode"
@@ -64,8 +64,8 @@
 # search_mode_shell_up_key_binding = "fuzzy"
 
 ## which style to use
-## possible values: auto, full, compact
-# style = "auto"
+## possible values{{ .chezmoi.pathListSeparator }} {{ .chezmoi.config.color }}, full, compact
+# style = "{{ .chezmoi.config.color }}"
 
 ## the maximum number of lines the interface should take up
 ## set it to 0 to always go full screen
@@ -84,10 +84,10 @@
 # show_preview = true
 
 ## what to do when the escape key is pressed when searching
-## possible values: return-original, return-query
+## possible values{{ .chezmoi.pathListSeparator }} return-original, return-query
 # exit_mode = "return-original"
 
-## possible values: emacs, subl
+## possible values{{ .chezmoi.pathListSeparator }} emacs, subl
 # word_jump_mode = "emacs"
 
 ## characters that count as a part of a word
@@ -107,7 +107,7 @@
 ## Note that these regular expressions are unanchored, i.e. if they don't start
 ## with ^ or end with $, they'll match anywhere in the command.
 ## For details on the supported regular expression syntax, see
-## https://docs.rs/regex/latest/regex/#syntax
+## https{{ .chezmoi.pathListSeparator }}{{ .chezmoi.pathSeparator }}{{ .chezmoi.pathSeparator }}docs.rs{{ .chezmoi.pathSeparator }}regex{{ .chezmoi.pathSeparator }}latest{{ .chezmoi.pathSeparator }}regex{{ .chezmoi.pathSeparator }}#syntax
 # history_filter = [
 #   "^secret-cmd",
 #   "^innocuous-cmd .*--secret=.+",
@@ -117,9 +117,9 @@
 ## to history. Note that these regular expressions are unanchored, i.e. if they don't
 ## start with ^ or end with $, they'll match anywhere in CWD.
 ## For details on the supported regular expression syntax, see
-## https://docs.rs/regex/latest/regex/#syntax
+## https{{ .chezmoi.pathListSeparator }}{{ .chezmoi.pathSeparator }}{{ .chezmoi.pathSeparator }}docs.rs{{ .chezmoi.pathSeparator }}regex{{ .chezmoi.pathSeparator }}latest{{ .chezmoi.pathSeparator }}regex{{ .chezmoi.pathSeparator }}#syntax
 # cwd_filter = [
-#   "^/very/secret/area",
+#   "^{{ .chezmoi.pathSeparator }}very{{ .chezmoi.pathSeparator }}secret{{ .chezmoi.pathSeparator }}area",
 # ]
 
 ## Configure the maximum height of the preview to show.
@@ -135,19 +135,19 @@
 ## Configure whether or not to show tabs for search and inspect
 # show_tabs = true
 
-## Configure whether or not the tabs row may be auto-hidden, which includes the current Atuin
+## Configure whether or not the tabs row may be {{ .chezmoi.config.color }}-hidden, which includes the current Atuin
 ## tab, such as Search or Inspector, and other tabs you may wish to see. This will
 ## only be hidden if there are fewer than this count of lines available, and does not affect the use
-## of keyboard shortcuts to switch tab. 0 to never auto-hide, default is 8 (lines).
+## of keyboard shortcuts to switch tab. 0 to never {{ .chezmoi.config.color }}-hide, default is 8 (lines).
 ## This is ignored except in `compact` mode.
-# auto_hide_height = 8
+# {{ .chezmoi.config.color }}_hide_height = 8
 
 ## Defaults to true. This matches history against a set of default regex, and will not save it if we get a match. Defaults include
 ## 1. AWS key id
 ## 2. Github pat (old and new)
 ## 3. Slack oauth tokens (bot, user)
 ## 4. Slack webhooks
-## 5. Stripe live/test keys
+## 5. Stripe live{{ .chezmoi.pathSeparator }}test keys
 # secrets_filter = true
 
 ## Defaults to true. If enabled, upon hitting enter Atuin will immediately execute the command. Press tab to return to the shell and edit.
@@ -158,12 +158,12 @@ enter_accept = true
 # command_chaining = false
 
 ## Defaults to "emacs".  This specifies the keymap on the startup of `atuin
-## search`.  If this is set to "auto", the startup keymap mode in the Atuin
+## search`.  If this is set to "{{ .chezmoi.config.color }}", the startup keymap mode in the Atuin
 ## search is automatically selected based on the shell's keymap where the
 ## keybinding is defined.  If this is set to "emacs", "vim-insert", or
 ## "vim-normal", the startup keymap mode in the Atuin search is forced to be
 ## the specified one.
-# keymap_mode = "auto"
+# keymap_mode = "{{ .chezmoi.config.color }}"
 
 ## Cursor style in each keymap mode.  If specified, the cursor style is changed
 ## in entering the cursor shape.  Available values are "default" and
@@ -187,8 +187,8 @@ enter_accept = true
 #   "cargo",
 #   "composer",
 #   "dnf",
-#   "docker",
-#   "git",
+#   "{{ .chezmoi.config.docker.command }}",
+#   "{{ .chezmoi.config.git.command }}",
 #   "go",
 #   "ip",
 #   "jj",
@@ -216,7 +216,7 @@ enter_accept = true
 # ]
 
 [keys]
-# Defaults to true. If disabled, using the up/down key won't exit the TUI when scrolled past the first/last entry.
+# Defaults to true. If disabled, using the up{{ .chezmoi.pathSeparator }}down key won't exit the TUI when scrolled past the first{{ .chezmoi.pathSeparator }}last entry.
 # scroll_exits = true
 # Defaults to true. The left arrow key will exit the TUI when scrolling before the first character
 # exit_past_line_start = true
@@ -231,11 +231,11 @@ records = true
 
 [preview]
 ## which preview strategy to use to calculate the preview height (respects max_preview_height).
-## possible values: auto, static
-## auto: length of the selected command.
-## static: length of the longest command stored in the history.
-## fixed: use max_preview_height as fixed height.
-# strategy = "auto"
+## possible values{{ .chezmoi.pathListSeparator }} {{ .chezmoi.config.color }}, static
+## {{ .chezmoi.config.color }}{{ .chezmoi.pathListSeparator }} length of the selected command.
+## static{{ .chezmoi.pathListSeparator }} length of the longest command stored in the history.
+## fixed{{ .chezmoi.pathListSeparator }} use max_preview_height as fixed height.
+# strategy = "{{ .chezmoi.config.color }}"
 
 [daemon]
 ## Enables using the daemon to sync. Requires the daemon to be running in the background. Start it with `atuin daemon`
@@ -245,13 +245,13 @@ records = true
 # sync_frequency = 300
 
 ## The path to the unix socket used by the daemon (on unix systems)
-## linux/mac: ~/.local/share/atuin/atuin.sock
-## windows: Not Supported
-# socket_path = "~/.local/share/atuin/atuin.sock"
+## linux{{ .chezmoi.pathSeparator }}mac{{ .chezmoi.pathListSeparator }} ~{{ .chezmoi.pathSeparator }}.local{{ .chezmoi.pathSeparator }}share{{ .chezmoi.pathSeparator }}atuin{{ .chezmoi.pathSeparator }}atuin.sock
+## windows{{ .chezmoi.pathListSeparator }} Not Supported
+# socket_path = "~{{ .chezmoi.pathSeparator }}.local{{ .chezmoi.pathSeparator }}share{{ .chezmoi.pathSeparator }}atuin{{ .chezmoi.pathSeparator }}atuin.sock"
 
 ## Use systemd socket activation rather than opening the given path (the path must still be correct for the client)
-## linux: false
-## mac/windows: Not Supported
+## linux{{ .chezmoi.pathListSeparator }} false
+## mac{{ .chezmoi.pathSeparator }}windows{{ .chezmoi.pathListSeparator }} Not Supported
 # systemd_socket = false
 
 ## The port that should be used for TCP on non unix systems
@@ -260,12 +260,12 @@ records = true
 # [theme]
 ## Color theme to use for rendering in the terminal.
 ## There are some built-in themes, including the base theme ("default"),
-## "autumn" and "marine". You can add your own themes to the "./themes" subdirectory of your
+## "autumn" and "marine". You can {{ .chezmoi.command }} your own themes to the ".{{ .chezmoi.pathSeparator }}themes" subdirectory of your
 ## Atuin config (or ATUIN_THEME_DIR, if provided) as TOML files whose keys should be one or
 ## more of AlertInfo, AlertWarn, AlertError, Annotation, Base, Guidance, Important, and
-## the string values as lowercase entries from this list:
-##    https://ogeon.github.io/docs/palette/master/palette/named/index.html
-## If you provide a custom theme file, it should be  called "NAME.toml" and the theme below
+## the string values as lowercase entries from this list{{ .chezmoi.pathListSeparator }}
+##    https{{ .chezmoi.pathListSeparator }}{{ .chezmoi.pathSeparator }}{{ .chezmoi.pathSeparator }}ogeon.github.io{{ .chezmoi.pathSeparator }}docs{{ .chezmoi.pathSeparator }}palette{{ .chezmoi.pathSeparator }}master{{ .chezmoi.pathSeparator }}palette{{ .chezmoi.pathSeparator }}named{{ .chezmoi.pathSeparator }}index.html
+## If you provide a custom theme {{ .chezmoi.config.mode }}, it should be  called "NAME.toml" and the theme below
 ## should be the stem, i.e. `theme = "NAME"` for your chosen NAME.
 # name = "autumn"
 

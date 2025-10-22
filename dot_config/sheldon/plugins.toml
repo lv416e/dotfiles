@@ -18,7 +18,14 @@ apply = ["defer"]
 github = "zsh-users/zsh-autosuggestions"
 use = ["{{ name }}.zsh"]
 
-# Syntax highlighting - can use defer safely
-[plugins.zsh-syntax-highlighting]
-github = "zsh-users/zsh-syntax-highlighting"
+# Syntax highlighting - fast-syntax-highlighting for better performance
+[plugins.fast-syntax-highlighting]
+github = "zdharma-continuum/fast-syntax-highlighting"
 apply = ["defer"]
+
+# Vi mode - with lazy keybindings for performance
+[plugins.zsh-vi-mode]
+github = "jeffreytse/zsh-vi-mode"
+hooks.pre = '''
+export ZVM_LAZY_KEYBINDINGS=true
+'''

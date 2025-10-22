@@ -49,3 +49,12 @@ run = "chezmoi git -- push"
 [tasks.apply]
 description = "Apply chezmoi dotfiles"
 run = "chezmoi apply"
+
+[tasks.health]
+description = "Check all development tools health"
+run = [
+  "mise doctor",
+  "brew doctor",
+  "chezmoi verify",
+  "tmux info | grep 'started'"
+]
