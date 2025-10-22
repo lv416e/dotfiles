@@ -221,6 +221,11 @@ export PATH=$PATH:$DOTDIR/.config/alacritty/bin
 # gnu-time
 export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
 
+# zsh-autosuggestions optimization (set before sheldon loads it)
+export ZSH_AUTOSUGGEST_MANUAL_REBIND=1  # Skip rebind on each widget call (10-15ms faster startup)
+export ZSH_AUTOSUGGEST_USE_ASYNC=1      # Async suggestions for better responsiveness
+export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20  # Limit buffer size for performance
+
 # sheldon - zsh plugin manager with cache optimization
 # Cache sheldon output for faster startup (regenerate only when plugins.toml changes)
 _sheldon_cache="${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
