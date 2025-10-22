@@ -30,6 +30,15 @@ rust = "stable"        # Rust stable (managed by mise instead of rustup)
 experimental = true
 
 # =============================================================================
+# Environment Variables
+# =============================================================================
+# Shared environment variables for tasks
+
+[env]
+CACHE_DIR = "~/.cache"
+DOTFILES_DIR = "~/.local/share/chezmoi"
+
+# =============================================================================
 # Task Runner - Development Workflow Automation
 # =============================================================================
 # Run: mise <task> or mise run <task>
@@ -54,7 +63,7 @@ run = ["mise upgrade", "mise prune -y"]
 description = "[sys] Clean all caches (sheldon, zsh, mise)"
 alias = "c"
 run = [
-  "rm -rf ~/.cache/sheldon",
+  "rm -rf $CACHE_DIR/sheldon",
   "rm -rf ~/.zcompdump*",
   "mise cache clear"
 ]
@@ -83,7 +92,7 @@ run = [
   "echo '=== Installed Tools ==='",
   "mise ls",
   "echo '\n=== Cache Status ==='",
-  "du -sh ~/.cache/sheldon 2>/dev/null || echo 'No sheldon cache'",
+  "du -sh $CACHE_DIR/sheldon 2>/dev/null || echo 'No sheldon cache'",
   "du -sh ~/.zcompdump* 2>/dev/null || echo 'No zsh cache'",
 ]
 
