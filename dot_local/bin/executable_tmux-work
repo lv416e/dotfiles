@@ -75,17 +75,15 @@ tmux select-layout -t "${WINID}" "${LAYOUT}"
 sleep 0.1
 
 # Identify panes by coordinates
-readarray -t PINFO < <(tmux list-panes -t "${WINID}" -F '#{pane_id} #{pane_left} #{pane_top}')
-
 LEFTS=(); RIGHTS=()
-for l in "${PINFO[@]}"; do
-  read -r id x y <<<"$l"
+while IFS= read -r line; do
+  read -r id x y <<<"$line"
   if [[ "$x" -eq 0 ]]; then
     LEFTS+=("$id $x $y")
   else
     RIGHTS+=("$id $x $y")
   fi
-done
+done < <(tmux list-panes -t "${WINID}" -F '#{pane_id} #{pane_left} #{pane_top}')
 
 # Left column: top/bottom
 L_TOP=$(printf '%s\n' "${LEFTS[@]}"  | sort -nk3 | sed -n '1p' | awk '{print $1}')

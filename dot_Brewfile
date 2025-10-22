@@ -60,6 +60,7 @@ brew "procs"
 brew "python@3.13"
 brew "r"
 brew "ripgrep"
+brew "rustup"          # Rust toolchain installer (used by mise)
 brew "sd"
 brew "silicon"         # Create beautiful code screenshot images (Rust-based)
 brew "selenium-server"
