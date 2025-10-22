@@ -60,8 +60,8 @@ brew "procs"
 brew "python@3.13"
 brew "r"
 brew "ripgrep"
-brew "rustup"
 brew "sd"
+brew "silicon"         # Create beautiful code screenshot images (Rust-based)
 brew "selenium-server"
 brew "starship"
 brew "suite-sparse"
@@ -72,6 +72,8 @@ brew "tty-clock"
 brew "universal-ctags", args: ["HEAD"]
 brew "uv"
 brew "watch"
+brew "watchexec"       # Modern file watcher with smart defaults (Rust-based)
+brew "yazi"            # Blazing fast terminal file manager with async I/O (Rust-based)
 brew "yarn"
 brew "zlib"
 brew "zoxide"
