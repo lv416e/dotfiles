@@ -27,11 +27,5 @@ TOTAL_GB=$(awk "BEGIN {printf \"%.0f\", $TOTAL_BYTES / 1024 / 1024 / 1024}")
 # Calculate percentage
 PERCENT=$(awk "BEGIN {printf \"%.0f\", ($USED_GB / $TOTAL_GB) * 100}")
 
-# Output with emoji
-if [[ $PERCENT -gt 80 ]]; then
-  echo "🧠${USED_GB}G"
-elif [[ $PERCENT -gt 60 ]]; then
-  echo "📊${USED_GB}G"
-else
-  echo "💾${USED_GB}G"
-fi
+# Output with text label
+echo "RAM:${USED_GB}G"

@@ -25,7 +25,10 @@ HOMEBREW_PREFIX="/usr/local"
 export PROMPT_THEME="${PROMPT_THEME:-p10k}"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
-  export POWERLEVEL9K_SSH_DETECT_DISABLED=1
+  # Bypass expensive SSH detection by setting P9K_SSH before theme loads
+  # This prevents the 12-17ms overhead from _p9k_init_ssh
+  typeset -g P9K_SSH=0
+
   if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
     source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
   fi
@@ -44,13 +47,8 @@ fi
 # ============================================================================
 
 # --- FZF ---
-export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-export FZF_DEFAULT_OPTS='
-  --height 40%
-  --layout=reverse
-  --border
-  --preview "bat --color=always --style=numbers --line-range=:500 {}"
-'
+# FZF environment variables deferred - set before key bindings load
+# (saves ~1ms at startup)
 
 # --- zsh-autosuggestions ---
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
@@ -86,7 +84,9 @@ zsh-defer -c 'eval "$(mise activate zsh)"'
 
 # --- FZF key bindings ---
 if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh" ]]; then
-  zsh-defer source "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh"
+  zsh-defer -c 'export FZF_DEFAULT_COMMAND="fd --type f --hidden --follow --exclude .git"
+export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border --preview \"bat --color=always --style=numbers --line-range=:500 {}\""
+source "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh"'
 fi
 if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh" ]]; then
   zsh-defer source "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh"
@@ -102,17 +102,22 @@ zsh-defer -c '[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.po
 
 # --- Development tools ---
 export PATH="{{ .chezmoi.homeDir }}/.slack/bin:$PATH"
-export PATH="{{ .chezmoi.homeDir }}/.cargo/bin:$PATH"
+# Cargo bin already added in .zshenv via '. "$HOME/.cargo/env"'
 export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
 export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
 
 # --- C++ Development (LLVM/Clang) ---
-export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
-export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
-export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-export CFLAGS="-isysroot ${SDKROOT}"
-export CXXFLAGS="-isysroot ${SDKROOT}"
-export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c++"
+# Deferred to save ~2ms at startup - only loaded when needed
+_setup_cpp_env() {
+  export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
+  export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
+  export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+  export CFLAGS="-isysroot ${SDKROOT}"
+  export CXXFLAGS="-isysroot ${SDKROOT}"
+  export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c++"
+}
+# Defer C++ environment setup - will be loaded after prompt
+zsh-defer _setup_cpp_env
 
 # --- Alacritty + Hammerspoon ---
 DOTDIR='{{ .chezmoi.homeDir }}/dotfiles'

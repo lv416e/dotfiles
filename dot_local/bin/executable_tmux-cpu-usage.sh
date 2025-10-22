@@ -28,17 +28,8 @@ fi
 # Convert to integer for comparison
 CPU_INT=${CPU%.*}
 
-# Color coding based on usage
-if [[ $CPU_INT -gt 80 ]]; then
-  # High usage
-  OUTPUT="🔥${CPU}%"
-elif [[ $CPU_INT -gt 50 ]]; then
-  # Medium usage
-  OUTPUT="⚙️${CPU}%"
-else
-  # Normal usage
-  OUTPUT="💚${CPU}%"
-fi
+# Output with text label
+OUTPUT="CPU:${CPU}%"
 
 # Cache the result
 echo "$OUTPUT" | tee "$CACHE_FILE"

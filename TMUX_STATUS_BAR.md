@@ -6,10 +6,17 @@ This dotfiles repository includes a custom, lightweight tmux status bar that dis
 
 ## Features
 
-- **Claude Code Usage**: Real-time token usage tracking (⚡)
-- **CPU Usage**: Current CPU utilization with color coding (💚/⚙️/🔥)
-- **RAM Usage**: Memory consumption in GB (💾/📊/🧠)
-- **Battery Status**: Battery percentage with charging indicator (🔋/🪫/⚡/🔌)
+- **Claude Code Usage**: Real-time token usage and cost tracking
+  - Format: `CLD:14.5M/$9.43` (tokens/cost)
+  - Updates every 60 seconds with smart caching
+  - Never shows N/A after initial load (uses last known value)
+- **CPU Usage**: Current CPU utilization
+  - Format: `CPU:29.0%`
+  - 5-second cache for performance
+- **RAM Usage**: Memory consumption in GB
+  - Format: `RAM:8.6G`
+- **Battery Status**: Battery state and percentage
+  - Format: `CHG:71%` (CHG/BAT/AC)
 - **Date & Time**: Current time and date
 
 ## Performance
@@ -55,16 +62,23 @@ The status bar updates every 15 seconds (`status-interval 15`), which provides a
 
 ### tmux-claude-usage.sh
 
-Displays Claude Code token usage for today.
+Displays Claude Code token usage and cost for today.
 
-**Caching**: 60 seconds
-**Output format**: `⚡{tokens}k` or `⚡N/A`
+**Caching**: 60 seconds with background updates
+**Output format**: `CLD:{tokens}/{cost}` (e.g., `CLD:14.5M/$9.43`)
+**Timeout**: 5 seconds
 
 **Features**:
-- Parses `ccusage --today` output
-- Formats large numbers (e.g., "12k" for 12,000 tokens)
-- Includes 3-second timeout to prevent hanging
-- Uses cached results to minimize API calls
+- Parses `ccusage --today --json` output using jq
+- Formats tokens (K for thousands, M for millions)
+- Formats cost in USD with 2 decimal places
+- Smart caching strategy:
+  - Shows cached value immediately (< 15ms)
+  - Updates in background when cache expires
+  - Never shows N/A after initial load (uses last known value on error)
+  - Background update prevents blocking tmux status refresh
+- Error logging to `/tmp/tmux-claude-usage.err` for debugging
+- Lock file prevents multiple concurrent updates
 
 ### tmux-cpu-usage.sh
 
