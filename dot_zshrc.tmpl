@@ -211,9 +211,15 @@ alias zsh-bench='for i in $(seq 1 20); do time zsh -i -c exit; done'
 # ============================================================================
 
 # Cheat sheet viewer (navi + tldr)
-# Usage: ch <command>  - Interactive navi, falls back to tldr if no results
+# Usage:
+#   ch           - Interactive navi
+#   ch <command> - Show tldr for command
 ch() {
-  navi --query "$*" 2>/dev/null || navi --tldr "$*"
+  if [[ $# -eq 0 ]]; then
+    navi
+  else
+    navi --tldr "$*"
+  fi
 }
 # Legacy cheat implementation (uncomment if needed):
 # ch() { cheat $* | bat -l sh }
