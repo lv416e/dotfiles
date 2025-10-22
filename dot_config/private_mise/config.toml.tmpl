@@ -108,9 +108,9 @@ run = "bash -c 'for i in {1..10}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr
 
 # --- Orchestration Tasks ---
 
-[tasks.sync]
+[tasks.full-sync]
 description = "Full sync workflow: apply dotfiles → update tools → clean caches"
-alias = "s"
+alias = "fs"
 depends = ["dotfiles-apply", "update", "clean"]
 
 [tasks.fresh-start]
