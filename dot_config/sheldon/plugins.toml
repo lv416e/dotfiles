@@ -22,10 +22,3 @@ use = ["{{ name }}.zsh"]
 [plugins.fast-syntax-highlighting]
 github = "zdharma-continuum/fast-syntax-highlighting"
 apply = ["defer"]
-
-# Vi mode - with lazy keybindings for performance
-[plugins.zsh-vi-mode]
-github = "jeffreytse/zsh-vi-mode"
-hooks.pre = '''
-export ZVM_LAZY_KEYBINDINGS=true
-'''
