@@ -254,10 +254,6 @@ zsh-defer -c 'eval "$(zoxide init --cmd j zsh)"'
 # atuin - magical shell history (deferred for faster startup)
 zsh-defer -c 'eval "$(atuin init zsh)"'
 
-# direnv (deferred for faster startup)
-# Note: With deferred loading, .envrc will be loaded on first cd
-zsh-defer -c 'eval "$(direnv hook zsh)"'
-
 # mise (unified version management for node, python, go, ruby, etc.)
 # Use zsh-defer for lazy loading to improve startup time (must be after sheldon)
 zsh-defer -c 'eval "$(mise activate zsh)"'
