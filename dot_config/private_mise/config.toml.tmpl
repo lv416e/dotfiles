@@ -1,7 +1,6 @@
 # =============================================================================
 # Mise Configuration - Development Tools & Environment Management
 # =============================================================================
-# Mise manages language runtimes, environment variables, and project tasks
 # Docs: https://mise.jdx.dev/
 
 [tools]
@@ -33,31 +32,26 @@ experimental = true
 # =============================================================================
 # Task Runner - Development Workflow Automation
 # =============================================================================
-# Run tasks with: mise run <task> or mise <task>
-# List tasks: mise tasks
-# 2025 Best Practices:
-#   - Use aliases for frequently used tasks
-#   - Define dependencies with 'depends' for task orchestration
-#   - Use parallel execution where possible
-#   - Add descriptions for documentation
+# Run: mise <task> or mise run <task>
+# List: mise tasks
+#
+# Naming Convention:
+#   [category]-[action]  (e.g., sys-update, dot-apply)
+#
+# Categories:
+#   sys-  : System maintenance (update, clean, check)
+#   dot-  : Dotfiles management (apply, backup, diff)
+#   tool- : Tool management (install, outdated)
 
-# --- Core Maintenance Tasks ---
+# --- System Maintenance ---
 
-[tasks.update]
-description = "Update all mise-managed tools and prune old versions"
-alias = "u"
-run = [
-  "mise upgrade",
-  "mise prune -y",
-]
+[tasks.sys-update]
+description = "[sys] Update all tools and prune old versions"
+alias = "up"
+run = ["mise upgrade", "mise prune -y"]
 
-[tasks.doctor]
-description = "Verify mise installation and configuration"
-alias = "doc"
-run = "mise doctor"
-
-[tasks.clean]
-description = "Clean all development caches (sheldon, zsh, mise)"
+[tasks.sys-clean]
+description = "[sys] Clean all caches (sheldon, zsh, mise)"
 alias = "c"
 run = [
   "rm -rf ~/.cache/sheldon",
@@ -65,84 +59,85 @@ run = [
   "mise cache clear"
 ]
 
-# --- Dotfiles Management Tasks ---
+[tasks.sys-check]
+description = "[sys] Verify mise installation and config"
+alias = "chk"
+run = "mise doctor"
 
-[tasks.dotfiles-apply]
-description = "Apply chezmoi dotfiles to system"
-alias = "da"
-run = "chezmoi apply"
-
-[tasks.dotfiles-backup]
-description = "Push dotfiles to remote git repository"
-alias = "db"
-run = "chezmoi git -- push"
-
-[tasks.dotfiles-status]
-description = "Show git status of dotfiles repository"
-alias = "ds"
-run = "chezmoi git -- status"
-
-[tasks.dotfiles-diff]
-description = "Show diff between dotfiles and applied config"
-alias = "dd"
-run = "chezmoi diff"
-
-# --- Health Check & Diagnostics ---
-
-[tasks.health]
-description = "Run comprehensive system health checks"
+[tasks.sys-health]
+description = "[sys] Run comprehensive health checks"
 alias = "h"
 run = [
-  "echo '=== Mise Health ==='",
+  "echo '=== Mise ==='",
   "mise doctor",
-  "echo '\n=== Homebrew Health ==='",
+  "echo '\n=== Homebrew ==='",
   "brew doctor",
-  "echo '\n=== Chezmoi Verification ==='",
+  "echo '\n=== Chezmoi ==='",
   "chezmoi verify",
 ]
 
-[tasks.benchmark]
-description = "Benchmark zsh shell startup time (10 iterations)"
-alias = "bench"
-run = "bash -c 'for i in {1..10}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr/bin/grep real; done'"
-
-# --- Orchestration Tasks ---
-
-[tasks.full-sync]
-description = "Full sync workflow: apply dotfiles → update tools → clean caches"
-alias = "fs"
-depends = ["dotfiles-apply", "update", "clean"]
-
-[tasks.fresh-start]
-description = "Complete fresh start: clean → apply → update"
-alias = "fresh"
-run = [
-  "mise run clean",
-  "mise run dotfiles-apply",
-  "mise run update",
-]
-
-[tasks.status]
-description = "Show overall system status (tools, dotfiles, caches)"
+[tasks.sys-status]
+description = "[sys] Show system status (tools, caches)"
 alias = "st"
 run = [
   "echo '=== Installed Tools ==='",
   "mise ls",
-  "echo '\n=== Dotfiles Status ==='",
-  "chezmoi git -- status",
   "echo '\n=== Cache Status ==='",
   "du -sh ~/.cache/sheldon 2>/dev/null || echo 'No sheldon cache'",
-  "du -sh ~/.zcompdump* 2>/dev/null || echo 'No zsh completion cache'",
+  "du -sh ~/.zcompdump* 2>/dev/null || echo 'No zsh cache'",
 ]
 
-# --- Tool Installation ---
+[tasks.sys-bench]
+description = "[sys] Benchmark zsh startup time (10x)"
+alias = "b"
+run = "bash -c 'for i in {1..10}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr/bin/grep real; done'"
 
-[tasks.install-tools]
-description = "Install all mise-managed tools from config"
-alias = "install"
+# --- Dotfiles Management ---
+
+[tasks.dot-apply]
+description = "[dot] Apply dotfiles to system"
+alias = "a"
+run = "chezmoi apply"
+
+[tasks.dot-backup]
+description = "[dot] Push dotfiles to remote repo"
+alias = "bak"
+run = "chezmoi git -- push"
+
+[tasks.dot-status]
+description = "[dot] Show git status of dotfiles"
+alias = "s"
+run = "chezmoi git -- status"
+
+[tasks.dot-diff]
+description = "[dot] Show diff between source and applied"
+alias = "d"
+run = "chezmoi diff"
+
+# --- Tool Management ---
+
+[tasks.tool-install]
+description = "[tool] Install all tools from config"
+alias = "i"
 run = "mise install"
 
-[tasks.outdated]
-description = "Check for outdated tools"
+[tasks.tool-outdated]
+description = "[tool] Check for outdated tools"
 alias = "out"
 run = "mise outdated"
+
+# --- Workflows (Complex Operations) ---
+
+[tasks.sync]
+description = "[workflow] Full sync: apply → update → clean"
+alias = "sy"
+depends = ["dot-apply", "sys-update", "sys-clean"]
+
+[tasks.fresh]
+description = "[workflow] Fresh start: clean → apply → update"
+alias = "f"
+run = [
+  "mise run sys-clean",
+  "mise run dot-apply",
+  "mise run sys-update",
+]
