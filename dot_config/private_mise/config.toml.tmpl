@@ -1,0 +1,51 @@
+[tools]
+node = "lts"           # Node.js LTS version
+python = "3.13"        # Python 3.13 (stable)
+go = "latest"          # Latest Go version
+ruby = "3.3"           # Ruby 3.3
+java = "temurin-11"    # Java 11 (Temurin LTS, supported until 2029)
+rust = "stable"        # Rust stable (replaces rustup for mise management)
+
+# npm global packages
+"npm:@anthropic-ai/claude-code" = "latest"  # Claude Code CLI
+"npm:@google/gemini-cli" = "latest"         # Gemini CLI
+"npm:@openai/codex" = "latest"              # OpenAI Codex CLI
+"npm:@slidev/cli" = "latest"                # Slidev presentation tool
+"npm:git-open" = "latest"                   # Open GitHub repo from terminal
+"npm:ccusage" = "latest"                    # Claude Code usage tracker
+
+# Python tools (pipx/uvx)
+"pipx:claude-monitor" = "latest"            # Claude Code usage monitor
+
+# Modern shell (experimental)
+"cargo:nu" = "latest"                       # Nushell - modern shell with structured data
+
+[settings]
+experimental = true
+
+[tasks.update]
+description = "Update all tools and packages"
+run = [
+  "mise upgrade",
+  "mise prune -y",
+]
+
+[tasks.doctor]
+description = "Check mise installation and configuration"
+run = "mise doctor"
+
+[tasks.clean]
+description = "Clean all caches"
+run = [
+  "rm -rf ~/.cache/sheldon",
+  "rm -rf ~/.zcompdump*",
+  "mise cache clear"
+]
+
+[tasks.backup]
+description = "Backup dotfiles to remote"
+run = "chezmoi git -- push"
+
+[tasks.apply]
+description = "Apply chezmoi dotfiles"
+run = "chezmoi apply"
