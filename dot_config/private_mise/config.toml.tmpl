@@ -1,10 +1,17 @@
+# =============================================================================
+# Mise Configuration - Development Tools & Environment Management
+# =============================================================================
+# Mise manages language runtimes, environment variables, and project tasks
+# Docs: https://mise.jdx.dev/
+
 [tools]
+# Language runtimes
 node = "lts"           # Node.js LTS version
 python = "3.13"        # Python 3.13 (stable)
 go = "latest"          # Latest Go version
 ruby = "3.3"           # Ruby 3.3
 java = "temurin-11"    # Java 11 (Temurin LTS, supported until 2029)
-rust = "stable"        # Rust stable (replaces rustup for mise management)
+rust = "stable"        # Rust stable (managed by mise instead of rustup)
 
 # npm global packages
 "npm:@anthropic-ai/claude-code" = "latest"  # Claude Code CLI
@@ -23,38 +30,119 @@ rust = "stable"        # Rust stable (replaces rustup for mise management)
 [settings]
 experimental = true
 
+# =============================================================================
+# Task Runner - Development Workflow Automation
+# =============================================================================
+# Run tasks with: mise run <task> or mise <task>
+# List tasks: mise tasks
+# 2025 Best Practices:
+#   - Use aliases for frequently used tasks
+#   - Define dependencies with 'depends' for task orchestration
+#   - Use parallel execution where possible
+#   - Add descriptions for documentation
+
+# --- Core Maintenance Tasks ---
+
 [tasks.update]
-description = "Update all tools and packages"
+description = "Update all mise-managed tools and prune old versions"
+alias = "u"
 run = [
   "mise upgrade",
   "mise prune -y",
 ]
 
 [tasks.doctor]
-description = "Check mise installation and configuration"
+description = "Verify mise installation and configuration"
+alias = "doc"
 run = "mise doctor"
 
 [tasks.clean]
-description = "Clean all caches"
+description = "Clean all development caches (sheldon, zsh, mise)"
+alias = "c"
 run = [
   "rm -rf ~/.cache/sheldon",
   "rm -rf ~/.zcompdump*",
   "mise cache clear"
 ]
 
-[tasks.backup]
-description = "Backup dotfiles to remote"
-run = "chezmoi git -- push"
+# --- Dotfiles Management Tasks ---
 
-[tasks.apply]
-description = "Apply chezmoi dotfiles"
+[tasks.dotfiles-apply]
+description = "Apply chezmoi dotfiles to system"
+alias = "da"
 run = "chezmoi apply"
 
+[tasks.dotfiles-backup]
+description = "Push dotfiles to remote git repository"
+alias = "db"
+run = "chezmoi git -- push"
+
+[tasks.dotfiles-status]
+description = "Show git status of dotfiles repository"
+alias = "ds"
+run = "chezmoi git -- status"
+
+[tasks.dotfiles-diff]
+description = "Show diff between dotfiles and applied config"
+alias = "dd"
+run = "chezmoi diff"
+
+# --- Health Check & Diagnostics ---
+
 [tasks.health]
-description = "Check all development tools health"
+description = "Run comprehensive system health checks"
+alias = "h"
 run = [
+  "echo '=== Mise Health ==='",
   "mise doctor",
+  "echo '\n=== Homebrew Health ==='",
   "brew doctor",
+  "echo '\n=== Chezmoi Verification ==='",
   "chezmoi verify",
-  "tmux info | grep 'started'"
 ]
+
+[tasks.benchmark]
+description = "Benchmark zsh shell startup time (10 iterations)"
+alias = "bench"
+run = "bash -c 'for i in {1..10}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr/bin/grep real; done'"
+
+# --- Orchestration Tasks ---
+
+[tasks.sync]
+description = "Full sync workflow: apply dotfiles → update tools → clean caches"
+alias = "s"
+depends = ["dotfiles-apply", "update", "clean"]
+
+[tasks.fresh-start]
+description = "Complete fresh start: clean → apply → update"
+alias = "fresh"
+run = [
+  "mise run clean",
+  "mise run dotfiles-apply",
+  "mise run update",
+]
+
+[tasks.status]
+description = "Show overall system status (tools, dotfiles, caches)"
+alias = "st"
+run = [
+  "echo '=== Installed Tools ==='",
+  "mise ls",
+  "echo '\n=== Dotfiles Status ==='",
+  "chezmoi git -- status",
+  "echo '\n=== Cache Status ==='",
+  "du -sh ~/.cache/sheldon 2>/dev/null || echo 'No sheldon cache'",
+  "du -sh ~/.zcompdump* 2>/dev/null || echo 'No zsh completion cache'",
+]
+
+# --- Tool Installation ---
+
+[tasks.install-tools]
+description = "Install all mise-managed tools from config"
+alias = "install"
+run = "mise install"
+
+[tasks.outdated]
+description = "Check for outdated tools"
+alias = "out"
+run = "mise outdated"
