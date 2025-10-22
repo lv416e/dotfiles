@@ -1,13 +1,14 @@
-# Performance profiling (comment out when not benchmarking)
+# ============================================================================
+# Performance Profiling (uncomment when benchmarking)
+# ============================================================================
 # zmodload zsh/zprof
 
-# Q pre block. Keep at the top of this file.
-# Note: Deferred loading for faster startup (20-30ms improvement)
-# Amazon Q will be available after zsh-defer completes
-# [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"
+# ============================================================================
+# Core Initialization
+# ============================================================================
+
+# --- Homebrew ---
 {{- if eq .chezmoi.arch "arm64" }}
-# Homebrew environment (hardcoded for 20ms faster startup)
-# Previously: eval "$(/opt/homebrew/bin/brew shellenv)"
 export HOMEBREW_PREFIX="/opt/homebrew"
 export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
 export HOMEBREW_REPOSITORY="/opt/homebrew"
@@ -20,148 +21,29 @@ eval "$(/usr/local/bin/brew shellenv)"
 HOMEBREW_PREFIX="/usr/local"
 {{- end }}
 
-# Prompt configuration
-# Set PROMPT_THEME to either "starship" or "p10k"
-#
-# Performance (measured with zsh-bench):
-#   P10k:     first_prompt_lag=45.9ms, command_lag=42.9ms (faster)
-#   Starship: first_prompt_lag=83.5ms, command_lag=83.8ms (cross-shell)
-#
-# To switch between prompts:
-#   1. Set environment variable before starting zsh:
-#      export PROMPT_THEME=starship  # or p10k
-#   2. Or use the switch-prompt command (see below)
-#
-# Default: P10k (45% faster first prompt, 49% faster commands)
+# --- Prompt ---
 export PROMPT_THEME="${PROMPT_THEME:-p10k}"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
-  # Disable SSH detection for 22ms faster startup (only needed if connecting via SSH)
   export POWERLEVEL9K_SSH_DETECT_DISABLED=1
-  # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-  # Initialization code that may require console input (password prompts, [y/n]
-  # confirmations, etc.) must go above this block; everything else may go below.
   if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
     source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
   fi
 fi
 
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
-
-# cheat sheet function
-# ch() { cheat $* | bat --style=plain -l sh }
-ch() { cheat $* | bat --paging=never -l sh }
-
-# code serch function
-agg() { ag $* | bat -l sh }
-
-# jgrep function
-jgrep() { jq | gron | grep $* | gron -u }
-
-# history grep function
-hg() { history -1000 | grep $* | tail -r | bat -l sh }
-hc() { history -1000 | awk -v cmd="$1" '$1 == cmd { $1=""; sub(/^ +/, ""); print; exit }' | tr -d '\n' | pbcopy }
-
-# Prompt initialization
-# Note: Starship loads immediately (not deferred) because prompt is needed right away
 if [[ "$PROMPT_THEME" == "starship" ]]; then
-  # Starship
   eval "$(starship init zsh)"
   export STARSHIP_CONFIG=~/.config/starship.toml
 elif [[ "$PROMPT_THEME" == "p10k" ]]; then
-  # Powerlevel10k (standalone, no Oh-My-Zsh)
   source ~/powerlevel10k/powerlevel10k.zsh-theme
-  # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 fi
 
-# Alias
-alias la='ls -al'
-alias ll='ls -l'
-alias vim='nvim'
-alias vi='nvim'
-alias v='nvim'
-# eza (modern replacement for exa)
-alias e='eza --icons --git --sort=type'
-alias l=e
-alias ls=e
-alias ea='eza -a --icons --git --sort=type'
-alias la=ea
-alias ee='clear & eza -aahl --icons --git --sort=type'
-alias ll=ee
-alias et='eza -T -L 3 -a -I "node_modules|.git|.cache" --icons --sort=type'
-alias lt=et
-alias eta='eza -T -a -I "node_modules|.git|.cache" --color=always --icons --sort=type | less -r'
-alias lta=eta
-alias l='clear && ll'
-# monitoring
-alias top='btm'
-alias bottom='btm'
-# cat and less
-alias less='bat'
-alias cat='bat --paging=never'
-# grep
-alias grep='rg -S'
-alias -g G='| rg -S'
-# change directory
-alias d='cd ~/Documents'
-alias dot='cd ~/.local/share/chezmoi'
-alias obs='cd ~/Google\ Drive/My\ Drive/obsidian/'
-alias ..1='cd ../'
-alias ..2='cd ../../'
-alias ..3='cd ../../../'
-alias ..4='cd ../../../../'
-# history
-alias h1='history -100 | tail -r | bat -l sh'
-alias h10='history -1000 | tail -r | bat -l sh'
-# others
-alias c='clear'
-alias du='dust'
-alias df='duf'
-alias ps='procs --tree'
-alias rm='trash'
-alias cl='tty-clock -sc'
-alias tenki='http wttr.in/Tokyo'
-alias twork='tmux-work'
-alias tw='tmux-work'
-alias tcc='tmux-claude'
-alias tc='tmux-claude'
-alias tvim='tmux-nvim'
-alias tv='tmux-nvim'
-alias tnu='tmux-nu'
-alias tn='tmux-nu'
-# nushell (experimental)
-alias nu='nu'
-alias nuscript='nu -c'
-alias vnu='chezmoi edit ~/.config/nushell/config.nu'
-# chezmoi
-alias vzsh='chezmoi edit ~/.zshrc'
-alias vbrew='chezmoi edit ~/.Brewfile'
-alias szsh='source ~/.zshrc'
-alias cdot='chezmoi cd'
-alias adot='chezmoi apply'
-# claude code
-alias ai='claude'
-ask() {
-  if [[ $# -eq 0 ]]; then
-    echo "Enter your prompt (press Ctrl+D on a new line to finish):"
-    local input="$(cat)"
-    [[ -n "$input" ]] && claude -p "$input"
-  else
-    claude -p "$*"
-  fi
-}
-# git
-alias lg='gitui'
-alias ld='lazydocker'
-# performance monitoring
-alias tmux-health='tmux list-panes -a -F "Pane #{pane_id}: #{history_size}/#{history_limit} lines"'
-alias zsh-bench='for i in $(seq 1 20); do time zsh -i -c exit; done'
+# ============================================================================
+# Tool Configuration
+# ============================================================================
 
-# zoxide - will be loaded with zsh-defer after sheldon
-# atuin - will be loaded with zsh-defer after sheldon
-# fzf configuration
+# --- FZF ---
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='
   --height 40%
@@ -170,72 +52,12 @@ export FZF_DEFAULT_OPTS='
   --preview "bat --color=always --style=numbers --line-range=:500 {}"
 '
 
-# Python environment (replaced by mise)
-# export PYENV_ROOT="$HOME/.pyenv"
-# export PATH="$PYENV_ROOT/bin:$PATH"
-# eval "$(pyenv init -)"
+# --- zsh-autosuggestions ---
+export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+export ZSH_AUTOSUGGEST_USE_ASYNC=1
+export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 
-# Node.js (replaced by mise)
-# export PATH=$HOME/.nodebrew/current/bin:$PATH
-
-# Slack CLI
-export PATH="{{ .chezmoi.homeDir }}/.slack/bin:$PATH"
-
-# mask task runner
-export PATH="{{ .chezmoi.homeDir }}/.cargo/bin:$PATH"
-
-# direnv - will be loaded with zsh-defer after sheldon
-
-# mysql
-# Note: LDFLAGS commented out as it causes Ruby build errors
-# export LDFLAGS="-L/usr/local/opt/mysql-client/lib"
-# export CPPFLAGS="-I/usr/local/opt/mysql-client/include"
-export PATH="${HOMEBREW_PREFIX}/opt/mysql-client/bin:$PATH"
-export PATH="${HOMEBREW_PREFIX}/opt/libpq/bin:$PATH"
-# export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
-# export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-
-# JAVA
-# Note: JAVA_HOME is now managed by mise (10ms faster startup)
-# Previously: export JAVA_HOME=`/usr/libexec/java_home -v 11`
-# mise automatically sets JAVA_HOME based on ~/.config/mise/config.toml
-
-# C++ Development (LLVM/Clang for C++23)
-export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
-export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
-export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
-# Hardcoded for 14ms faster startup (previously: export SDKROOT="$(xcrun --show-sdk-path)")
-# Note: After macOS updates, verify the path hasn't changed by running: xcrun --show-sdk-path
-export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-export CFLAGS="-isysroot ${SDKROOT}"
-export CXXFLAGS="-isysroot ${SDKROOT}"
-export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c++"
-
-# solver
-export PMIP_CBC_LIBRARY="/usr/local/lib/libCbc.dylib"
-export LD_LIBRARY_PATH="/home/haroldo/prog/lib/":$LD_LIBRARY_PATH
-
-# HSL for IPOPT
-export METIS_HEADER=${HOMEBREW_PREFIX}/Cellar/metis/5.1.0/include
-export METIS_LIBRARY=${HOMEBREW_PREFIX}/Cellar/metis/5.1.0/lib
-export MYAPPS=${HOME}/UserApps/IPOPT/HSL/hsl_install
-export MYLIB=${MYAPPS}/lib
-export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MYLIB}
-
-# Alacritty + Hammerspoon
-DOTDIR='{{ .chezmoi.homeDir }}/dotfiles'
-export PATH=$PATH:$DOTDIR/.config/alacritty/bin
-
-# gnu-time
-export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
-
-# zsh-autosuggestions optimization (set before sheldon loads it)
-export ZSH_AUTOSUGGEST_MANUAL_REBIND=1  # Skip rebind on each widget call (10-15ms faster startup)
-export ZSH_AUTOSUGGEST_USE_ASYNC=1      # Async suggestions for better responsiveness
-export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20  # Limit buffer size for performance
-
-# sheldon - zsh plugin manager with cache optimization
-# Cache sheldon output for faster startup (regenerate only when plugins.toml changes)
+# --- sheldon (plugin manager with cache) ---
 _sheldon_cache="${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
 _sheldon_toml="${XDG_CONFIG_HOME:-$HOME/.config}/sheldon/plugins.toml"
 if [[ ! -r "$_sheldon_cache" || "$_sheldon_toml" -nt "$_sheldon_cache" ]]; then
@@ -245,36 +67,24 @@ fi
 source "$_sheldon_cache"
 unset _sheldon_cache _sheldon_toml
 
-# Initialize zsh completion system with cache optimization (for faster startup)
-# Regenerate completion dump only once per day for significant speedup
-# Using zsh-defer for lazy loading (saves ~20ms startup time)
+# --- Completion system (cached, deferred) ---
 _load_completion() {
   autoload -Uz compinit
   local _comp_path="${ZDOTDIR:-$HOME}/.zcompdump"
   if [[ -n $_comp_path(#qNmh-24) ]]; then
-    # Cache exists and is less than 24 hours old - use -C and -u for maximum speed
     compinit -C -u -d "$_comp_path"
   else
-    # Cache is old or doesn't exist - regenerate with -u to skip ownership check
     compinit -u -d "$_comp_path"
   fi
 }
 zsh-defer _load_completion
 
-# Deferred initialization (loaded after sheldon provides zsh-defer)
-# These tools are loaded lazily to improve startup time
-
-# zoxide (deferred for faster startup)
+# --- Deferred tool initialization ---
 zsh-defer -c 'eval "$(zoxide init --cmd j zsh)"'
-
-# atuin - magical shell history (deferred for faster startup)
 zsh-defer -c 'eval "$(atuin init zsh)"'
-
-# mise (unified version management for node, python, go, ruby, etc.)
-# Use zsh-defer for lazy loading to improve startup time (must be after sheldon)
 zsh-defer -c 'eval "$(mise activate zsh)"'
 
-# fzf key bindings and fuzzy completion (loaded via Homebrew)
+# --- FZF key bindings ---
 if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh" ]]; then
   zsh-defer source "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh"
 fi
@@ -282,12 +92,158 @@ if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh" ]]; then
   zsh-defer source "${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh"
 fi
 
-# Q post block. Keep at the bottom of this file.
-# Note: Deferred loading for faster startup (works after sheldon loads zsh-defer)
-zsh-defer -c '[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"'
+# --- Amazon Q (deferred, optional) ---
+# zsh-defer -c '[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"'
 zsh-defer -c '[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"'
 
-# Kill current tmux window (only when inside tmux)
+# ============================================================================
+# Environment Variables
+# ============================================================================
+
+# --- Development tools ---
+export PATH="{{ .chezmoi.homeDir }}/.slack/bin:$PATH"
+export PATH="{{ .chezmoi.homeDir }}/.cargo/bin:$PATH"
+export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
+export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
+
+# --- C++ Development (LLVM/Clang) ---
+export CC="${HOMEBREW_PREFIX}/opt/llvm/bin/clang"
+export CXX="${HOMEBREW_PREFIX}/opt/llvm/bin/clang++"
+export SDKROOT="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
+export CFLAGS="-isysroot ${SDKROOT}"
+export CXXFLAGS="-isysroot ${SDKROOT}"
+export LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c++"
+
+# --- Alacritty + Hammerspoon ---
+DOTDIR='{{ .chezmoi.homeDir }}/dotfiles'
+export PATH=$PATH:$DOTDIR/.config/alacritty/bin
+
+# ============================================================================
+# Aliases
+# ============================================================================
+
+# --- Editor ---
+alias vim='nvim'
+alias vi='nvim'
+alias v='nvim'
+
+# --- File operations (eza) ---
+alias e='eza --icons --git --sort=type'
+alias l=e
+alias ls=e
+alias ea='eza -a --icons --git --sort=type'
+alias la=ea
+alias ee='eza -aahl --icons --git --sort=type'
+alias ll=ee
+alias et='eza -T -L 3 -a -I "node_modules|.git|.cache" --icons --sort=type'
+alias lt=et
+alias eta='eza -T -a -I "node_modules|.git|.cache" --color=always --icons --sort=type | less -r'
+alias lta=eta
+
+# --- Modern CLI tools ---
+alias cat='bat --paging=never'
+alias less='bat'
+alias grep='rg -S'
+alias -g G='| rg -S'
+alias top='btm'
+alias bottom='btm'
+alias du='dust'
+alias df='duf'
+alias ps='procs --tree'
+alias rm='trash'
+
+# --- Navigation ---
+alias d='cd ~/Documents'
+alias dot='cd ~/.local/share/chezmoi'
+alias obs='cd ~/Google\ Drive/My\ Drive/obsidian/'
+alias ..1='cd ../'
+alias ..2='cd ../../'
+alias ..3='cd ../../../'
+alias ..4='cd ../../../../'
+
+# --- History ---
+alias h1='history -100 | tail -r | bat -l sh'
+alias h10='history -1000 | tail -r | bat -l sh'
+
+# --- Tmux ---
+alias twork='tmux-work'
+alias tw='tmux-work'
+alias tcc='tmux-claude'
+alias tc='tmux-claude'
+alias tvim='tmux-nvim'
+alias tv='tmux-nvim'
+alias tnu='tmux-nu'
+alias tn='tmux-nu'
+alias tmux-health='tmux list-panes -a -F "Pane #{pane_id}: #{history_size}/#{history_limit} lines"'
+
+# --- Nushell ---
+alias nu='nu'
+alias nuscript='nu -c'
+alias vnu='chezmoi edit ~/.config/nushell/config.nu'
+
+# --- Chezmoi ---
+alias vzsh='chezmoi edit ~/.zshrc'
+alias vbrew='chezmoi edit ~/.Brewfile'
+alias szsh='source ~/.zshrc'
+alias cdot='chezmoi cd'
+alias adot='chezmoi apply'
+
+# --- Claude Code ---
+alias ai='claude'
+
+# --- Git ---
+alias lg='gitui'
+alias ld='lazydocker'
+
+# --- Repository shortcuts ---
+alias rt='repo -t'
+alias rt2='repo -t2'
+alias rtd='repo -t2'
+
+# --- Misc ---
+alias c='clear'
+alias cl='tty-clock -sc'
+alias tenki='http wttr.in/Tokyo'
+alias zsh-bench='for i in $(seq 1 20); do time zsh -i -c exit; done'
+
+# ============================================================================
+# Functions - Utilities
+# ============================================================================
+
+# Cheat sheet viewer (navi + tldr)
+# Usage: ch <command>  - Interactive navi, falls back to tldr if no results
+ch() {
+  navi --query "$*" 2>/dev/null || navi --tldr "$*"
+}
+# Legacy cheat implementation (uncomment if needed):
+# ch() { cheat $* | bat -l sh }
+
+# Code search with bat
+agg() { ag $* | bat -l sh }
+
+# JSON grep
+jgrep() { jq | gron | grep $* | gron -u }
+
+# History utilities
+hg() { history -1000 | grep $* | tail -r | bat -l sh }
+hc() { history -1000 | awk -v cmd="$1" '$1 == cmd { $1=""; sub(/^ +/, ""); print; exit }' | tr -d '\n' | pbcopy }
+
+# Claude ask with multi-line support
+ask() {
+  if [[ $# -eq 0 ]]; then
+    echo "Enter your prompt (press Ctrl+D on a new line to finish):"
+    local input="$(cat)"
+    [[ -n "$input" ]] && claude -p "$input"
+  else
+    claude -p "$*"
+  fi
+}
+
+# ============================================================================
+# Functions - Shell Management
+# ============================================================================
+
+# Kill current tmux window
 twk() {
   local id
   id="$(tmux display -p '#{window_id}' 2>/dev/null)" || {
@@ -296,8 +252,7 @@ twk() {
   tmux kill-window -t "$id"
 }
 
-# Clear zsh caches and restart shell
-# Use this after updating plugins or installing new commands
+# Clear zsh caches and restart
 zsh-refresh() {
   echo "Clearing sheldon cache..."
   rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
@@ -307,8 +262,7 @@ zsh-refresh() {
   exec zsh
 }
 
-# Switch between Starship and Powerlevel10k prompts
-# Usage: switch-prompt [starship|p10k]
+# Switch between Starship and Powerlevel10k
 switch-prompt() {
   local theme="${1:-}"
   local zshenv_local="${ZDOTDIR:-$HOME}/.zshenv.local"
@@ -329,7 +283,6 @@ switch-prompt() {
     return 1
   fi
 
-  # Write to .zshenv.local (not managed by chezmoi, machine-specific)
   echo "# Prompt theme override (managed by switch-prompt command)" > "$zshenv_local"
   echo "export PROMPT_THEME=$theme" >> "$zshenv_local"
 
@@ -339,23 +292,16 @@ switch-prompt() {
   exec zsh
 }
 
-# ghq + fzf integration
-# Quick repository navigation with fzf
-# Usage: repo [OPTIONS] [REPO_NAME]
-#   repo                  - Select and cd to repository
-#   repo <name>           - cd to repository matching <name> (fuzzy)
-#   repo -t               - Select repo and launch tmux-nvim with 1 pane
-#   repo -t <name>        - Launch tmux-nvim for matching repo with 1 pane
-#   repo -t2              - Select repo and launch tmux-nvim with 2 panes
-#   repo -t2 <name>       - Launch tmux-nvim for matching repo with 2 panes
-#   repo -t --dual        - Select repo and launch tmux-nvim with 2 panes
-#   TOP_PANES=2 repo -t   - Environment variable also works
+# ============================================================================
+# Functions - Repository Management
+# ============================================================================
+
+# Repository navigation with fzf and tmux integration
 repo() {
   local launch_tmux=false
-  local top_panes="${TOP_PANES:-1}"  # Default from env or 1
+  local top_panes="${TOP_PANES:-1}"
   local repo_arg=""
 
-  # Parse arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --tmux|-t)
@@ -372,7 +318,6 @@ repo() {
         shift
         ;;
       *)
-        # Non-option argument is treated as repo name
         repo_arg="$1"
         shift
         ;;
@@ -381,7 +326,6 @@ repo() {
 
   local repo=""
 
-  # If repo name provided, try to find matching repository
   if [ -n "$repo_arg" ]; then
     local matched=$(ghq list | grep -i "$repo_arg" | head -1)
     if [ -n "$matched" ]; then
@@ -393,7 +337,6 @@ repo() {
       return 1
     fi
   else
-    # No repo name provided, use fzf to select
     repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
   fi
 
@@ -401,17 +344,15 @@ repo() {
     local repo_path=$(ghq root)/$repo
 
     if [ "$launch_tmux" = true ]; then
-      # Launch tmux-nvim without changing current directory
       local repo_name=$(basename "$repo")
       LEFT_DIR="$repo_path" TOP_PANES="$top_panes" tmux-nvim "$repo_name"
     else
-      # Change directory only when not launching tmux
       cd "$repo_path"
     fi
   fi
 }
 
-# Clone repository with ghq and cd into it
+# Clone repository with ghq
 clone() {
   if [ -z "$1" ]; then
     echo "Usage: clone <repo-url>" >&2
@@ -421,22 +362,13 @@ clone() {
   ghq get "$1" && cd $(ghq root)/$(ghq list | tail -1)
 }
 
-# Repository navigation with tmux-nvim integration
-# Usage: tmux-repo [repo-name] [--dual|-2]
-#   tmux-repo            - If in ghq repo: launch tmux-nvim here
-#                          Otherwise: select with fzf (1 pane)
-#   tmux-repo -2         - Launch with 2 panes
-#   tmux-repo --dual     - Launch with 2 panes
-#   tmux-repo <name>     - Select specific repo (fuzzy match, 1 pane)
-#   tmux-repo <name> -2  - Select specific repo with 2 panes
-#   TOP_PANES=2 tmux-repo - Environment variable also works
+# Repository navigation with tmux-nvim
 tmux-repo() {
   local repo_path=""
   local repo_name=""
-  local top_panes="${TOP_PANES:-1}"  # Default from env or 1
+  local top_panes="${TOP_PANES:-1}"
   local repo_arg=""
 
-  # Parse arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --dual|-2)
@@ -451,7 +383,6 @@ tmux-repo() {
   done
 
   if [ -n "$repo_arg" ]; then
-    # Argument provided: fuzzy match
     local matched=$(ghq list | grep -i "$repo_arg" | head -1)
     if [ -n "$matched" ]; then
       repo_path=$(ghq root)/$matched
@@ -461,16 +392,13 @@ tmux-repo() {
       return 1
     fi
   else
-    # No argument: check if current dir is in ghq
     local current_path=$(pwd)
     local ghq_root=$(ghq root)
 
     if [[ "$current_path" == "$ghq_root"* ]]; then
-      # Already in a ghq repository
       repo_path="$current_path"
       repo_name=$(basename "$current_path")
     else
-      # Not in ghq: select with fzf
       local repo=$(ghq list | fzf --preview "bat --color=always --style=header,grid $(ghq root)/{}/README.md 2>/dev/null || eza -al --tree --level=2 $(ghq root)/{}")
       if [ -n "$repo" ]; then
         repo_path=$(ghq root)/$repo
@@ -481,13 +409,12 @@ tmux-repo() {
     fi
   fi
 
-  # Launch tmux-nvim without changing current directory
   if [ -n "$repo_path" ]; then
     LEFT_DIR="$repo_path" TOP_PANES="$top_panes" tmux-nvim "$repo_name"
   fi
 }
 
-# Show ghq repository statistics
+# Repository statistics
 ghq-stats() {
   echo "Total repositories: $(ghq list | wc -l | tr -d ' ')"
   echo "GitHub: $(ghq list | grep github.com | wc -l | tr -d ' ')"
@@ -502,11 +429,9 @@ ghq-stats() {
 }
 
 # ============================================================================
-# Zsh Completion Functions
+# Completions
 # ============================================================================
 
-# Completion function for repo command
-# Note: ghq list is called only when TAB is pressed, not on shell startup
 _repo() {
   _arguments \
     '(-t --tmux)'{-t,--tmux}'[Launch tmux-nvim with 1 pane]' \
@@ -515,16 +440,12 @@ _repo() {
     '1:repository:_repo_list'
 }
 
-# Helper function to get repository list (called only during completion)
 _repo_list() {
   local -a repos
   repos=(${(f)"$(ghq list 2>/dev/null)"})
   _describe -t repos 'ghq repositories' repos
 }
 
-# Register completion (only if completion system is available)
-# This needs to be after sheldon source which loads zsh-completions
-# Deferred to match compinit deferred loading
 _register_repo_completion() {
   if (( $+functions[compdef] )); then
     compdef _repo repo
@@ -536,14 +457,6 @@ _register_repo_completion() {
 zsh-defer _register_repo_completion
 
 # ============================================================================
-# Convenient Aliases for repo command
+# Performance Profiling (uncomment when benchmarking)
 # ============================================================================
-
-# Quick shortcuts for repo command
-alias rt='repo -t'       # repo tmux (1 pane)
-alias rt2='repo -t2'     # repo tmux (2 panes)
-alias rtd='repo -t2'     # repo tmux dual (same as rt2)
-
-# Performance profiling (comment out when not benchmarking)
-# Show top 30 slowest functions/commands at startup
 # zprof | head -40

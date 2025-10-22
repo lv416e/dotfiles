@@ -10,7 +10,7 @@ brew "berkeley-db", link: true
 brew "bottom"
 brew "ccache"
 brew "glib"
-brew "cheat"
+# brew "cheat"  # Replaced by navi
 brew "chezmoi"
 brew "choose"          # Modern cut/awk alternative (intuitive syntax)
 brew "cmake"
