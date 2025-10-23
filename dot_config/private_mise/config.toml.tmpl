@@ -26,6 +26,10 @@ rust = "stable"        # Rust stable (managed by mise instead of rustup)
 # Modern shell (experimental)
 "cargo:nu" = "latest"                       # Nushell - modern shell with structured data
 
+# Git hooks and security
+"go:github.com/evilmartians/lefthook" = "latest"  # Modern Git hooks manager
+"go:github.com/gitleaks/gitleaks/v8" = "latest"   # Secret detection tool
+
 [settings]
 experimental = true
 
@@ -149,14 +153,14 @@ alias = "opv"
 run = "op vault list"
 
 [tasks.op-items]
-description = "[1pass] List items in Personal vault"
+description = "[1pass] List items in vault"
 alias = "opi"
-run = "op item list --vault Personal"
+run = "op item list --vault {{ .onepassword.vault }}"
 
 [tasks.op-get]
 description = "[1pass] Get item details (usage: mise op-get <item-name>)"
 alias = "opg"
-run = "op item get \"$1\" --vault Personal"
+run = "op item get \"$1\" --vault {{ .onepassword.vault }}"
 
 [tasks.secrets-backup-age-key]
 description = "[secrets] Backup age key to 1Password"
@@ -171,23 +175,23 @@ if [ ! -f ~/.config/chezmoi/key.txt ]; then
 fi
 
 # Check if item already exists
-if op item get "chezmoi-age-key" --vault Personal > /dev/null 2>&1; then
+if op item get "chezmoi-age-key" --vault {{ .onepassword.vault }} > /dev/null 2>&1; then
   echo "⚠️  'chezmoi-age-key' already exists in 1Password"
-  echo "   Delete it first with: op item delete 'chezmoi-age-key' --vault Personal"
+  echo "   Delete it first with: op item delete 'chezmoi-age-key' --vault {{ .onepassword.vault }}"
   exit 1
 fi
 
 # Create secure note with age key
 op item create --category="Secure Note" \
   --title="chezmoi-age-key" \
-  --vault=Personal \
+  --vault={{ .onepassword.vault }} \
   notesPlain="$(cat ~/.config/chezmoi/key.txt)"
 
 echo "✅ Age key backed up to 1Password as 'chezmoi-age-key'"
-echo "   Vault: Personal"
+echo "   Vault: {{ .onepassword.vault }}"
 echo ""
 echo "To restore on a new machine:"
-echo "  op item get 'chezmoi-age-key' --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt"
+echo "  op item get 'chezmoi-age-key' --fields notesPlain --vault {{ .onepassword.vault }} > ~/.config/chezmoi/key.txt"
 echo "  chmod 600 ~/.config/chezmoi/key.txt"
 """
 
@@ -211,7 +215,7 @@ fi
 mkdir -p ~/.config/chezmoi
 
 # Restore from 1Password
-op item get "chezmoi-age-key" --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt
+op item get "chezmoi-age-key" --fields notesPlain --vault {{ .onepassword.vault }} > ~/.config/chezmoi/key.txt
 chmod 600 ~/.config/chezmoi/key.txt
 
 echo "✅ Age key restored from 1Password"

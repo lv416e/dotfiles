@@ -1,0 +1,116 @@
+# =============================================================================
+# Lefthook Configuration - Git Hooks Management
+# =============================================================================
+# Docs: https://github.com/evilmartians/lefthook
+#
+# Setup: Run `lefthook install` to install Git hooks
+# Usage: Hooks run automatically on git commit/push
+# Skip:  LEFTHOOK=0 git commit -m "skip all hooks"
+#        LEFTHOOK_EXCLUDE=gitleaks git commit -m "skip gitleaks only"
+
+# Execute commands in parallel for better performance
+parallel: true
+
+# =============================================================================
+# Pre-Commit Hooks - Run before git commit
+# =============================================================================
+pre-commit:
+  commands:
+    # --------------------------------------------------------------------------
+    # Gitleaks - Detect hardcoded secrets
+    # --------------------------------------------------------------------------
+    gitleaks:
+      # Only scan relevant file types
+      glob: "*.{yml,yaml,toml,sh,zsh,bash,json,env,txt,tmpl,lua}"
+      # Scan only staged files (faster than full repo scan)
+      run: gitleaks protect --verbose --redact --staged
+      # Skip during merge/rebase (too noisy)
+      skip:
+        - merge
+        - rebase
+
+    # --------------------------------------------------------------------------
+    # File Size Check - Prevent committing large files
+    # --------------------------------------------------------------------------
+    check-file-size:
+      glob: "*"
+      run: |
+        for file in $(git diff --cached --name-only); do
+          # Skip if file doesn't exist (deleted files)
+          [ -f "$file" ] || continue
+
+          # Get file size (macOS and Linux compatible)
+          size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
+
+          # Check if file is larger than 1MB
+          if [ "$size" -gt 1048576 ]; then
+            echo "❌ File too large: $file ($(numfmt --to=iec-i --suffix=B $size 2>/dev/null || echo "$size bytes") > 1MB)"
+            echo "   Large files should not be committed to dotfiles."
+            echo "   Consider using Git LFS or external storage."
+            exit 1
+          fi
+        done
+
+    # --------------------------------------------------------------------------
+    # Private Key Check - Prevent committing private keys
+    # --------------------------------------------------------------------------
+    check-private-keys:
+      glob: "*.{key,pem,p12,pfx,cer,crt,der}"
+      run: |
+        # Check for private key files in staged changes
+        files=$(git diff --cached --name-only | grep -E '\.(key|pem|p12|pfx|cer|crt|der)$' || true)
+
+        if [ -n "$files" ]; then
+          echo "❌ Attempting to commit private key files:"
+          echo "$files" | sed 's/^/   /'
+          echo ""
+          echo "Private keys should NEVER be committed to git."
+          echo "Use age encryption: chezmoi add --encrypt <file>"
+          exit 1
+        fi
+
+    # --------------------------------------------------------------------------
+    # Chezmoi Configuration Check - Validate .chezmoi.toml.tmpl
+    # --------------------------------------------------------------------------
+    check-chezmoi-config:
+      glob: ".chezmoi.toml.tmpl"
+      run: |
+        # Check if secrets = "error" is still set
+        if ! grep -q 'secrets = "error"' .chezmoi.toml.tmpl; then
+          echo "⚠️  Warning: 'secrets = \"error\"' not found in .chezmoi.toml.tmpl"
+          echo "   This setting prevents accidental secret commits."
+          echo "   Consider adding it to [add] section."
+        fi
+
+# =============================================================================
+# Pre-Push Hooks - Run before git push
+# =============================================================================
+pre-push:
+  commands:
+    # --------------------------------------------------------------------------
+    # Full Repository Scan - Deep security check before push
+    # --------------------------------------------------------------------------
+    gitleaks-full:
+      # Only run if gitleaks config exists or use default
+      run: |
+        echo "🔍 Running full repository scan before push..."
+        if [ -f .gitleaks.toml ]; then
+          gitleaks detect --config .gitleaks.toml --verbose --redact
+        else
+          gitleaks detect --verbose --redact
+        fi
+      # Skip in CI (already scanned in pre-commit)
+      skip:
+        - ref: main
+        - ref: master
+
+# =============================================================================
+# Skip Configuration
+# =============================================================================
+# Don't show meta information (cleaner output)
+skip_output:
+  - meta
+  - summary
+
+# Follow symlinks when checking files
+follow_symlinks: false

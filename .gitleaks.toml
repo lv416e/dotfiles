@@ -1,0 +1,140 @@
+# =============================================================================
+# Gitleaks Configuration - Secret Detection Rules
+# =============================================================================
+# Docs: https://github.com/gitleaks/gitleaks
+#
+# This configuration extends the default gitleaks rules with custom allowlists
+# for false positives specific to this dotfiles repository.
+
+title = "chezmoi dotfiles gitleaks configuration"
+
+# Extend the default gitleaks configuration
+[extend]
+useDefault = true
+
+# =============================================================================
+# Global Allowlists
+# =============================================================================
+# These allowlists apply to all rules and have higher precedence than
+# rule-specific allowlists.
+
+# -----------------------------------------------------------------------------
+# Age Public Keys - Safe to commit
+# -----------------------------------------------------------------------------
+[[allowlists]]
+description = "Ignore age public keys (recipient keys are safe to commit)"
+regexTarget = "match"
+regexes = [
+  # Age public keys start with "age1" and are 62 characters long
+  # These are used for encryption only and are safe to share publicly
+  '''age1[a-z0-9]{58}''',
+]
+paths = [
+  '''\.chezmoi\.toml\.tmpl$''',
+  '''\.gitleaks\.toml$''',
+  '''docs/.*\.md$''',
+  '''README\.md$''',
+]
+
+# -----------------------------------------------------------------------------
+# Documentation Files - Examples and documentation
+# -----------------------------------------------------------------------------
+[[allowlists]]
+description = "Ignore example secrets in documentation"
+paths = [
+  '''README\.md$''',
+  '''docs/.*\.md$''',
+  '''SECRETS_MANAGEMENT\.md$''',
+  '''NEW_MACHINE_SETUP\.md$''',
+]
+regexTarget = "line"
+regexes = [
+  # Example API keys in documentation (clearly marked as examples)
+  '''(example|placeholder|EXAMPLE|YOUR_.*|XXX)''',
+  # 1Password references (not actual secrets)
+  '''op://.*''',
+]
+
+# -----------------------------------------------------------------------------
+# Test Files - Test data and fixtures
+# -----------------------------------------------------------------------------
+[[allowlists]]
+description = "Ignore test files and fixtures"
+paths = [
+  '''test/.*''',
+  '''.*_test\.(sh|zsh|bash)$''',
+  '''.*\.test\.(yml|yaml|toml)$''',
+]
+
+# -----------------------------------------------------------------------------
+# Build and Dependency Files - Package locks and generated files
+# -----------------------------------------------------------------------------
+[[allowlists]]
+description = "Ignore package locks and dependency files"
+paths = [
+  '''package-lock\.json$''',
+  '''yarn\.lock$''',
+  '''Gemfile\.lock$''',
+  '''poetry\.lock$''',
+  '''Cargo\.lock$''',
+]
+
+# -----------------------------------------------------------------------------
+# Git Configuration - Git config files
+# -----------------------------------------------------------------------------
+[[allowlists]]
+description = "Ignore git configuration"
+paths = [
+  '''\.git/.*''',
+  '''\.gitconfig$''',
+  '''\.gitignore$''',
+]
+
+# -----------------------------------------------------------------------------
+# Chezmoi Specific - Chezmoi metadata and templates
+# -----------------------------------------------------------------------------
+[[allowlists]]
+description = "Ignore chezmoi metadata"
+paths = [
+  '''\.chezmoiignore$''',
+  '''\.chezmoiversion$''',
+  '''\.chezmoitemplates/.*''',
+]
+
+# -----------------------------------------------------------------------------
+# Common False Positives - Known safe patterns
+# -----------------------------------------------------------------------------
+[[allowlists]]
+description = "Ignore common false positives"
+regexTarget = "match"
+regexes = [
+  # Git commit SHAs (40 hex characters)
+  '''[0-9a-f]{40}''',
+  # UUIDs
+  '''[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}''',
+  # Version numbers that look like tokens
+  '''\d+\.\d+\.\d+''',
+]
+stopwords = [
+  # Common words that might appear in false positives
+  "client",
+  "endpoint",
+  "example",
+  "test",
+  "placeholder",
+  "dummy",
+]
+
+# =============================================================================
+# Custom Rules (Optional)
+# =============================================================================
+# Add custom rules here if you need to detect secrets beyond the default rules.
+# Uncomment and modify as needed.
+
+# Example: Detect custom API key format
+# [[rules]]
+# id = "custom-api-key"
+# description = "Custom API key format for internal service"
+# regex = '''custom-api-[a-zA-Z0-9]{32}'''
+# tags = ["api-key", "custom"]
+# keywords = ["custom-api"]

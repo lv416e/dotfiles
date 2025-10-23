@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# =============================================================================
+# Lefthook Setup Script
+# =============================================================================
+# This script runs automatically when lefthook.yml changes.
+# It installs Git hooks managed by lefthook.
+#
+# Hash: {{ include "lefthook.yml" | sha256sum }}
+
+set -euo pipefail
+
+echo "🪝 Setting up lefthook Git hooks..."
+
+# Check if lefthook is installed
+if ! command -v lefthook &> /dev/null; then
+    echo "⚠️  lefthook not found. Installing via mise..."
+    mise install go:github.com/evilmartians/lefthook@latest
+fi
+
+# Check if gitleaks is installed
+if ! command -v gitleaks &> /dev/null; then
+    echo "⚠️  gitleaks not found. Installing via mise..."
+    mise install go:github.com/gitleaks/gitleaks/v8@latest
+fi
+
+# Navigate to dotfiles directory
+cd "{{ .chezmoi.sourceDir }}"
+
+# Install lefthook hooks
+if lefthook install; then
+    echo "✅ Lefthook hooks installed successfully"
+
+    # Show installed hooks
+    if [ -d .git/hooks ]; then
+        echo ""
+        echo "📋 Installed hooks:"
+        ls -la .git/hooks/ | grep -E "(pre-commit|pre-push)" || echo "   No hooks found"
+    fi
+else
+    echo "❌ Failed to install lefthook hooks"
+    exit 1
+fi
+
+echo ""
+echo "💡 Usage:"
+echo "   • Hooks run automatically on commit/push"
+echo "   • Skip all: LEFTHOOK=0 git commit"
+echo "   • Skip specific: LEFTHOOK_EXCLUDE=gitleaks git commit"
+echo "   • Manual run: lefthook run pre-commit"
+echo ""
+echo "📚 Documentation: docs/PRE_COMMIT_HOOKS.md"

@@ -5,6 +5,15 @@
 
 My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 
+## For New Users
+
+To use this repository as a template:
+
+1. Fork this repository to your GitHub account
+2. Update step 3 below: Replace `lv416e/dotfiles` with `YOUR_USERNAME/dotfiles`
+3. Generate your own age encryption key (step 4) and update `.chezmoi.toml.tmpl`
+4. Follow the installation steps below
+
 ## Installation
 
 ### 1. Install prerequisites
@@ -90,6 +99,7 @@ git add -A && git commit -m "Update configuration" && git push
 
 - **Configuration Switching**: Switch between modular/monolithic zsh configs with `switch-zsh-config`
 - **Secrets Management**: Integrated 1Password CLI and age encryption
+- **Pre-Commit Hooks**: Automatic secret detection with lefthook and gitleaks
 - **Modern Tools**: jj, WezTerm, Zellij, and 90+ packages
 - **Automated Tasks**: 24 mise tasks for common workflows (`mise tasks`)
 - **CI/CD**: GitHub Actions validates configurations
@@ -98,6 +108,7 @@ git add -A && git commit -m "Update configuration" && git push
 
 - [New Machine Setup](docs/NEW_MACHINE_SETUP.md) - Complete setup guide
 - [Secrets Management](docs/SECRETS_MANAGEMENT.md) - 1Password and age encryption
+- [Pre-Commit Hooks](docs/PRE_COMMIT_HOOKS.md) - Git hooks with lefthook and gitleaks
 - [Zsh Config Switching](docs/ZSH_CONFIG_SWITCHING.md) - Modular vs monolithic
 - [Terminal Multiplexers](docs/TERMINAL_MULTIPLEXERS.md) - tmux vs Zellij
 - [Modern Tools](docs/NEW_TOOLS.md) - jj, WezTerm, Zellij guides

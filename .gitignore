@@ -1,6 +1,9 @@
 .claude
 .serena
 
+# Git hooks - lefthook local overrides
+lefthook-local.yml
+
 # Security - sensitive files
 .env
 .env.*
