@@ -159,11 +159,11 @@ switch-multiplexer() {
     echo "Available multiplexers:"
     echo "  tmux     - Traditional terminal multiplexer (default)"
     echo "             Mature, stable, extensive ecosystem"
-    echo "             Ctrl+b prefix"
+    echo "             Ctrl+g prefix (custom)"
     echo ""
     echo "  zellij   - Modern Rust-based multiplexer"
     echo "             Built-in UI, WebAssembly plugins"
-    echo "             Ctrl+g prefix (or Ctrl+b in tmux mode)"
+    echo "             Ctrl+g prefix (matches tmux)"
     return 0
   fi
 
@@ -188,6 +188,13 @@ switch-multiplexer() {
   # Regenerate config from template
   chezmoi init > /dev/null 2>&1
 
-  echo "💡 Restart your shell to use $mux"
+  echo "🔄 Applying terminal emulator configs..."
+
+  # Apply terminal emulator configurations
+  chezmoi apply ~/.config/alacritty/alacritty.toml > /dev/null 2>&1
+  chezmoi apply ~/.config/kitty/kitty.conf > /dev/null 2>&1
+  chezmoi apply ~/.config/ghostty/config > /dev/null 2>&1
+
+  echo "💡 Restart your terminal emulator to use $mux"
   echo "   Or run: exec zsh"
 }
