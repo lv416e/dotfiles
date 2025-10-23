@@ -33,7 +33,7 @@ layout {
             // Main editor pane (nvim)
             pane name="editor" focus=true {
                 command "zsh"
-                args "-lic" "cd ${LEFT_DIR:-$HOME/Documents} 2>/dev/null || cd ~; nvim; exec zsh"
+                args "-l" "-c" "nvim"
             }
 
             // Optional: claude pane (only if TOP_PANES=2)
@@ -49,13 +49,13 @@ layout {
             // Left: claude-monitor (40%)
             pane name="claude-monitor" size="40%" {
                 command "zsh"
-                args "-lic" "claude-monitor --plan ${CLAUDE_PLAN:-max5}"
+                args "-l" "-c" "claude-monitor --plan max5"
             }
 
             // Middle: gitui (40%)
             pane name="gitui" size="40%" {
                 command "zsh"
-                args "-lic" "DIR=${LEFT_DIR:-$HOME/Documents}; ROOT=$(git -C \"$DIR\" rev-parse --show-toplevel 2>/dev/null || echo \"$DIR\"); cd \"$ROOT\"; gitui; exec zsh"
+                args "-l" "-c" "gitui"
             }
 
             // Right: btm/htop (20%)

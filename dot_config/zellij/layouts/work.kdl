@@ -34,14 +34,10 @@ layout {
             // Left column (50%)
             pane split_direction="horizontal" size="50%" {
                 // Top left: main workspace (75%)
-                pane name="workspace" size="75%" focus=true {
-                    cwd "${LEFT_DIR}"
-                }
+                pane name="workspace" size="75%" focus=true
 
                 // Bottom left: secondary shell (25%)
-                pane name="shell" size="25%" {
-                    cwd "${LEFT_DIR}"
-                }
+                pane name="shell" size="25%"
             }
 
             // Right column (50%)
@@ -49,13 +45,13 @@ layout {
                 // Top right: ccusage watch (42%)
                 pane name="usage" size="42%" {
                     command "zsh"
-                    args "-lic" "watch -n 10 'ccusage daily --since $(date -v -3d +%Y%m%d) --no-color'"
+                    args "-l" "-c" "watch -n 10 'ccusage daily --since $(date -v -3d +%Y%m%d) --no-color'"
                 }
 
                 // Middle right: claude-monitor (33%)
                 pane name="claude" size="33%" {
                     command "zsh"
-                    args "-lic" "claude-monitor --plan ${CLAUDE_PLAN:-max5}"
+                    args "-l" "-c" "claude-monitor --plan max5"
                 }
 
                 // Bottom right: monitoring tools (25%, split)
