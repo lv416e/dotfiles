@@ -56,15 +56,16 @@ alias ps = ^procs --tree
 alias rm = ^trash
 alias tenki = ^http wttr.in/Tokyo
 
-# ===== tmux Workspaces =====
-alias twork = ^tmux-work
-alias tvim = ^tmux-nvim
-alias tnu = ^tmux-nu
-alias tcc = ^tmux-claude
-alias tw = ^tmux-work
-alias tv = ^tmux-nvim
-alias tn = ^tmux-nu
-alias tc = ^tmux-claude
+# ===== Multiplexer Workspaces (abstracted) =====
+alias twork = ^mux-work
+alias tvim = ^mux-nvim
+alias tnu = ^mux-nu
+alias tcc = ^mux-claude
+alias tw = ^mux-work
+alias tv = ^mux-nvim
+alias tn = ^mux-nu
+alias tc = ^mux-claude
+alias twk = ^mux-kill-window
 
 # ===== Git =====
 alias gs = ^git status

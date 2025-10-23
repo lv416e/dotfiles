@@ -106,13 +106,11 @@ mux-kill-window() {
   esac
 }
 
-# Kill current tmux window (deprecated, use mux-kill-window)
+# Kill current multiplexer window (deprecated function - use 'twk' alias instead)
+# Kept for backward compatibility, but prefer using mux-kill-window directly
 twk() {
-  local id
-  id="$(tmux display -p '#{window_id}' 2>/dev/null)" || {
-    echo "Run inside tmux session" >&2; return 1
-  }
-  tmux kill-window -t "$id"
+  echo "Warning: twk() function is deprecated. Use 'twk' alias (mux-kill-window) instead." >&2
+  mux-kill-window
 }
 
 # Clear zsh caches and restart

@@ -22,17 +22,11 @@ def hs [search: string] {
     history | where command =~ $search | select command
 }
 
-# ===== tmux Commands =====
+# ===== Multiplexer Commands =====
 
-# Kill current tmux window (tmux window kill)
+# Kill current multiplexer window
 def twk [] {
-    let result = (^tmux display -p '#{window_id}' | complete)
-    if $result.exit_code != 0 {
-        print $"(ansi red)tmux内で実行してください(ansi reset)"
-        return
-    }
-    let id = ($result.stdout | str trim)
-    ^tmux kill-window -t $id
+    ^mux-kill-window
 }
 
 # ===== Directory & Git Operations =====
@@ -244,17 +238,17 @@ def --env show-tip [] {
 # Quick repository navigation with fzf
 # Usage: repo [--tmux]
 #   repo       - Select and cd to repository
-#   repo --tmux - Select repo and launch tmux-nvim (no cd)
+#   repo --tmux - Select repo and launch mux-nvim (no cd)
 def --env repo [--tmux (-t)] {
   let selection = (ghq list | fzf --preview $"bat --color=always --style=header,grid (ghq root)/\{}/README.md 2>/dev/null || eza -al --tree --level=2 (ghq root)/\{}")
   if $selection != "" {
     let repo_path = $"(ghq root)/($selection)"
 
     if $tmux {
-      # Launch tmux-nvim without changing current directory
+      # Launch mux-nvim without changing current directory
       let repo_name = ($selection | path basename)
       with-env {LEFT_DIR: $repo_path} {
-        tmux-nvim $repo_name
+        mux-nvim $repo_name
       }
     } else {
       # Change directory only when not launching tmux
@@ -270,12 +264,12 @@ def clone [url: string] {
   cd $"(ghq root)/($latest)"
 }
 
-# Repository navigation with tmux-nvim integration
-# Usage: tmux-repo [repo-name]
-#   tmux-repo         - If in ghq repo: launch tmux-nvim here
-#                       Otherwise: select with fzf
-#   tmux-repo <name>  - Select specific repo (fuzzy match)
-def tmux-repo [repo_name?: string] {
+# Repository navigation with mux-nvim integration
+# Usage: mux-repo [repo-name]
+#   mux-repo         - If in ghq repo: launch mux-nvim here
+#                      Otherwise: select with fzf
+#   mux-repo <name>  - Select specific repo (fuzzy match)
+def mux-repo [repo_name?: string] {
   let repo_path = if ($repo_name != null) {
     # Argument provided: fuzzy match
     let matched = (ghq list | lines | where {|it| $it =~ $repo_name} | first)
@@ -302,13 +296,19 @@ def tmux-repo [repo_name?: string] {
     }
   }
 
-  # Launch tmux-nvim without changing current directory
+  # Launch mux-nvim without changing current directory
   if ($repo_path | is-not-empty) {
     let name = ($repo_path | path basename)
     with-env {LEFT_DIR: $repo_path} {
-      tmux-nvim $name
+      mux-nvim $name
     }
   }
+}
+
+# Deprecated alias: use mux-repo instead
+def tmux-repo [repo_name?: string] {
+  print $"(ansi yellow)Warning: tmux-repo is deprecated. Use 'mux-repo' instead.(ansi reset)"
+  mux-repo $repo_name
 }
 
 # List all repositories with metadata

@@ -170,15 +170,18 @@ alias ..4='cd ../../../../'
 alias h1='history -100 | tail -r | bat -l sh'
 alias h10='history -1000 | tail -r | bat -l sh'
 
-# --- Tmux ---
-alias twork='tmux-work'
-alias tw='tmux-work'
-alias tcc='tmux-claude'
-alias tc='tmux-claude'
-alias tvim='tmux-nvim'
-alias tv='tmux-nvim'
-alias tnu='tmux-nu'
-alias tn='tmux-nu'
+# --- Multiplexer Workspaces (abstracted) ---
+alias twork='mux-work'       # Multiplexer-agnostic (was tmux-work)
+alias tw='mux-work'          # Short form
+alias tcc='mux-claude'       # Multiplexer-agnostic (was tmux-claude)
+alias tc='mux-claude'        # Short form
+alias tvim='mux-nvim'        # Multiplexer-agnostic (was tmux-nvim)
+alias tv='mux-nvim'          # Short form
+alias tnu='mux-nu'           # Multiplexer-agnostic (was tmux-nu)
+alias tn='mux-nu'            # Short form
+alias twk='mux-kill-window'  # Multiplexer-agnostic window kill
+
+# --- Tmux-specific (when you explicitly need tmux) ---
 alias tmux-health='tmux list-panes -a -F "Pane #{pane_id}: #{history_size}/#{history_limit} lines"'
 
 # --- Nushell ---
@@ -263,13 +266,11 @@ ask() {
 # Functions - Shell Management
 # ============================================================================
 
-# Kill current tmux window
+# Kill current multiplexer window (deprecated function - use 'twk' alias instead)
+# Kept for backward compatibility, but prefer using mux-kill-window directly
 twk() {
-  local id
-  id="$(tmux display -p '#{window_id}' 2>/dev/null)" || {
-    echo "Run inside tmux session" >&2; return 1
-  }
-  tmux kill-window -t "$id"
+  echo "Warning: twk() function is deprecated. Use 'twk' alias (mux-kill-window) instead." >&2
+  mux-kill-window
 }
 
 # Clear zsh caches and restart
@@ -467,7 +468,7 @@ repo() {
 
     if [ "$launch_tmux" = true ]; then
       local repo_name=$(basename "$repo")
-      LEFT_DIR="$repo_path" TOP_PANES="$top_panes" tmux-nvim "$repo_name"
+      LEFT_DIR="$repo_path" TOP_PANES="$top_panes" mux-nvim "$repo_name"
     else
       cd "$repo_path"
     fi
@@ -532,7 +533,8 @@ tmux-repo() {
   fi
 
   if [ -n "$repo_path" ]; then
-    LEFT_DIR="$repo_path" TOP_PANES="$top_panes" tmux-nvim "$repo_name"
+    echo "Warning: tmux-repo is deprecated. Use 'mux-repo' or 'repo -t' instead." >&2
+    LEFT_DIR="$repo_path" TOP_PANES="$top_panes" mux-nvim "$repo_name"
   fi
 }
 

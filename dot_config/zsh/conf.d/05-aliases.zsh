@@ -47,15 +47,18 @@ alias ..4='cd ../../../../'
 alias h1='history -100 | tail -r | bat -l sh'
 alias h10='history -1000 | tail -r | bat -l sh'
 
-# --- Tmux ---
-alias twork='tmux-work'
-alias tw='tmux-work'
-alias tcc='tmux-claude'
-alias tc='tmux-claude'
-alias tvim='tmux-nvim'
-alias tv='tmux-nvim'
-alias tnu='tmux-nu'
-alias tn='tmux-nu'
+# --- Multiplexer Workspaces (abstracted) ---
+alias twork='mux-work'       # Multiplexer-agnostic (was tmux-work)
+alias tw='mux-work'          # Short form
+alias tcc='mux-claude'       # Multiplexer-agnostic (was tmux-claude)
+alias tc='mux-claude'        # Short form
+alias tvim='mux-nvim'        # Multiplexer-agnostic (was tmux-nvim)
+alias tv='mux-nvim'          # Short form
+alias tnu='mux-nu'           # Multiplexer-agnostic (was tmux-nu)
+alias tn='mux-nu'            # Short form
+alias twk='mux-kill-window'  # Multiplexer-agnostic window kill
+
+# --- Tmux-specific (when you explicitly need tmux) ---
 alias tmux-health='tmux list-panes -a -F "Pane #{pane_id}: #{history_size}/#{history_limit} lines"'
 
 # --- Nushell ---
