@@ -54,9 +54,9 @@ twk() {
 # Clear zsh caches and restart
 zsh-refresh() {
   echo "Clearing sheldon cache..."
-  rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
+  command rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
   echo "Clearing completion cache..."
-  rm -f "${ZDOTDIR:-$HOME}/.zcompdump"
+  command rm -f "${ZDOTDIR:-$HOME}/.zcompdump"
   echo "Restarting zsh..."
   exec zsh
 }
@@ -131,10 +131,15 @@ switch-zsh-config() {
 
   echo "✅ Zsh configuration switched to: $variant"
   echo "📝 Updated: ~/.local/share/chezmoi/.chezmoi.toml.tmpl"
-  echo "🔄 Applying changes with chezmoi..."
+  echo "🔄 Regenerating config..."
+
+  # Regenerate config from template
+  chezmoi init > /dev/null 2>&1
+
+  echo "🔄 Applying changes..."
 
   # Apply changes
-  chezmoi apply ~/.config/zsh/.zshrc
+  chezmoi apply ~/.config/zsh/.zshrc > /dev/null 2>&1
 
   echo "🔄 Restarting zsh..."
   exec zsh
