@@ -4,6 +4,13 @@
 # Dependencies: zsh-defer (from plugins), fzf, zoxide, atuin, mise
 # ============================================================================
 
+# --- mise shims (immediate, for non-interactive shells like Zellij) ---
+# Must be loaded BEFORE zsh-defer to ensure tools are available immediately
+# in non-interactive contexts (Zellij panes, IDEs, scripts)
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh --shims)"
+fi
+
 # --- FZF configuration ---
 # FZF environment variables deferred - set before key bindings load
 # (saves ~1ms at startup)
@@ -23,6 +30,8 @@ zsh-defer _load_completion
 # --- Deferred tool initialization ---
 zsh-defer -c 'eval "$(zoxide init --cmd j zsh)"'
 zsh-defer -c 'eval "$(atuin init zsh)"'
+# mise activate (full features) - deferred for interactive shells
+# Note: mise shims are already loaded above for immediate PATH access
 zsh-defer -c 'eval "$(mise activate zsh)"'
 
 # --- FZF key bindings ---
