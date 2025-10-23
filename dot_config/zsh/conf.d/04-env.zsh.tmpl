@@ -16,8 +16,7 @@ _setup_dev_paths() {
   export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
 
   # Alacritty + Hammerspoon
-  DOTDIR='{{ .chezmoi.homeDir }}/dotfiles'
-  export PATH=$PATH:$DOTDIR/.config/alacritty/bin
+  export PATH=$PATH:{{ .chezmoi.homeDir }}/.config/alacritty/bin
 }
 zsh-defer _setup_dev_paths
 

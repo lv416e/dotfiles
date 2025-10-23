@@ -120,8 +120,7 @@ _setup_cpp_env() {
 zsh-defer _setup_cpp_env
 
 # --- Alacritty + Hammerspoon ---
-DOTDIR='{{ .chezmoi.homeDir }}/dotfiles'
-export PATH=$PATH:$DOTDIR/.config/alacritty/bin
+export PATH=$PATH:{{ .chezmoi.homeDir }}/.config/alacritty/bin
 
 # ============================================================================
 # Aliases
