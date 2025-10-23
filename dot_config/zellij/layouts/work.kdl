@@ -1,0 +1,80 @@
+// =============================================================================
+// Zellij Layout: Work environment
+// =============================================================================
+// Equivalent to tmux-work - 6-pane professional work environment
+// Layout structure:
+//   Left column (50%):
+//     - Top: zsh (75%)
+//     - Bottom: zsh (25%)
+//   Right column (50%):
+//     - Top: ccusage watch (42%)
+//     - Middle: claude-monitor (33%)
+//     - Bottom: btm + clock (25%, split 50/50)
+//
+// Environment variables:
+//   LEFT_DIR - directory to open (default: $HOME/Documents)
+//   CLAUDE_PLAN - claude-monitor plan (default: max5)
+//
+// Usage:
+//   LEFT_DIR=/path/to/work zellij --layout work
+
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+
+    tab name="work" focus=true {
+        pane split_direction="vertical" {
+            // Left column (50%)
+            pane split_direction="horizontal" size="50%" {
+                // Top left: main workspace (75%)
+                pane name="workspace" size="75%" focus=true {
+                    command "zsh"
+                    args "-lc" "cd \"${LEFT_DIR:-$HOME/Documents}\" 2>/dev/null || cd ~; exec zsh"
+                }
+
+                // Bottom left: secondary shell (25%)
+                pane name="shell" size="25%" {
+                    command "zsh"
+                    args "-lc" "cd \"${LEFT_DIR:-$HOME/Documents}\" 2>/dev/null || cd ~; exec zsh"
+                }
+            }
+
+            // Right column (50%)
+            pane split_direction="horizontal" size="50%" {
+                // Top right: ccusage watch (42%)
+                pane name="usage" size="42%" {
+                    command "bash"
+                    args "-lc" "if command -v ccusage >/dev/null 2>&1; then watch -n 10 \"ccusage daily --since $(date -v -3d +%Y%m%d) --no-color\"; else echo '[warn] ccusage not found'; exec zsh; fi"
+                }
+
+                // Middle right: claude-monitor (33%)
+                pane name="claude" size="33%" {
+                    command "bash"
+                    args "-lc" "if command -v claude-monitor >/dev/null 2>&1; then claude-monitor --plan ${CLAUDE_PLAN:-max5}; else echo '[warn] claude-monitor not found'; exec zsh; fi"
+                }
+
+                // Bottom right: monitoring tools (25%, split)
+                pane split_direction="vertical" size="25%" {
+                    // Left: btm/htop (50%)
+                    pane name="monitor" size="50%" {
+                        command "bash"
+                        args "-lc" "btm || htop || top"
+                    }
+
+                    // Right: clock (50%)
+                    pane name="clock" size="50%" {
+                        command "bash"
+                        args "-lc" "if command -v tty-clock >/dev/null 2>&1; then tty-clock -sc; else watch -n 1 'date +%H:%M:%S'; fi"
+                    }
+                }
+            }
+        }
+    }
+}

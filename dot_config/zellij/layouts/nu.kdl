@@ -1,0 +1,63 @@
+// =============================================================================
+// Zellij Layout: Nushell workspace
+// =============================================================================
+// Equivalent to tmux-nu - Nushell development environment
+// - Top: 2 nushell panes (50/50 split)
+// - Bottom: claude-monitor, btm, tty-clock
+//
+// Environment variables:
+//   LEFT_DIR - directory to open (default: $HOME/Documents)
+//   CLAUDE_PLAN - claude-monitor plan (default: max5)
+//
+// Usage:
+//   LEFT_DIR=/path/to/project zellij --layout nu
+
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+
+    tab name="nushell" focus=true {
+        // Top section: dual nushell panes (60% height, 50/50 split)
+        pane split_direction="horizontal" size="60%" {
+            // Left: nushell
+            pane name="nu-left" size="50%" focus=true {
+                command "zsh"
+                args "-lc" "cd \"${LEFT_DIR:-$HOME/Documents}\" 2>/dev/null || cd ~; if command -v nu >/dev/null 2>&1; then exec nu; else echo '[warn] nushell not found, falling back to zsh'; exec zsh; fi"
+            }
+
+            // Right: nushell
+            pane name="nu-right" size="50%" {
+                command "zsh"
+                args "-lc" "cd \"${LEFT_DIR:-$HOME/Documents}\" 2>/dev/null || cd ~; if command -v nu >/dev/null 2>&1; then exec nu; else echo '[warn] nushell not found, falling back to zsh'; exec zsh; fi"
+            }
+        }
+
+        // Bottom section: monitoring tools (40% height)
+        pane split_direction="horizontal" size="40%" {
+            // Left: claude-monitor (50%)
+            pane name="claude-monitor" size="50%" {
+                command "bash"
+                args "-lc" "if command -v claude-monitor >/dev/null 2>&1; then claude-monitor --plan ${CLAUDE_PLAN:-max5}; else if command -v nu >/dev/null 2>&1; then cd \"${LEFT_DIR:-$HOME/Documents}\" && exec nu; else echo '[warn] claude-monitor not found'; exec zsh; fi; fi"
+            }
+
+            // Middle: btm/htop (25%)
+            pane name="monitor" size="50%" {
+                command "bash"
+                args "-lc" "btm || htop || top"
+            }
+
+            // Right: tty-clock (25%)
+            pane name="clock" size="45%" {
+                command "bash"
+                args "-lc" "if command -v tty-clock >/dev/null 2>&1; then tty-clock -sc; else watch -n 1 'date +%H:%M:%S'; fi"
+            }
+        }
+    }
+}

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# =============================================================================
+# mux-claude: Multiplexer-agnostic claude workspace launcher
+# =============================================================================
+# Wrapper for mux-nvim with TOP_PANES=2 (nvim + claude always)
+#
+# This is equivalent to tmux-claude: dual pane workspace with nvim + claude
+#
+# Usage:
+#   mux-claude [window-name]
+#   LEFT_DIR=/path/to/repo mux-claude my-project
+# =============================================================================
+
+# Force 2 panes (nvim + claude)
+export TOP_PANES=2
+
+# Pass all arguments to mux-nvim
+exec mux-nvim "$@"

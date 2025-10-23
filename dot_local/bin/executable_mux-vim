@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# =============================================================================
+# mux-vim: Multiplexer-agnostic vim/docs workspace launcher
+# =============================================================================
+# Launches a dual-shell environment for document editing and scripting
+#
+# Environment variables:
+#   SESSION_DEFAULT - session name (default: desk)
+#   LEFT_DIR - directory to open (default: $HOME/Documents)
+#   CLAUDE_PLAN - claude-monitor plan (default: max5)
+#   FORCE - force kill existing window (default: 0)
+#
+# Usage:
+#   mux-vim [window-name]
+#   LEFT_DIR=/path/to/docs mux-vim my-docs
+# =============================================================================
+
+set -euo pipefail
+
+# Detect multiplexer from chezmoi config
+get_multiplexer() {
+  if [[ -n "${MULTIPLEXER:-}" ]]; then
+    echo "$MULTIPLEXER"
+    return 0
+  fi
+
+  local chezmoi_config="${HOME}/.config/chezmoi/chezmoi.toml"
+  if [[ -f "$chezmoi_config" ]]; then
+    local mux=$(grep -A 1 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | \
+                grep 'multiplexer' | \
+                sed 's/.*"\(.*\)".*/\1/')
+    if [[ -n "$mux" ]]; then
+      echo "$mux"
+      return 0
+    fi
+  fi
+
+  echo "tmux"
+}
+
+# Main logic
+DETECTED_MUX=$(get_multiplexer)
+
+case "$DETECTED_MUX" in
+  tmux)
+    exec tmux-vim "$@"
+    ;;
+  zellij)
+    SESSION_NAME="${1:-}"
+    LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
+    CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
+
+    export LEFT_DIR
+    export CLAUDE_PLAN
+
+    if [[ -n "${ZELLIJ:-}" ]]; then
+      # Inside zellij - create new tab
+      if [[ -n "$SESSION_NAME" ]]; then
+        zellij action new-tab --layout vim --name "$SESSION_NAME"
+      else
+        zellij action new-tab --layout vim
+      fi
+    else
+      # Outside zellij - attach or create session
+      if [[ -n "$SESSION_NAME" ]]; then
+        if zellij list-sessions 2>/dev/null | grep -q "^${SESSION_NAME}$"; then
+          zellij attach "$SESSION_NAME"
+        else
+          zellij --session "$SESSION_NAME" --layout vim
+        fi
+      else
+        zellij --layout vim
+      fi
+    fi
+    ;;
+  *)
+    echo "Unknown multiplexer: $DETECTED_MUX" >&2
+    exit 1
+    ;;
+esac
