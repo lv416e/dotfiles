@@ -136,16 +136,12 @@ alias = "out"
 run = "mise outdated"
 
 # --- 1Password & Secrets Management ---
-
-[tasks.op-signin]
-description = "[1pass] Sign in to 1Password"
-alias = "ops"
-run = "eval $(op signin)"
+# Note: Use 'ops' shell function to sign in (defined in zsh functions)
 
 [tasks.op-status]
 description = "[1pass] Check 1Password authentication status"
 alias = "opst"
-run = "op whoami || echo 'Not signed in. Run: mise op-signin'"
+run = "op whoami || echo 'Not signed in. Run: ops'"
 
 [tasks.op-vaults]
 description = "[1pass] List all vaults"
@@ -167,7 +163,7 @@ description = "[secrets] Backup age key to 1Password"
 alias = "sbk"
 run = """
 echo "Backing up age key to 1Password..."
-op whoami > /dev/null || { echo "❌ Not signed in. Run: mise op-signin"; exit 1; }
+op whoami > /dev/null || { echo "❌ Not signed in. Run: ops"; exit 1; }
 
 if [ ! -f ~/.config/chezmoi/key.txt ]; then
   echo "❌ Age key not found at ~/.config/chezmoi/key.txt"
@@ -200,7 +196,7 @@ description = "[secrets] Restore age key from 1Password"
 alias = "srk"
 run = """
 echo "Restoring age key from 1Password..."
-op whoami > /dev/null || { echo "❌ Not signed in. Run: mise op-signin"; exit 1; }
+op whoami > /dev/null || { echo "❌ Not signed in. Run: ops"; exit 1; }
 
 if [ -f ~/.config/chezmoi/key.txt ]; then
   echo "⚠️  Age key already exists at ~/.config/chezmoi/key.txt"
@@ -230,7 +226,7 @@ description = "[secrets] Test template with onepasswordRead"
 alias = "sct"
 run = """
 echo "Testing 1Password template integration..."
-op whoami > /dev/null || { echo "❌ Not signed in. Run: mise op-signin"; exit 1; }
+op whoami > /dev/null || { echo "❌ Not signed in. Run: ops"; exit 1; }
 echo "✅ 1Password authenticated"
 echo "\nVaults available:"
 op vault list
