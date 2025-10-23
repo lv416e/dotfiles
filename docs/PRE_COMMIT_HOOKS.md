@@ -46,7 +46,7 @@ If needed, you can manually install:
 ```bash
 # Install tools via mise
 mise install go:github.com/evilmartians/lefthook@latest
-mise install go:github.com/gitleaks/gitleaks/v8@latest
+mise install go:github.com/zricethezav/gitleaks/v8@latest
 
 # Install Git hooks
 cd ~/.local/share/chezmoi
@@ -381,7 +381,7 @@ mise upgrade
 
 # Or manually
 mise install go:github.com/evilmartians/lefthook@latest
-mise install go:github.com/gitleaks/gitleaks/v8@latest
+mise install go:github.com/zricethezav/gitleaks/v8@latest
 
 # Reinstall hooks
 lefthook install

@@ -17,6 +17,9 @@ encryption = "age"
 # Requires: 1password-cli (brew install --cask 1password-cli)
 # Usage in .tmpl files: onepasswordRead "op://vault/item/field"
 # See docs/SECRETS_MANAGEMENT.md for examples
+[data.onepassword]
+    vault = "Personal"  # Change this to your 1Password vault name
+
 [onepassword]
     mode = "account"  # Options: "account", "connect", "service"
 
@@ -36,8 +39,9 @@ encryption = "age"
     args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}"]
 
 # Age encryption configuration
-# Public key: age14t9x0zwv2adeujgjryk33s4f7wcxmsn7y7ws65hz7fs80fw9rfeqk8a4rg
+# Generate your own key: chezmoi age-keygen --output ~/.config/chezmoi/key.txt
+# Replace the recipient below with your public key from age-keygen output
 # Usage: chezmoi add --encrypt <file>
 [age]
     identity = "{{ .chezmoi.homeDir }}/.config/chezmoi/key.txt"
-    recipient = "age14t9x0zwv2adeujgjryk33s4f7wcxmsn7y7ws65hz7fs80fw9rfeqk8a4rg"
+    recipient = "age14t9x0zwv2adeujgjryk33s4f7wcxmsn7y7ws65hz7fs80fw9rfeqk8a4rg"  # REPLACE WITH YOUR KEY

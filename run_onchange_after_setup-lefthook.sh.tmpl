@@ -20,7 +20,7 @@ fi
 # Check if gitleaks is installed
 if ! command -v gitleaks &> /dev/null; then
     echo "⚠️  gitleaks not found. Installing via mise..."
-    mise install go:github.com/gitleaks/gitleaks/v8@latest
+    mise install go:github.com/zricethezav/gitleaks/v8@latest
 fi
 
 # Navigate to dotfiles directory

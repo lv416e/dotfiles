@@ -15,7 +15,7 @@ _setup_dev_paths() {
   export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
   export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
 
-  # Alacritty + Hammerspoon
+  # Alacritty custom scripts (toggle_opacity, etc.)
   export PATH=$PATH:{{ .chezmoi.homeDir }}/.config/alacritty/bin
 }
 zsh-defer _setup_dev_paths
