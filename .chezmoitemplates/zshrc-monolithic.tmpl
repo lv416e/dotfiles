@@ -266,12 +266,7 @@ ask() {
 # Functions - Shell Management
 # ============================================================================
 
-# Kill current multiplexer window (deprecated function - use 'twk' alias instead)
-# Kept for backward compatibility, but prefer using mux-kill-window directly
-twk() {
-  echo "Warning: twk() function is deprecated. Use 'twk' alias (mux-kill-window) instead." >&2
-  mux-kill-window
-}
+# Note: twk is now an alias to mux-kill-window (see aliases section above)
 
 # Clear zsh caches and restart
 zsh-refresh() {
