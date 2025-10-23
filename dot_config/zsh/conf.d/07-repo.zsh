@@ -1,23 +1,23 @@
 # ============================================================================
 # Repository Management
-# Description: ghq-based repository navigation and tmux integration
-# Dependencies: ghq, fzf, bat, eza, tmux-nvim, zsh-defer (for completions)
+# Description: ghq-based repository navigation and multiplexer integration
+# Dependencies: ghq, fzf, bat, eza, mux-nvim, zsh-defer (for completions)
 # ============================================================================
 
-# Repository navigation with fzf and tmux integration
+# Repository navigation with fzf and multiplexer integration
 repo() {
-  local launch_tmux=false
+  local launch_mux=false
   local top_panes="${TOP_PANES:-1}"
   local repo_arg=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --tmux|-t)
-        launch_tmux=true
+      --tmux|-t|--mux|-m)
+        launch_mux=true
         shift
         ;;
-      -t2)
-        launch_tmux=true
+      -t2|-m2)
+        launch_mux=true
         top_panes=2
         shift
         ;;
@@ -51,9 +51,9 @@ repo() {
   if [ -n "$repo" ]; then
     local repo_path=$(ghq root)/$repo
 
-    if [ "$launch_tmux" = true ]; then
+    if [ "$launch_mux" = true ]; then
       local repo_name=$(basename "$repo")
-      LEFT_DIR="$repo_path" TOP_PANES="$top_panes" tmux-nvim "$repo_name"
+      LEFT_DIR="$repo_path" TOP_PANES="$top_panes" mux-nvim "$repo_name"
     else
       cd "$repo_path"
     fi
@@ -70,8 +70,9 @@ clone() {
   ghq get "$1" && cd $(ghq root)/$(ghq list | tail -1)
 }
 
-# Repository navigation with tmux-nvim
-tmux-repo() {
+# Repository navigation with multiplexer nvim workspace
+# Opens repository in mux-nvim workspace
+mux-repo() {
   local repo_path=""
   local repo_name=""
   local top_panes="${TOP_PANES:-1}"
@@ -118,8 +119,14 @@ tmux-repo() {
   fi
 
   if [ -n "$repo_path" ]; then
-    LEFT_DIR="$repo_path" TOP_PANES="$top_panes" tmux-nvim "$repo_name"
+    LEFT_DIR="$repo_path" TOP_PANES="$top_panes" mux-nvim "$repo_name"
   fi
+}
+
+# Deprecated: use mux-repo instead
+tmux-repo() {
+  echo "Warning: tmux-repo is deprecated, use mux-repo instead" >&2
+  mux-repo "$@"
 }
 
 # Repository statistics
@@ -142,8 +149,8 @@ ghq-stats() {
 
 _repo() {
   _arguments \
-    '(-t --tmux)'{-t,--tmux}'[Launch tmux-nvim with 1 pane]' \
-    '-t2[Launch tmux-nvim with 2 panes]' \
+    '(-t --tmux -m --mux)'{-t,--tmux,-m,--mux}'[Launch mux-nvim with 1 pane]' \
+    '(-t2 -m2)'{-t2,-m2}'[Launch mux-nvim with 2 panes]' \
     '--dual[Use 2 panes layout]' \
     '1:repository:_repo_list'
 }

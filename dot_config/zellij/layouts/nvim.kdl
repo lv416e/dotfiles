@@ -1,0 +1,68 @@
+// =============================================================================
+// Zellij Layout: nvim workspace
+// =============================================================================
+// Equivalent to tmux-nvim script - creates a development workspace with:
+// - Top: nvim editor (and optionally claude in split)
+// - Bottom: claude-monitor, gitui, btm monitoring tools
+//
+// Environment variables:
+//   LEFT_DIR - directory to open (default: $HOME/Documents)
+//   TOP_PANES - 1 or 2 (default: 1) - whether to include claude pane
+//   CLAUDE_PLAN - claude-monitor plan (default: max5)
+//
+// Usage:
+//   LEFT_DIR=/path/to/project zellij --layout nvim
+//   TOP_PANES=2 LEFT_DIR=/path/to/repo zellij --layout nvim
+
+layout {
+    // Default values (can be overridden by env vars)
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+
+    // Main workspace tab
+    tab name="workspace" focus=true {
+        // Top section: editor (60% height)
+        pane split_direction="horizontal" size="60%" {
+            // Main editor pane (nvim)
+            pane name="editor" focus=true {
+                command "zsh"
+                args "-lc" "cd \"${LEFT_DIR:-$HOME/Documents}\" 2>/dev/null || cd ~; nvim; exec zsh"
+            }
+
+            // Optional: claude pane (only if TOP_PANES=2)
+            // Note: This is commented by default. Uncomment if needed.
+            // pane name="claude" {
+            //     command "zsh"
+            //     args "-lc" "cd \"${LEFT_DIR:-$HOME/Documents}\" 2>/dev/null || cd ~; claude; exec zsh"
+            // }
+        }
+
+        // Bottom section: monitoring tools (40% height)
+        pane split_direction="horizontal" size="40%" {
+            // Left: claude-monitor (40%)
+            pane name="claude-monitor" size="40%" {
+                command "bash"
+                args "-lc" "if command -v claude-monitor >/dev/null 2>&1; then claude-monitor --plan ${CLAUDE_PLAN:-max5}; else echo '[warn] claude-monitor not found'; exec zsh; fi"
+            }
+
+            // Middle: gitui (40%)
+            pane name="gitui" size="40%" {
+                command "zsh"
+                args "-lc" "DIR=\"${LEFT_DIR:-$HOME/Documents}\"; if ! command -v gitui >/dev/null 2>&1; then echo '[warn] gitui not found. e.g. brew install gitui'; exec zsh; else ROOT=$(git -C \"$DIR\" rev-parse --show-toplevel 2>/dev/null || echo \"$DIR\"); cd \"$ROOT\"; gitui; exec zsh; fi"
+            }
+
+            // Right: btm/htop (20%)
+            pane name="monitor" size="20%" {
+                command "bash"
+                args "-lc" "btm || htop || top"
+            }
+        }
+    }
+}

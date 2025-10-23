@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# =============================================================================
+# mux-nvim: Multiplexer-agnostic nvim workspace launcher
+# =============================================================================
+# Abstracts tmux-nvim functionality to work with either tmux or zellij
+# based on the current chezmoi multiplexer configuration.
+#
+# Environment variables (same as tmux-nvim):
+#   SESSION_DEFAULT - session name (default: desk)
+#   LEFT_DIR - directory to open (default: $HOME/Documents)
+#   TOP_PANES - 1 or 2 (default: 1) - affects layout choice
+#   CLAUDE_PLAN - claude-monitor plan (default: max5)
+#   FORCE - force kill existing window (default: 0)
+#
+# Usage:
+#   mux-nvim [window-name]
+#   LEFT_DIR=/path/to/repo TOP_PANES=2 mux-nvim my-project
+# =============================================================================
+
+set -euo pipefail
+
+# Detect multiplexer from chezmoi config
+get_multiplexer() {
+  # Environment variable override
+  if [[ -n "${MULTIPLEXER:-}" ]]; then
+    echo "$MULTIPLEXER"
+    return 0
+  fi
+
+  # Read from chezmoi config
+  local chezmoi_config="${HOME}/.config/chezmoi/chezmoi.toml"
+  if [[ -f "$chezmoi_config" ]]; then
+    local mux=$(grep -A 1 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | \
+                grep 'multiplexer' | \
+                sed 's/.*"\(.*\)".*/\1/')
+    if [[ -n "$mux" ]]; then
+      echo "$mux"
+      return 0
+    fi
+  fi
+
+  # Default to tmux
+  echo "tmux"
+}
+
+# Main logic
+DETECTED_MUX=$(get_multiplexer)
+
+case "$DETECTED_MUX" in
+  tmux)
+    # Use existing tmux-nvim script
+    exec tmux-nvim "$@"
+    ;;
+  zellij)
+    # Zellij implementation
+    SESSION_NAME="${1:-}"
+    LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
+    TOP_PANES="${TOP_PANES:-1}"
+    CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
+
+    # Choose layout based on TOP_PANES
+    if [[ "$TOP_PANES" == "2" ]]; then
+      LAYOUT="nvim-dual"
+    else
+      LAYOUT="nvim"
+    fi
+
+    # Export environment variables for layout
+    export LEFT_DIR
+    export CLAUDE_PLAN
+
+    # Check if inside zellij
+    if [[ -n "${ZELLIJ:-}" ]]; then
+      # Inside zellij - create new tab with layout
+      if [[ -n "$SESSION_NAME" ]]; then
+        zellij action new-tab --layout "$LAYOUT" --name "$SESSION_NAME"
+      else
+        zellij action new-tab --layout "$LAYOUT"
+      fi
+    else
+      # Outside zellij - attach or create session
+      if [[ -n "$SESSION_NAME" ]]; then
+        # Try to attach to existing session, or create new one
+        if zellij list-sessions 2>/dev/null | grep -q "^${SESSION_NAME}$"; then
+          zellij attach "$SESSION_NAME"
+        else
+          zellij --session "$SESSION_NAME" --layout "$LAYOUT"
+        fi
+      else
+        # No session name - just start with layout
+        zellij --layout "$LAYOUT"
+      fi
+    fi
+    ;;
+  *)
+    echo "Unknown multiplexer: $DETECTED_MUX" >&2
+    echo "Supported: tmux, zellij" >&2
+    exit 1
+    ;;
+esac

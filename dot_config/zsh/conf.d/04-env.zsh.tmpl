@@ -38,10 +38,75 @@ zsh-defer _setup_cpp_env
 # ============================================================================
 # These functions manage shell configuration and must be available immediately.
 # They cannot be deferred because they're needed for interactive shell management.
-# Dependencies: chezmoi, sed, tmux (optional)
+# Dependencies: chezmoi, sed, tmux/zellij (optional)
 # ============================================================================
 
-# Kill current tmux window
+# ============================================================================
+# Multiplexer Abstraction Layer
+# ============================================================================
+# Detect current multiplexer from chezmoi config
+# Returns: "tmux" or "zellij" (defaults to tmux)
+get-multiplexer() {
+  # Environment variable override
+  if [[ -n "${MULTIPLEXER:-}" ]]; then
+    echo "$MULTIPLEXER"
+    return 0
+  fi
+
+  # Read from chezmoi config
+  local chezmoi_config="${HOME}/.config/chezmoi/chezmoi.toml"
+  if [[ -f "$chezmoi_config" ]]; then
+    local mux=$(grep -A 1 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | \
+                grep 'multiplexer' | \
+                sed 's/.*"\(.*\)".*/\1/')
+    if [[ -n "$mux" ]]; then
+      echo "$mux"
+      return 0
+    fi
+  fi
+
+  # Default to tmux
+  echo "tmux"
+}
+
+# Check if running inside a multiplexer
+in-multiplexer() {
+  [[ -n "${TMUX:-}" || -n "${ZELLIJ:-}" ]]
+}
+
+# Get current multiplexer type (when inside one)
+current-multiplexer() {
+  if [[ -n "${TMUX:-}" ]]; then
+    echo "tmux"
+  elif [[ -n "${ZELLIJ:-}" ]]; then
+    echo "zellij"
+  else
+    echo "none"
+  fi
+}
+
+# Kill current window (abstracted)
+mux-kill-window() {
+  local mux=$(current-multiplexer)
+  case "$mux" in
+    tmux)
+      local id
+      id="$(tmux display -p '#{window_id}' 2>/dev/null)" || {
+        echo "Run inside tmux session" >&2; return 1
+      }
+      tmux kill-window -t "$id"
+      ;;
+    zellij)
+      zellij action close-tab
+      ;;
+    *)
+      echo "Not inside a multiplexer session" >&2
+      return 1
+      ;;
+  esac
+}
+
+# Kill current tmux window (deprecated, use mux-kill-window)
 twk() {
   local id
   id="$(tmux display -p '#{window_id}' 2>/dev/null)" || {

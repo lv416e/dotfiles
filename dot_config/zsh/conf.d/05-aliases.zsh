@@ -78,9 +78,12 @@ alias lg='gitui'
 alias ld='lazydocker'
 
 # --- Repository shortcuts ---
-alias rt='repo -t'
-alias rt2='repo -t2'
-alias rtd='repo -t2'
+# These now use mux-nvim (multiplexer-agnostic)
+alias rt='repo -t'          # repo with multiplexer (1 pane)
+alias rt2='repo -t2'        # repo with multiplexer (2 panes)
+alias rtd='repo -t2'        # repo with multiplexer (dual panes)
+alias mr='mux-repo'         # direct mux-repo call
+alias mr2='mux-repo --dual' # direct mux-repo call (2 panes)
 
 # --- Misc ---
 alias c='clear'
