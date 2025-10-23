@@ -50,16 +50,20 @@ mise install
 
 See [New Machine Setup](docs/NEW_MACHINE_SETUP.md) for detailed instructions and troubleshooting.
 
-## Daily Usage
+## Usage
 
+### Edit files
 ```sh
-# Edit files
 chezmoi edit ~/.zshrc
+```
 
-# Apply changes
+### Apply changes
+```sh
 chezmoi apply
+```
 
-# Commit and push
+### Commit and push
+```sh
 chezmoi cd
 git add -A && git commit -m "Update configuration" && git push
 ```
