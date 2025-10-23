@@ -45,13 +45,13 @@ layout {
                 // Top right: ccusage watch (42%)
                 pane name="usage" size="42%" {
                     command "zsh"
-                    args "-c" "source ~/.zshrc && watch -n 10 'ccusage daily --since $(date -v -3d +%Y%m%d) --no-color'"
+                    args "-c" "source $ZDOTDIR/.zshrc && watch -n 10 'ccusage daily --since $(date -v -3d +%Y%m%d) --no-color'"
                 }
 
                 // Middle right: claude-monitor (33%)
                 pane name="claude" size="33%" {
                     command "zsh"
-                    args "-c" "source ~/.zshrc && claude-monitor --plan max5"
+                    args "-c" "source $ZDOTDIR/.zshrc && claude-monitor --plan max5"
                 }
 
                 // Bottom right: monitoring tools (25%, split)
