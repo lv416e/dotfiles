@@ -306,6 +306,60 @@ switch-prompt() {
   exec zsh
 }
 
+# Switch between modular and monolithic zsh configuration
+# Similar to LazyVim/AstroNvim or Starship/P10k switching
+switch-zsh-config() {
+  local variant="${1:-}"
+  local chezmoi_config="${HOME}/.local/share/chezmoi/.chezmoi.toml.tmpl"
+
+  if [[ -z "$variant" ]]; then
+    # Show current configuration
+    local current_variant=$(grep -A1 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | grep 'variant' | sed 's/.*"\(.*\)".*/\1/')
+    echo "Current zsh configuration: ${current_variant:-modular}"
+    echo ""
+    echo "Usage: switch-zsh-config [modular|monolithic]"
+    echo ""
+    echo "Available variants:"
+    echo "  modular     - Optimized multi-file config with deferred loading (default)"
+    echo "                Performance: 48.7ms min, 55.1ms avg"
+    echo "                Structure: ~/.config/zsh/conf.d/ (7 modules)"
+    echo ""
+    echo "  monolithic  - Traditional single-file config (legacy)"
+    echo "                Performance: ~57ms baseline"
+    echo "                Structure: Single ~/.zshrc file"
+    return 0
+  fi
+
+  if [[ "$variant" != "modular" && "$variant" != "monolithic" ]]; then
+    echo "Error: variant must be 'modular' or 'monolithic'" >&2
+    return 1
+  fi
+
+  # Update .chezmoi.toml.tmpl
+  if [[ ! -f "$chezmoi_config" ]]; then
+    echo "Error: chezmoi config not found at $chezmoi_config" >&2
+    return 1
+  fi
+
+  # Use sed to update the variant value
+  sed -i '' "s/variant = \".*\"/variant = \"$variant\"/" "$chezmoi_config"
+
+  echo "✅ Zsh configuration switched to: $variant"
+  echo "📝 Updated: ~/.local/share/chezmoi/.chezmoi.toml.tmpl"
+  echo "🔄 Regenerating config..."
+
+  # Regenerate config from template
+  chezmoi init > /dev/null 2>&1
+
+  echo "🔄 Applying changes..."
+
+  # Apply changes
+  chezmoi apply ~/.config/zsh/.zshrc > /dev/null 2>&1
+
+  echo "🔄 Restarting zsh..."
+  exec zsh
+}
+
 # ============================================================================
 # Functions - Repository Management
 # ============================================================================
