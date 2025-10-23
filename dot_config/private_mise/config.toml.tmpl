@@ -162,7 +162,7 @@ description = "[1pass] Get item details (usage: mise op-get <item-name>)"
 alias = "opg"
 run = "op item get \"$1\" --vault {{ .onepassword.vault }}"
 
-[tasks.secrets-backup-age-key]
+[tasks.secrets-age-key-backup]
 description = "[secrets] Backup age key to 1Password"
 alias = "sbk"
 run = """
@@ -195,7 +195,7 @@ echo "  op item get 'chezmoi-age-key' --fields notesPlain --vault {{ .onepasswor
 echo "  chmod 600 ~/.config/chezmoi/key.txt"
 """
 
-[tasks.secrets-restore-age-key]
+[tasks.secrets-age-key-restore]
 description = "[secrets] Restore age key from 1Password"
 alias = "srk"
 run = """
