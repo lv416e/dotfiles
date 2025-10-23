@@ -138,19 +138,26 @@ run = "mise outdated"
 # --- 1Password & Secrets Management ---
 
 [tasks.op-signin]
-description = "[1pass] Sign in to 1Password (prints eval command)"
+description = "[1pass] Sign in to 1Password (shows instructions)"
 alias = "ops"
 run = """
-echo "To sign in to 1Password, run:"
+echo "=================================="
+echo "  1Password Sign In"
+echo "=================================="
 echo ""
-echo "  eval $(op signin)"
+echo "To sign in to 1Password, run this command in your shell:"
+echo ""
+echo '    eval $(op signin)'
 echo ""
 echo "This will:"
-echo "  1. Prompt for your 1Password account (if not configured)"
-echo "  2. Open browser for authentication"
-echo "  3. Set OP_SESSION_* environment variable"
+echo "  1. Prompt for your 1Password password"
+echo "  2. Set the OP_SESSION_* environment variable"
+echo "  3. Allow other mise tasks to access 1Password"
 echo ""
-echo "Alternative: run 'op signin' directly for instructions"
+echo "After signing in, verify with:"
+echo "    mise op-status"
+echo ""
+echo "Note: The session expires after 30 minutes of inactivity."
 """
 
 [tasks.op-status]
