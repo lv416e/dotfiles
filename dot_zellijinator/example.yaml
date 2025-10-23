@@ -1,0 +1,22 @@
+name: example
+root: ~/Documents
+session_name: example-dev
+default_layout: even-horizontal
+
+tabs:
+  - name: editor
+    layout: even-horizontal
+    panes:
+      - commands:
+          - echo "Testing nvim availability..."
+          - which nvim
+          - nvim --version | head -3
+  - name: tools
+    layout: even-vertical
+    panes:
+      - commands:
+          - echo "Testing claude availability..."
+          - which claude
+      - commands:
+          - echo "Testing mise tools..."
+          - mise list | head -5

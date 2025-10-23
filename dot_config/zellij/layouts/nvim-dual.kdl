@@ -29,14 +29,12 @@ layout {
         pane split_direction="horizontal" size="60%" {
             // Left: nvim editor (58%)
             pane name="editor" size="58%" {
-                command "bash"
-                args "-c" "eval \"$(mise activate bash)\" && nvim"
+                command "nvim"
             }
 
             // Right: claude (42%)
             pane name="claude" size="42%" focus=true {
-                command "bash"
-                args "-c" "eval \"$(mise activate bash)\" && claude"
+                command "claude"
             }
         }
 
@@ -44,14 +42,13 @@ layout {
         pane split_direction="horizontal" size="40%" {
             // Left: claude-monitor (40%)
             pane name="claude-monitor" size="40%" {
-                command "bash"
-                args "-c" "eval \"$(mise activate bash)\" && claude-monitor --plan max5"
+                command "claude-monitor"
+                args "--plan" "max5"
             }
 
             // Middle: gitui (40%)
             pane name="gitui" size="40%" {
-                command "bash"
-                args "-c" "eval \"$(mise activate bash)\" && gitui"
+                command "gitui"
             }
 
             // Right: btm/htop (20%)

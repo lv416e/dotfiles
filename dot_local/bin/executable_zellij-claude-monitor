@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-# Wrapper for claude-monitor in Zellij layouts
-eval "$(mise activate bash)"
-exec claude-monitor "$@"

@@ -1,5 +1,19 @@
 # Q pre block. Keep at the top of this file.
 [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zprofile.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zprofile.pre.zsh"
+
+# =============================================================================
+# mise shims activation for non-interactive shells
+# =============================================================================
+# This enables mise-managed tools in non-interactive environments like:
+# - Zellij panes
+# - IDEs (VSCode, JetBrains)
+# - CI/CD scripts
+# - Background processes
+#
+# Note: Interactive shells should use 'mise activate' in .zshrc for full features
+# See: https://mise.jdx.dev/dev-tools/shims.html
+eval "$(mise activate zsh --shims)"
+
 # Added by Toolbox App
 export PATH="$PATH:{{ .chezmoi.homeDir }}/Library/Application Support/JetBrains/Toolbox/scripts"
 
