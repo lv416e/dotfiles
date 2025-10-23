@@ -97,6 +97,7 @@ git add -A && git commit -m "Update configuration" && git push
 
 ## Features
 
+- **Multiplexer Abstraction**: Seamless tmux/zellij switching with `switch-multiplexer`
 - **Configuration Switching**: Switch between modular/monolithic zsh configs with `switch-zsh-config`
 - **Secrets Management**: Integrated 1Password CLI and age encryption
 - **Pre-Commit Hooks**: Automatic secret detection with lefthook and gitleaks
@@ -110,6 +111,7 @@ git add -A && git commit -m "Update configuration" && git push
 - [Secrets Management](docs/SECRETS_MANAGEMENT.md) - 1Password and age encryption
 - [Pre-Commit Hooks](docs/PRE_COMMIT_HOOKS.md) - Git hooks with lefthook and gitleaks
 - [Zsh Config Switching](docs/ZSH_CONFIG_SWITCHING.md) - Modular vs monolithic
+- [Multiplexer Abstraction](docs/MULTIPLEXER_ABSTRACTION.md) - Unified tmux/zellij interface
 - [Terminal Multiplexers](docs/TERMINAL_MULTIPLEXERS.md) - tmux vs Zellij configuration
 - [Keybindings Reference](docs/KEYBINDINGS_REFERENCE.md) - Quick reference for tmux/zellij
 - [Modern Tools](docs/NEW_TOOLS.md) - jj, WezTerm, Zellij guides
