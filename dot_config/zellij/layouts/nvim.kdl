@@ -33,7 +33,7 @@ layout {
             // Main editor pane (nvim)
             pane name="editor" focus=true {
                 command "zsh"
-                args "-l" "-c" "nvim"
+                args "-c" "source ~/.zshrc && nvim"
             }
 
             // Optional: claude pane (only if TOP_PANES=2)
@@ -49,13 +49,13 @@ layout {
             // Left: claude-monitor (40%)
             pane name="claude-monitor" size="40%" {
                 command "zsh"
-                args "-l" "-c" "claude-monitor --plan max5"
+                args "-c" "source ~/.zshrc && claude-monitor --plan max5"
             }
 
             // Middle: gitui (40%)
             pane name="gitui" size="40%" {
                 command "zsh"
-                args "-l" "-c" "gitui"
+                args "-c" "source ~/.zshrc && gitui"
             }
 
             // Right: btm/htop (20%)
