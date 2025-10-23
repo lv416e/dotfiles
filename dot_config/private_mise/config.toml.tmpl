@@ -269,12 +269,12 @@ grep -A3 'encryption = "age"' ~/.config/chezmoi/chezmoi.toml || echo "❌ Age en
 
 # --- Workflows (Complex Operations) ---
 
-[tasks.sync]
+[tasks.workflow-sync]
 description = "[workflow] Full sync: apply → update → clean"
 alias = "sy"
 depends = ["dot-apply", "sys-update", "sys-clean"]
 
-[tasks.fresh]
+[tasks.worlflow-fresh]
 description = "[workflow] Fresh start: clean → apply → update"
 alias = "f"
 run = [
