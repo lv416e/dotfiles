@@ -9,6 +9,12 @@
 # Utilities
 # ============================================================================
 
+# 1Password sign in
+# Usage: ops
+ops() {
+  eval $(op signin)
+}
+
 # Cheat sheet viewer (navi + tldr)
 # Usage:
 #   ch           - Interactive navi (all cheatsheets)
