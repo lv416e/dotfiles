@@ -33,7 +33,7 @@ layout {
             // Main editor pane (nvim)
             pane name="editor" focus=true {
                 command "zsh"
-                args "-lc" "cd \"${LEFT_DIR:-$HOME/Documents}\" 2>/dev/null || cd ~; nvim; exec zsh"
+                args "-lic" "cd ${LEFT_DIR:-$HOME/Documents} 2>/dev/null || cd ~; nvim; exec zsh"
             }
 
             // Optional: claude pane (only if TOP_PANES=2)
@@ -48,20 +48,19 @@ layout {
         pane split_direction="horizontal" size="40%" {
             // Left: claude-monitor (40%)
             pane name="claude-monitor" size="40%" {
-                command "bash"
-                args "-lc" "if command -v claude-monitor >/dev/null 2>&1; then claude-monitor --plan ${CLAUDE_PLAN:-max5}; else echo '[warn] claude-monitor not found'; exec zsh; fi"
+                command "zsh"
+                args "-lic" "claude-monitor --plan ${CLAUDE_PLAN:-max5}"
             }
 
             // Middle: gitui (40%)
             pane name="gitui" size="40%" {
                 command "zsh"
-                args "-lc" "DIR=\"${LEFT_DIR:-$HOME/Documents}\"; if ! command -v gitui >/dev/null 2>&1; then echo '[warn] gitui not found. e.g. brew install gitui'; exec zsh; else ROOT=$(git -C \"$DIR\" rev-parse --show-toplevel 2>/dev/null || echo \"$DIR\"); cd \"$ROOT\"; gitui; exec zsh; fi"
+                args "-lic" "DIR=${LEFT_DIR:-$HOME/Documents}; ROOT=$(git -C \"$DIR\" rev-parse --show-toplevel 2>/dev/null || echo \"$DIR\"); cd \"$ROOT\"; gitui; exec zsh"
             }
 
             // Right: btm/htop (20%)
             pane name="monitor" size="20%" {
-                command "bash"
-                args "-lc" "btm || htop || top"
+                command "btm"
             }
         }
     }

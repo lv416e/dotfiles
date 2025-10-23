@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# =============================================================================
+# get-multiplexer: Detect current multiplexer configuration
+# =============================================================================
+# Returns the configured multiplexer (tmux or zellij) based on:
+#   1. MULTIPLEXER environment variable (if set)
+#   2. chezmoi configuration file
+#   3. Default to tmux
+#
+# Usage:
+#   get-multiplexer
+#   MUX=$(get-multiplexer)
+# =============================================================================
+
+# Check environment variable override
+if [[ -n "${MULTIPLEXER:-}" ]]; then
+  echo "$MULTIPLEXER"
+  exit 0
+fi
+
+# Read from chezmoi config
+chezmoi_config="${HOME}/.config/chezmoi/chezmoi.toml"
+if [[ -f "$chezmoi_config" ]]; then
+  mux=$(grep -A 5 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | \
+        grep 'multiplexer' | \
+        sed 's/.*"\(.*\)".*/\1/')
+  if [[ -n "$mux" ]]; then
+    echo "$mux"
+    exit 0
+  fi
+fi
+
+# Default to tmux
+echo "tmux"

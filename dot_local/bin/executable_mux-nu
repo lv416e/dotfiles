@@ -26,7 +26,7 @@ get_multiplexer() {
 
   local chezmoi_config="${HOME}/.config/chezmoi/chezmoi.toml"
   if [[ -f "$chezmoi_config" ]]; then
-    local mux=$(grep -A 1 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | \
+    local mux=$(grep -A 5 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | \
                 grep 'multiplexer' | \
                 sed 's/.*"\(.*\)".*/\1/')
     if [[ -n "$mux" ]]; then

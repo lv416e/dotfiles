@@ -35,14 +35,12 @@ layout {
             pane split_direction="horizontal" size="50%" {
                 // Top left: main workspace (75%)
                 pane name="workspace" size="75%" focus=true {
-                    command "zsh"
-                    args "-lc" "cd \"${LEFT_DIR:-$HOME/Documents}\" 2>/dev/null || cd ~; exec zsh"
+                    cwd "${LEFT_DIR}"
                 }
 
                 // Bottom left: secondary shell (25%)
                 pane name="shell" size="25%" {
-                    command "zsh"
-                    args "-lc" "cd \"${LEFT_DIR:-$HOME/Documents}\" 2>/dev/null || cd ~; exec zsh"
+                    cwd "${LEFT_DIR}"
                 }
             }
 
@@ -50,28 +48,27 @@ layout {
             pane split_direction="horizontal" size="50%" {
                 // Top right: ccusage watch (42%)
                 pane name="usage" size="42%" {
-                    command "bash"
-                    args "-lc" "if command -v ccusage >/dev/null 2>&1; then watch -n 10 \"ccusage daily --since $(date -v -3d +%Y%m%d) --no-color\"; else echo '[warn] ccusage not found'; exec zsh; fi"
+                    command "zsh"
+                    args "-lic" "watch -n 10 'ccusage daily --since $(date -v -3d +%Y%m%d) --no-color'"
                 }
 
                 // Middle right: claude-monitor (33%)
                 pane name="claude" size="33%" {
-                    command "bash"
-                    args "-lc" "if command -v claude-monitor >/dev/null 2>&1; then claude-monitor --plan ${CLAUDE_PLAN:-max5}; else echo '[warn] claude-monitor not found'; exec zsh; fi"
+                    command "zsh"
+                    args "-lic" "claude-monitor --plan ${CLAUDE_PLAN:-max5}"
                 }
 
                 // Bottom right: monitoring tools (25%, split)
                 pane split_direction="vertical" size="25%" {
                     // Left: btm/htop (50%)
                     pane name="monitor" size="50%" {
-                        command "bash"
-                        args "-lc" "btm || htop || top"
+                        command "btm"
                     }
 
                     // Right: clock (50%)
                     pane name="clock" size="50%" {
-                        command "bash"
-                        args "-lc" "if command -v tty-clock >/dev/null 2>&1; then tty-clock -sc; else watch -n 1 'date +%H:%M:%S'; fi"
+                        command "tty-clock"
+                        args "-sc"
                     }
                 }
             }
