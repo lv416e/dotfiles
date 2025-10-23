@@ -1,0 +1,25 @@
+#
+# Defines environment variables.
+#
+# Authors:
+#   Sorin Ionescu <sorin.ionescu@gmail.com>
+#
+
+# XDG Base Directory Specification
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-{{ .chezmoi.homeDir }}/.config}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-{{ .chezmoi.homeDir }}/.local/share}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-{{ .chezmoi.homeDir }}/.cache}"
+
+# Ensure that a non-login, non-interactive shell has a defined environment.
+if [[ ( "$SHLVL" -eq 1 && ! -o LOGIN ) && -s "${ZDOTDIR:-$HOME}/.zprofile" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zprofile"
+fi
+
+# Cargo environment
+. "$HOME/.cargo/env"
+
+# Load local overrides (not managed by chezmoi)
+# Use this file for machine-specific environment variables like PROMPT_THEME
+if [[ -f "${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}/.zshenv.local" ]]; then
+  source "${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}/.zshenv.local"
+fi

@@ -3,6 +3,11 @@
     name = "{{ output "git" "config" "user.name" | trim }}"
     email = "{{ output "git" "config" "user.email" | trim }}"
 
+# Zsh configuration variant
+# Supported values: "modular" (default, optimized multi-file config) or "monolithic" (single-file config)
+[data.zsh]
+    variant = "monolithic"
+
 [edit]
     command = "nvim"
     apply = true

@@ -1,0 +1,40 @@
+# ============================================================================
+# Core Initialization
+# Description: Homebrew setup and prompt theme configuration
+# Dependencies: None
+# ============================================================================
+
+# --- Homebrew ---
+{{- if eq .chezmoi.arch "arm64" }}
+export HOMEBREW_PREFIX="/opt/homebrew"
+export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
+export HOMEBREW_REPOSITORY="/opt/homebrew"
+fpath[1,0]="/opt/homebrew/share/zsh/site-functions"
+eval "$(/usr/bin/env PATH_HELPER_ROOT="/opt/homebrew" /usr/libexec/path_helper -s)"
+[ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}"
+export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
+{{- else }}
+eval "$(/usr/local/bin/brew shellenv)"
+HOMEBREW_PREFIX="/usr/local"
+{{- end }}
+
+# --- Prompt ---
+export PROMPT_THEME="${PROMPT_THEME:-p10k}"
+
+if [[ "$PROMPT_THEME" == "p10k" ]]; then
+  # Bypass expensive SSH detection by setting P9K_SSH before theme loads
+  # This prevents the 12-17ms overhead from _p9k_init_ssh
+  typeset -g P9K_SSH=0
+
+  if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+  fi
+fi
+
+if [[ "$PROMPT_THEME" == "starship" ]]; then
+  eval "$(starship init zsh)"
+  export STARSHIP_CONFIG=~/.config/starship.toml
+elif [[ "$PROMPT_THEME" == "p10k" ]]; then
+  source ~/powerlevel10k/powerlevel10k.zsh-theme
+  [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+fi
