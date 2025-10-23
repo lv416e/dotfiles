@@ -32,7 +32,8 @@ layout {
         pane split_direction="horizontal" size="60%" {
             // Main editor pane (nvim)
             pane name="editor" focus=true {
-                command "zellij-nvim"
+                command "bash"
+                args "-c" "eval \"$(mise activate bash)\" && nvim"
             }
 
             // Optional: claude pane (only if TOP_PANES=2)
@@ -47,13 +48,14 @@ layout {
         pane split_direction="horizontal" size="40%" {
             // Left: claude-monitor (40%)
             pane name="claude-monitor" size="40%" {
-                command "zellij-claude-monitor"
-                args "--plan" "max5"
+                command "bash"
+                args "-c" "eval \"$(mise activate bash)\" && claude-monitor --plan max5"
             }
 
             // Middle: gitui (40%)
             pane name="gitui" size="40%" {
-                command "zellij-gitui"
+                command "bash"
+                args "-c" "eval \"$(mise activate bash)\" && gitui"
             }
 
             // Right: btm/htop (20%)
