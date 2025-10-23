@@ -106,6 +106,7 @@ cask "arc"
 cask "chromedriver"
 cask "claude"
 cask "cursor"
+cask "1password"      # 1Password app (optional, enables biometric auth for CLI)
 cask "1password-cli"  # 1Password CLI for secrets management with chezmoi
 cask "dash"           # API documentation browser
 cask "font-hackgen-nerd"

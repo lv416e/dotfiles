@@ -386,12 +386,12 @@ Store in 1Password as a secure note:
 ```bash
 # Create secure note with age key
 op item create --category="Secure Note" \
-  --title="Chezmoi Age Key" \
+  --title="chezmoi-age-key" \
   --vault=Personal \
   notesPlain="$(cat ~/.config/chezmoi/key.txt)"
 
 # Retrieve on new machine
-op item get "Chezmoi Age Key" --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt
+op item get "chezmoi-age-key" --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt
 chmod 600 ~/.config/chezmoi/key.txt
 ```
 

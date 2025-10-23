@@ -171,23 +171,23 @@ if [ ! -f ~/.config/chezmoi/key.txt ]; then
 fi
 
 # Check if item already exists
-if op item get "Chezmoi Age Key" --vault Personal > /dev/null 2>&1; then
-  echo "⚠️  'Chezmoi Age Key' already exists in 1Password"
-  echo "   Delete it first with: op item delete 'Chezmoi Age Key' --vault Personal"
+if op item get "chezmoi-age-key" --vault Personal > /dev/null 2>&1; then
+  echo "⚠️  'chezmoi-age-key' already exists in 1Password"
+  echo "   Delete it first with: op item delete 'chezmoi-age-key' --vault Personal"
   exit 1
 fi
 
 # Create secure note with age key
 op item create --category="Secure Note" \
-  --title="Chezmoi Age Key" \
+  --title="chezmoi-age-key" \
   --vault=Personal \
   notesPlain="$(cat ~/.config/chezmoi/key.txt)"
 
-echo "✅ Age key backed up to 1Password as 'Chezmoi Age Key'"
+echo "✅ Age key backed up to 1Password as 'chezmoi-age-key'"
 echo "   Vault: Personal"
 echo ""
 echo "To restore on a new machine:"
-echo "  op item get 'Chezmoi Age Key' --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt"
+echo "  op item get 'chezmoi-age-key' --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt"
 echo "  chmod 600 ~/.config/chezmoi/key.txt"
 """
 
@@ -211,7 +211,7 @@ fi
 mkdir -p ~/.config/chezmoi
 
 # Restore from 1Password
-op item get "Chezmoi Age Key" --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt
+op item get "chezmoi-age-key" --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt
 chmod 600 ~/.config/chezmoi/key.txt
 
 echo "✅ Age key restored from 1Password"
