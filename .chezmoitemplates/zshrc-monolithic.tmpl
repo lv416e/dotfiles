@@ -269,9 +269,9 @@ twk() {
 # Clear zsh caches and restart
 zsh-refresh() {
   echo "Clearing sheldon cache..."
-  rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
+  command rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
   echo "Clearing completion cache..."
-  rm -f "${ZDOTDIR:-$HOME}/.zcompdump"
+  command rm -f "${ZDOTDIR:-$HOME}/.zcompdump"
   echo "Restarting zsh..."
   exec zsh
 }
