@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Kill current multiplexer window/tab
+# Works with both tmux and zellij
+
+set -euo pipefail
+
+# Detect current multiplexer
+current_multiplexer() {
+  if [ -n "${TMUX:-}" ]; then
+    echo "tmux"
+  elif [ -n "${ZELLIJ:-}" ]; then
+    echo "zellij"
+  else
+    echo "none"
+  fi
+}
+
+main() {
+  local mux=$(current_multiplexer)
+
+  case "$mux" in
+    tmux)
+      local id
+      id="$(tmux display -p '#{window_id}' 2>/dev/null)" || {
+        echo "Error: Failed to get tmux window id" >&2
+        return 1
+      }
+      tmux kill-window -t "$id"
+      ;;
+    zellij)
+      zellij action close-tab
+      ;;
+    *)
+      echo "Error: Not inside a multiplexer session" >&2
+      echo "This command must be run inside tmux or zellij" >&2
+      return 1
+      ;;
+  esac
+}
+
+main "$@"
