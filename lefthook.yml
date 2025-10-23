@@ -23,7 +23,8 @@ pre-commit:
       # Only scan relevant file types
       glob: "*.{yml,yaml,toml,sh,zsh,bash,json,env,txt,tmpl,lua}"
       # Scan only staged files (faster than full repo scan)
-      run: gitleaks protect --verbose --redact --staged
+      # Use mise exec to ensure gitleaks is in PATH
+      run: mise exec -- gitleaks protect --verbose --redact --staged
       # Skip during merge/rebase (too noisy)
       skip:
         - merge
@@ -92,12 +93,13 @@ pre-push:
     # --------------------------------------------------------------------------
     gitleaks-full:
       # Only run if gitleaks config exists or use default
+      # Use mise exec to ensure gitleaks is in PATH
       run: |
         echo "🔍 Running full repository scan before push..."
         if [ -f .gitleaks.toml ]; then
-          gitleaks detect --config .gitleaks.toml --verbose --redact
+          mise exec -- gitleaks detect --config .gitleaks.toml --verbose --redact
         else
-          gitleaks detect --verbose --redact
+          mise exec -- gitleaks detect --verbose --redact
         fi
       # Skip in CI (already scanned in pre-commit)
       skip:
