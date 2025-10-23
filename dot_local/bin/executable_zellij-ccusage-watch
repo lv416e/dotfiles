@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Wrapper for ccusage watch command in Zellij layouts
+eval "$(mise activate bash)"
+exec watch -n 10 "ccusage daily --since $(date -v -3d +%Y%m%d) --no-color"

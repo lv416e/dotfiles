@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Wrapper for gitui in Zellij layouts
+eval "$(mise activate bash)"
+exec gitui "$@"
