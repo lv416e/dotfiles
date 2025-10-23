@@ -8,18 +8,24 @@ My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 ## Installation
 
 ```sh
-# Install chezmoi
-brew install chezmoi
+# Install prerequisites
+brew install chezmoi age 1password-cli
 
 # Configure git
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 
-# Install dotfiles
-chezmoi init --apply lv416e/dotfiles
+# Initialize dotfiles (DO NOT use --apply yet)
+chezmoi init lv416e/dotfiles
+
+# Set up secrets (1Password + age key)
+# See docs/NEW_MACHINE_SETUP.md for detailed instructions
+
+# Apply dotfiles
+chezmoi apply
 ```
 
-See [docs/NEW_MACHINE_SETUP.md](docs/NEW_MACHINE_SETUP.md) for complete setup instructions.
+See [New Machine Setup](docs/NEW_MACHINE_SETUP.md) for complete setup instructions.
 
 ## Daily Usage
 
