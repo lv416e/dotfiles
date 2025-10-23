@@ -1,4 +1,8 @@
 # chezmoi configuration template
+
+# Age encryption (must be at top level)
+encryption = "age"
+
 [data]
     name = "{{ output "git" "config" "user.name" | trim }}"
     email = "{{ output "git" "config" "user.email" | trim }}"
@@ -7,6 +11,14 @@
 # Supported values: "modular" (default, optimized multi-file config) or "monolithic" (single-file config)
 [data.zsh]
     variant = "modular"
+    multiplexer = "tmux"  # Options: "tmux" (default) or "zellij"
+
+# 1Password integration for secrets management
+# Requires: 1password-cli (brew install --cask 1password-cli)
+# Usage in .tmpl files: onepasswordRead "op://vault/item/field"
+# See docs/SECRETS_MANAGEMENT.md for examples
+[onepassword]
+    mode = "account"  # Options: "account", "connect", "service"
 
 [edit]
     command = "nvim"
@@ -22,3 +34,10 @@
 [merge]
     command = "nvim"
     args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}"]
+
+# Age encryption configuration
+# Public key: age14t9x0zwv2adeujgjryk33s4f7wcxmsn7y7ws65hz7fs80fw9rfeqk8a4rg
+# Usage: chezmoi add --encrypt <file>
+[age]
+    identity = "{{ .chezmoi.homeDir }}/.config/chezmoi/key.txt"
+    recipient = "age14t9x0zwv2adeujgjryk33s4f7wcxmsn7y7ws65hz7fs80fw9rfeqk8a4rg"

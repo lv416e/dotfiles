@@ -135,6 +135,75 @@ description = "[tool] Check for outdated tools"
 alias = "out"
 run = "mise outdated"
 
+# --- 1Password & Secrets Management ---
+
+[tasks.op-signin]
+description = "[1pass] Sign in to 1Password"
+alias = "ops"
+run = "eval $(op signin)"
+
+[tasks.op-status]
+description = "[1pass] Check 1Password authentication status"
+alias = "opst"
+run = "op whoami || echo 'Not signed in. Run: mise op-signin'"
+
+[tasks.op-vaults]
+description = "[1pass] List all vaults"
+alias = "opv"
+run = "op vault list"
+
+[tasks.op-items]
+description = "[1pass] List items in Personal vault"
+alias = "opi"
+run = "op item list --vault Personal"
+
+[tasks.op-get]
+description = "[1pass] Get item details (usage: mise op-get <item-name>)"
+alias = "opg"
+run = "op item get \"$1\" --vault Personal"
+
+[tasks.secrets-test]
+description = "[secrets] Test template with onepasswordRead"
+alias = "sct"
+run = """
+echo "Testing 1Password template integration..."
+op whoami > /dev/null || { echo "❌ Not signed in. Run: mise op-signin"; exit 1; }
+echo "✅ 1Password authenticated"
+echo "\nVaults available:"
+op vault list
+echo "\nTest reading a secret (replace with your actual op:// path):"
+echo "Example: chezmoi execute-template '{{ "{{" }} onepasswordRead \"op://Personal/API/password\" {{ "}}" }}'"
+"""
+
+[tasks.secrets-list]
+description = "[secrets] List age-encrypted files in chezmoi"
+alias = "sl"
+run = "chezmoi managed | grep -E '\\.age$|encrypted' || echo 'No encrypted files found'"
+
+[tasks.secrets-add]
+description = "[secrets] Add file with age encryption (usage: mise secrets-add <file>)"
+alias = "sa"
+run = "chezmoi add --encrypt \"$1\""
+
+[tasks.secrets-verify]
+description = "[secrets] Verify age encryption setup"
+alias = "sv"
+run = """
+echo "=== Age Key Status ==="
+if [ -f ~/.config/chezmoi/key.txt ]; then
+  echo "✅ Age key exists: ~/.config/chezmoi/key.txt"
+  echo "Public key: $(grep -A1 'public key:' ~/.config/chezmoi/key.txt 2>/dev/null || echo 'age14t9x0zwv2adeujgjryk33s4f7wcxmsn7y7ws65hz7fs80fw9rfeqk8a4rg')"
+else
+  echo "❌ Age key not found. Generate with: chezmoi age-keygen --output=~/.config/chezmoi/key.txt"
+fi
+
+echo "\n=== 1Password Status ==="
+op whoami > /dev/null 2>&1 && echo "✅ Signed in to 1Password" || echo "❌ Not signed in. Run: mise op-signin"
+
+echo "\n=== Chezmoi Encryption Config ==="
+grep -A3 'encryption = "age"' ~/.config/chezmoi/chezmoi.toml || echo "❌ Age encryption not configured in chezmoi"
+"""
+
 # --- Workflows (Complex Operations) ---
 
 [tasks.sync]

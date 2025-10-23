@@ -144,3 +144,51 @@ switch-zsh-config() {
   echo "🔄 Restarting zsh..."
   exec zsh
 }
+
+# Switch between tmux and zellij
+switch-multiplexer() {
+  local mux="${1:-}"
+  local chezmoi_config="${HOME}/.local/share/chezmoi/.chezmoi.toml.tmpl"
+
+  if [[ -z "$mux" ]]; then
+    # Show current configuration
+    local current_mux=$(grep 'multiplexer' "$chezmoi_config" 2>/dev/null | sed 's/.*"\(.*\)".*/\1/')
+    echo "Current multiplexer: ${current_mux:-tmux}"
+    echo ""
+    echo "Usage: switch-multiplexer [tmux|zellij]"
+    echo ""
+    echo "Available multiplexers:"
+    echo "  tmux     - Traditional terminal multiplexer (default)"
+    echo "             Mature, stable, extensive ecosystem"
+    echo "             Ctrl+b prefix"
+    echo ""
+    echo "  zellij   - Modern Rust-based multiplexer"
+    echo "             Built-in UI, WebAssembly plugins"
+    echo "             Ctrl+g prefix (or Ctrl+b in tmux mode)"
+    return 0
+  fi
+
+  if [[ "$mux" != "tmux" && "$mux" != "zellij" ]]; then
+    echo "Error: multiplexer must be 'tmux' or 'zellij'" >&2
+    return 1
+  fi
+
+  # Update .chezmoi.toml.tmpl
+  if [[ ! -f "$chezmoi_config" ]]; then
+    echo "Error: chezmoi config not found at $chezmoi_config" >&2
+    return 1
+  fi
+
+  # Use sed to update the multiplexer value
+  sed -i '' "s/multiplexer = \".*\"/multiplexer = \"$mux\"/" "$chezmoi_config"
+
+  echo "✅ Multiplexer switched to: $mux"
+  echo "📝 Updated: ~/.local/share/chezmoi/.chezmoi.toml.tmpl"
+  echo "🔄 Regenerating config..."
+
+  # Regenerate config from template
+  chezmoi init > /dev/null 2>&1
+
+  echo "💡 Restart your shell to use $mux"
+  echo "   Or run: exec zsh"
+}
