@@ -1,12 +1,16 @@
 
 # The path of your favorite shell
 [terminal.shell]
-# Example
-# args = ["--login"]
-{{- if eq .chezmoi.arch "arm64" }}
-args = ["-l", "-c", "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u"]
+# Auto-start multiplexer based on .chezmoi.toml.tmpl configuration
+# Switch with: switch-multiplexer tmux|zellij
+{{- if eq .zsh.multiplexer "zellij" }}
+args = ["-l", "-c", "/opt/homebrew/bin/zellij attach -c"]
 {{- else }}
+{{-   if eq .chezmoi.arch "arm64" }}
+args = ["-l", "-c", "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u"]
+{{-   else }}
 args = ["-l", "-c", "/usr/local/bin/tmux a -t 0 || /usr/local/bin/tmux -u"]
+{{-   end }}
 {{- end }}
 program = "/bin/zsh"
 

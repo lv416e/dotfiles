@@ -29,14 +29,18 @@ window-width = 200
 window-height = 50
 
 # ====================== SHELL ======================
-{{- if eq .chezmoi.arch "arm64" }}
+# Auto-start multiplexer based on .chezmoi.toml.tmpl configuration
+# Switch with: switch-multiplexer tmux|zellij
 shell-integration = zsh
 shell-integration-features = cursor,sudo,title
-command = /bin/zsh --login -c "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u"
+{{- if eq .zsh.multiplexer "zellij" }}
+command = /bin/zsh --login -c "/opt/homebrew/bin/zellij attach -c"
 {{- else }}
-shell-integration = zsh
-shell-integration-features = cursor,sudo,title
+{{-   if eq .chezmoi.arch "arm64" }}
+command = /bin/zsh --login -c "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u"
+{{-   else }}
 command = /bin/zsh --login -c "/usr/local/bin/tmux a -t 0 || /usr/local/bin/tmux -u"
+{{-   end }}
 {{- end }}
 
 # ====================== COLORS ======================

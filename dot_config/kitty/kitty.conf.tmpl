@@ -49,10 +49,16 @@ tab_bar_style powerline
 tab_powerline_style slanted
 
 # ====================== SHELL ======================
-{{- if eq .chezmoi.arch "arm64" }}
-shell /bin/zsh --login -c "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u"
+# Auto-start multiplexer based on .chezmoi.toml.tmpl configuration
+# Switch with: switch-multiplexer tmux|zellij
+{{- if eq .zsh.multiplexer "zellij" }}
+shell /bin/zsh --login -c "/opt/homebrew/bin/zellij attach -c"
 {{- else }}
+{{-   if eq .chezmoi.arch "arm64" }}
+shell /bin/zsh --login -c "/opt/homebrew/bin/tmux a -t 0 || /opt/homebrew/bin/tmux -u"
+{{-   else }}
 shell /bin/zsh --login -c "/usr/local/bin/tmux a -t 0 || /usr/local/bin/tmux -u"
+{{-   end }}
 {{- end }}
 
 # ====================== COLORS ======================

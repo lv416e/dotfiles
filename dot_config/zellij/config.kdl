@@ -1,0 +1,240 @@
+// =============================================================================
+// Zellij Configuration - tmux-compatible keybindings
+// =============================================================================
+// Docs: https://zellij.dev/documentation/
+//
+// This configuration provides tmux-like keybindings for users familiar with tmux.
+// Main differences from default zellij:
+//   - Uses Ctrl+b (tmux prefix) instead of Ctrl+g
+//   - Provides tmux mode with familiar shortcuts
+//   - Simplified UI for minimal distraction
+
+// =============================================================================
+// Keybindings - tmux-compatible mode
+// =============================================================================
+keybinds {
+    // Normal mode: Only Ctrl+b to enter tmux mode
+    // This prevents conflicts with Neovim and other CLI tools
+    normal clear-defaults=true {
+        bind "Ctrl b" { SwitchToMode "tmux"; }
+        bind "Alt n" { NewPane; }
+        bind "Alt h" { MoveFocusOrTab "Left"; }
+        bind "Alt l" { MoveFocusOrTab "Right"; }
+        bind "Alt j" { MoveFocus "Down"; }
+        bind "Alt k" { MoveFocus "Up"; }
+        bind "Alt =" { Resize "Increase"; }
+        bind "Alt -" { Resize "Decrease"; }
+    }
+
+    // Tmux mode: Familiar tmux keybindings
+    tmux clear-defaults=true {
+        // Mode switching
+        bind "Esc" { SwitchToMode "Normal"; }
+        bind "Ctrl b" { Write 2; SwitchToMode "Normal"; }  // Pass through Ctrl+b
+        bind "g" { SwitchToMode "Locked"; }
+        bind "[" { SwitchToMode "Scroll"; }
+
+        // Pane management (tmux-style)
+        bind "c" { NewPane; SwitchToMode "Normal"; }                    // New pane (like tmux's new window)
+        bind "\"" { NewPane "Down"; SwitchToMode "Normal"; }            // Split horizontal
+        bind "%" { NewPane "Right"; SwitchToMode "Normal"; }            // Split vertical
+        bind "x" { CloseFocus; SwitchToMode "Normal"; }                 // Close pane
+        bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }      // Zoom pane
+
+        // Pane navigation
+        bind "h" { MoveFocus "Left"; }
+        bind "j" { MoveFocus "Down"; }
+        bind "k" { MoveFocus "Up"; }
+        bind "l" { MoveFocus "Right"; }
+        bind "Left" { MoveFocus "Left"; }
+        bind "Down" { MoveFocus "Down"; }
+        bind "Up" { MoveFocus "Up"; }
+        bind "Right" { MoveFocus "Right"; }
+
+        // Tab management (like tmux windows)
+        bind "t" { NewTab; SwitchToMode "Normal"; }                     // New tab (like tmux window)
+        bind "&" { CloseTab; SwitchToMode "Normal"; }                   // Close tab
+        bind "n" { GoToNextTab; SwitchToMode "Normal"; }                // Next tab
+        bind "p" { GoToPreviousTab; SwitchToMode "Normal"; }            // Previous tab
+        bind "1" { GoToTab 1; SwitchToMode "Normal"; }
+        bind "2" { GoToTab 2; SwitchToMode "Normal"; }
+        bind "3" { GoToTab 3; SwitchToMode "Normal"; }
+        bind "4" { GoToTab 4; SwitchToMode "Normal"; }
+        bind "5" { GoToTab 5; SwitchToMode "Normal"; }
+        bind "6" { GoToTab 6; SwitchToMode "Normal"; }
+        bind "7" { GoToTab 7; SwitchToMode "Normal"; }
+        bind "8" { GoToTab 8; SwitchToMode "Normal"; }
+        bind "9" { GoToTab 9; SwitchToMode "Normal"; }
+        bind "," { SwitchToMode "RenameTab"; TabNameInput 0; }          // Rename tab
+
+        // Session management
+        bind "d" { Detach; }                                             // Detach from session
+        bind "w" { SwitchToMode "Session"; }                            // Session menu
+
+        // Resize mode
+        bind "r" { SwitchToMode "Resize"; }
+
+        // Pane mode (for swapping, moving)
+        bind "s" { SwitchToMode "Pane"; }
+
+        // Search mode
+        bind "/" { SwitchToMode "EnterSearch"; SearchInput 0; }
+
+        // Help
+        bind "?" { SwitchToMode "Tmux"; }  // Show this menu again
+        bind "q" { Quit; }
+    }
+
+    // Locked mode: Disable all zellij keybindings (useful when nested)
+    locked {
+        bind "Ctrl b" "g" { SwitchToMode "Normal"; }
+    }
+
+    // Resize mode: Adjust pane sizes
+    resize {
+        bind "Esc" { SwitchToMode "Normal"; }
+        bind "h" "Left" { Resize "Increase Left"; }
+        bind "j" "Down" { Resize "Increase Down"; }
+        bind "k" "Up" { Resize "Increase Up"; }
+        bind "l" "Right" { Resize "Increase Right"; }
+        bind "H" { Resize "Decrease Left"; }
+        bind "J" { Resize "Decrease Down"; }
+        bind "K" { Resize "Decrease Up"; }
+        bind "L" { Resize "Decrease Right"; }
+        bind "=" { Resize "Increase"; }
+        bind "-" { Resize "Decrease"; }
+    }
+
+    // Pane mode: Swap and move panes
+    pane {
+        bind "Esc" { SwitchToMode "Normal"; }
+        bind "h" "Left" { MoveFocus "Left"; }
+        bind "j" "Down" { MoveFocus "Down"; }
+        bind "k" "Up" { MoveFocus "Up"; }
+        bind "l" "Right" { MoveFocus "Right"; }
+        bind "f" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
+        bind "z" { TogglePaneFrames; SwitchToMode "Normal"; }
+        bind "w" { ToggleFloatingPanes; SwitchToMode "Normal"; }
+        bind "e" { TogglePaneEmbedOrFloating; SwitchToMode "Normal"; }
+        bind "n" { NewPane; SwitchToMode "Normal"; }
+        bind "x" { CloseFocus; SwitchToMode "Normal"; }
+    }
+
+    // Session mode: Manage sessions
+    session {
+        bind "Esc" { SwitchToMode "Normal"; }
+        bind "d" { Detach; }
+        bind "w" {
+            LaunchOrFocusPlugin "session-manager" {
+                floating true
+            }
+            SwitchToMode "Normal"
+        }
+    }
+
+    // Scroll mode: Scroll through terminal history (like tmux copy mode)
+    scroll {
+        bind "Esc" { SwitchToMode "Normal"; }
+        bind "e" { EditScrollback; SwitchToMode "Normal"; }
+        bind "/" { SwitchToMode "EnterSearch"; SearchInput 0; }
+        bind "Ctrl c" { ScrollToBottom; SwitchToMode "Normal"; }
+        bind "j" "Down" { ScrollDown; }
+        bind "k" "Up" { ScrollUp; }
+        bind "Ctrl f" "PageDown" "Right" "l" { PageScrollDown; }
+        bind "Ctrl b" "PageUp" "Left" "h" { PageScrollUp; }
+        bind "d" { HalfPageScrollDown; }
+        bind "u" { HalfPageScrollUp; }
+    }
+
+    // Search mode: Search in scrollback
+    search {
+        bind "Esc" { SwitchToMode "Normal"; }
+        bind "Ctrl c" { ScrollToBottom; SwitchToMode "Normal"; }
+        bind "j" "Down" { ScrollDown; }
+        bind "k" "Up" { ScrollUp; }
+        bind "Ctrl f" "PageDown" { PageScrollDown; }
+        bind "Ctrl b" "PageUp" { PageScrollUp; }
+        bind "d" { HalfPageScrollDown; }
+        bind "u" { HalfPageScrollUp; }
+        bind "n" { Search "down"; }
+        bind "N" { Search "up"; }
+        bind "c" { SearchToggleOption "CaseSensitivity"; }
+        bind "w" { SearchToggleOption "Wrap"; }
+        bind "o" { SearchToggleOption "WholeWord"; }
+    }
+
+    // Tab rename mode
+    renametab {
+        bind "Esc" { SwitchToMode "Normal"; }
+    }
+
+    // Pane rename mode
+    renamepane {
+        bind "Esc" { SwitchToMode "Normal"; }
+    }
+}
+
+// =============================================================================
+// UI Settings
+// =============================================================================
+// Simplified UI for minimal distraction (more tmux-like)
+simplified_ui true
+
+// Pane frames
+pane_frames false
+
+// Default layout
+// Options: default, compact, with-status
+default_layout "compact"
+
+// =============================================================================
+// Theme
+// =============================================================================
+// Using a dark theme similar to tmux
+// Available themes: default, dracula, gruvbox, nord, catppuccin-*
+// You can also define custom colors below
+theme "default"
+
+// Custom theme (optional - uncomment to use)
+// themes {
+//     default {
+//         fg "#D8DEE9"
+//         bg "#2E3440"
+//         black "#3B4252"
+//         red "#BF616A"
+//         green "#A3BE8C"
+//         yellow "#EBCB8B"
+//         blue "#81A1C1"
+//         magenta "#B48EAD"
+//         cyan "#88C0D0"
+//         white "#E5E9F0"
+//         orange "#D08770"
+//     }
+// }
+
+// =============================================================================
+// Behavior
+// =============================================================================
+// Automatically attach to existing session or create new one
+default_mode "normal"
+
+// Copy to clipboard
+copy_command "pbcopy"  // macOS clipboard
+
+// Scroll buffer size (number of lines)
+scroll_buffer_size 10000
+
+// Mouse mode
+mouse_mode true
+
+// =============================================================================
+// Session
+// =============================================================================
+// Session name template
+// session_name "zellij"
+
+// Auto-attach to a session on startup
+// auto_attach_to_sessions true
+
+// Serialize pane viewport on exit
+// on_force_close "quit"
