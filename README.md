@@ -8,19 +8,14 @@ My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 ## Installation
 
 ### 1. Install prerequisites
+```sh
+brew install chezmoi age 1password-cli
+```
 
-**Option A: With 1Password app (recommended)**
+Optional: Install 1Password app for biometric authentication
 ```sh
 brew install --cask 1password
-brew install chezmoi age 1password-cli
 ```
-Sign in to 1Password app, then CLI will use biometric authentication.
-
-**Option B: CLI only (minimal)**
-```sh
-brew install chezmoi age 1password-cli
-```
-Use `op account add` to configure manually (requires Secret Key).
 
 ### 2. Configure git
 ```sh
