@@ -44,14 +44,13 @@ layout {
             pane split_direction="horizontal" size="50%" {
                 // Top right: ccusage watch (42%)
                 pane name="usage" size="42%" {
-                    command "zsh"
-                    args "-c" "eval \"$(mise activate zsh)\" && watch -n 10 'ccusage daily --since $(date -v -3d +%Y%m%d) --no-color'"
+                    command "zellij-ccusage-watch"
                 }
 
                 // Middle right: claude-monitor (33%)
                 pane name="claude" size="33%" {
-                    command "zsh"
-                    args "-c" "eval \"$(mise activate zsh)\" && claude-monitor --plan max5"
+                    command "zellij-claude-monitor"
+                    args "--plan" "max5"
                 }
 
                 // Bottom right: monitoring tools (25%, split)
