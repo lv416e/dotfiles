@@ -8,24 +8,32 @@ My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 ## Installation
 
 ```sh
-# Install prerequisites
+# 1. Install prerequisites
 brew install chezmoi age 1password-cli
 
-# Configure git
+# 2. Configure git
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 
-# Initialize dotfiles (DO NOT use --apply yet)
+# 3. Initialize dotfiles (DO NOT use --apply yet)
 chezmoi init lv416e/dotfiles
 
-# Set up secrets (1Password + age key)
-# See docs/NEW_MACHINE_SETUP.md for detailed instructions
+# 4. Set up secrets
+eval $(op signin)  # Sign in to 1Password
+mkdir -p ~/.config/chezmoi
+op item get "Chezmoi Age Key" --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt
+chmod 600 ~/.config/chezmoi/key.txt
 
-# Apply dotfiles
+# 5. Apply dotfiles
 chezmoi apply
+
+# 6. Install packages
+cd ~/.local/share/chezmoi
+brew bundle install
+mise install
 ```
 
-See [New Machine Setup](docs/NEW_MACHINE_SETUP.md) for complete setup instructions.
+See [New Machine Setup](docs/NEW_MACHINE_SETUP.md) for detailed instructions and troubleshooting.
 
 ## Daily Usage
 
