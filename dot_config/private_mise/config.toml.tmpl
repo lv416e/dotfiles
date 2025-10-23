@@ -138,9 +138,20 @@ run = "mise outdated"
 # --- 1Password & Secrets Management ---
 
 [tasks.op-signin]
-description = "[1pass] Sign in to 1Password"
+description = "[1pass] Sign in to 1Password (prints eval command)"
 alias = "ops"
-run = "eval $(op signin)"
+run = """
+echo "To sign in to 1Password, run:"
+echo ""
+echo "  eval $(op signin)"
+echo ""
+echo "This will:"
+echo "  1. Prompt for your 1Password account (if not configured)"
+echo "  2. Open browser for authentication"
+echo "  3. Set OP_SESSION_* environment variable"
+echo ""
+echo "Alternative: run 'op signin' directly for instructions"
+"""
 
 [tasks.op-status]
 description = "[1pass] Check 1Password authentication status"
@@ -161,6 +172,69 @@ run = "op item list --vault Personal"
 description = "[1pass] Get item details (usage: mise op-get <item-name>)"
 alias = "opg"
 run = "op item get \"$1\" --vault Personal"
+
+[tasks.secrets-backup-age-key]
+description = "[secrets] Backup age key to 1Password"
+alias = "sbk"
+run = """
+echo "Backing up age key to 1Password..."
+op whoami > /dev/null || { echo "❌ Not signed in. Run: mise op-signin"; exit 1; }
+
+if [ ! -f ~/.config/chezmoi/key.txt ]; then
+  echo "❌ Age key not found at ~/.config/chezmoi/key.txt"
+  exit 1
+fi
+
+# Check if item already exists
+if op item get "Chezmoi Age Key" --vault Personal > /dev/null 2>&1; then
+  echo "⚠️  'Chezmoi Age Key' already exists in 1Password"
+  echo "   Delete it first with: op item delete 'Chezmoi Age Key' --vault Personal"
+  exit 1
+fi
+
+# Create secure note with age key
+op item create --category="Secure Note" \
+  --title="Chezmoi Age Key" \
+  --vault=Personal \
+  notesPlain="$(cat ~/.config/chezmoi/key.txt)"
+
+echo "✅ Age key backed up to 1Password as 'Chezmoi Age Key'"
+echo "   Vault: Personal"
+echo ""
+echo "To restore on a new machine:"
+echo "  op item get 'Chezmoi Age Key' --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt"
+echo "  chmod 600 ~/.config/chezmoi/key.txt"
+"""
+
+[tasks.secrets-restore-age-key]
+description = "[secrets] Restore age key from 1Password"
+alias = "srk"
+run = """
+echo "Restoring age key from 1Password..."
+op whoami > /dev/null || { echo "❌ Not signed in. Run: mise op-signin"; exit 1; }
+
+if [ -f ~/.config/chezmoi/key.txt ]; then
+  echo "⚠️  Age key already exists at ~/.config/chezmoi/key.txt"
+  echo "   Backup: cp ~/.config/chezmoi/key.txt ~/.config/chezmoi/key.txt.backup"
+  read -p "   Overwrite existing key? (y/N): " confirm
+  if [ "$confirm" != "y" ]; then
+    echo "❌ Cancelled"
+    exit 1
+  fi
+fi
+
+mkdir -p ~/.config/chezmoi
+
+# Restore from 1Password
+op item get "Chezmoi Age Key" --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt
+chmod 600 ~/.config/chezmoi/key.txt
+
+echo "✅ Age key restored from 1Password"
+echo "   Location: ~/.config/chezmoi/key.txt"
+echo "   Permissions: 600"
+echo ""
+echo "Verify with: mise secrets-verify"
+"""
 
 [tasks.secrets-test]
 description = "[secrets] Test template with onepasswordRead"
