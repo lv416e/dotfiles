@@ -45,6 +45,10 @@ current-multiplexer  # Returns: tmux, zellij, or none
 | Command | Description | tmux equivalent | zellij equivalent |
 |---------|-------------|-----------------|-------------------|
 | `mux-nvim` | Launch nvim workspace | `tmux-nvim` | `zellij --layout nvim` |
+| `mux-claude` | Launch nvim+claude workspace | `tmux-claude` | `zellij --layout nvim-dual` |
+| `mux-nu` | Launch nushell workspace | `tmux-nu` | `zellij --layout nu` |
+| `mux-vim` | Launch docs/shell workspace | `tmux-vim` | `zellij --layout vim` |
+| `mux-work` | Launch 6-pane work environment | `tmux-work` | `zellij --layout work` |
 | `mux-repo` | Open repo in workspace | `tmux-repo` | Uses zellij layout |
 | `mux-kill-window` | Close current window | `twk` | `zellij action close-tab` |
 
@@ -132,8 +136,12 @@ Both include:
 ### Basic Usage
 
 ```bash
-# Use configured multiplexer (whatever is set in chezmoi config)
-mux-nvim my-project
+# Workspace launchers (use configured multiplexer)
+mux-nvim my-project     # nvim + monitoring tools
+mux-claude my-project   # nvim + claude + monitoring
+mux-nu my-project       # dual nushell + monitoring
+mux-vim my-docs         # dual zsh + monitoring
+mux-work my-work        # 6-pane professional environment
 
 # Open repository with workspace
 rt my-repo              # 1 pane
@@ -143,6 +151,35 @@ rt2 my-repo             # 2 panes (nvim + claude)
 mr my-repo              # mux-repo
 mr2 my-repo             # mux-repo --dual
 ```
+
+### Workspace Types
+
+#### mux-nvim (Development)
+- **Top**: nvim editor (or nvim + claude with TOP_PANES=2)
+- **Bottom**: claude-monitor, gitui, btm
+- **Best for**: Coding projects with git integration
+
+#### mux-claude (AI-Assisted Development)
+- **Top**: nvim + claude (always dual pane)
+- **Bottom**: claude-monitor, gitui, btm
+- **Best for**: AI-pair programming sessions
+
+#### mux-nu (Nushell Development)
+- **Top**: dual nushell panes
+- **Bottom**: claude-monitor, btm, tty-clock
+- **Best for**: Learning/using nushell
+
+#### mux-vim (Documentation/Scripting)
+- **Top**: dual zsh panes
+- **Bottom**: claude-monitor, btm, tty-clock
+- **Best for**: Writing docs, shell scripting
+
+#### mux-work (Professional Environment)
+- **Left**: 2 zsh panes (main + secondary)
+- **Right Top**: ccusage watch (API usage tracking)
+- **Right Mid**: claude-monitor
+- **Right Bottom**: btm + tty-clock
+- **Best for**: Professional work with monitoring
 
 ### Temporary Override
 
@@ -178,6 +215,10 @@ switch-multiplexer tmux
 
 ```bash
 tmux-nvim my-project    # Still works (uses tmux)
+tmux-claude my-project  # Still works (uses tmux)
+tmux-nu my-project      # Still works (uses tmux)
+tmux-vim my-docs        # Still works (uses tmux)
+tmux-work my-work       # Still works (uses tmux)
 tmux-repo dotfiles      # Deprecated warning, uses mux-repo
 twk                     # Still works (uses tmux)
 ```
@@ -186,6 +227,10 @@ twk                     # Still works (uses tmux)
 
 ```bash
 mux-nvim my-project     # Multiplexer-agnostic
+mux-claude my-project   # Multiplexer-agnostic
+mux-nu my-project       # Multiplexer-agnostic
+mux-vim my-docs         # Multiplexer-agnostic
+mux-work my-work        # Multiplexer-agnostic
 mux-repo dotfiles       # Multiplexer-agnostic
 mux-kill-window         # Multiplexer-agnostic
 ```
