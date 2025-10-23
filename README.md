@@ -28,7 +28,7 @@ chmod 600 ~/.config/chezmoi/key.txt
 chezmoi apply
 
 # 6. Install packages
-cd ~/.local/share/chezmoi
+chezmoi cd
 brew bundle install
 mise install
 ```
