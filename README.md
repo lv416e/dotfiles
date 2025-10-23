@@ -110,6 +110,7 @@ git add -A && git commit -m "Update configuration" && git push
 - [Secrets Management](docs/SECRETS_MANAGEMENT.md) - 1Password and age encryption
 - [Pre-Commit Hooks](docs/PRE_COMMIT_HOOKS.md) - Git hooks with lefthook and gitleaks
 - [Zsh Config Switching](docs/ZSH_CONFIG_SWITCHING.md) - Modular vs monolithic
-- [Terminal Multiplexers](docs/TERMINAL_MULTIPLEXERS.md) - tmux vs Zellij
+- [Terminal Multiplexers](docs/TERMINAL_MULTIPLEXERS.md) - tmux vs Zellij configuration
+- [Keybindings Reference](docs/KEYBINDINGS_REFERENCE.md) - Quick reference for tmux/zellij
 - [Modern Tools](docs/NEW_TOOLS.md) - jj, WezTerm, Zellij guides
 - [Mise Tasks](docs/MISE_TASKS.md) - Task runner documentation
