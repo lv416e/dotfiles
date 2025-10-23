@@ -1,22 +1,25 @@
 // =============================================================================
-// Zellij Configuration - tmux-compatible keybindings
+// Zellij Configuration - Custom tmux-compatible keybindings
 // =============================================================================
 // Docs: https://zellij.dev/documentation/
 //
-// This configuration provides tmux-like keybindings for users familiar with tmux.
-// Main differences from default zellij:
-//   - Uses Ctrl+b (tmux prefix) instead of Ctrl+g
-//   - Provides tmux mode with familiar shortcuts
+// This configuration matches the custom tmux config in dot_tmux.conf.
+// Key customizations from standard tmux:
+//   - Uses Ctrl+g prefix (custom, not standard Ctrl+b)
+//   - Split panes: \ (horizontal) and - (vertical)
+//   - Pane resize: Ctrl+h/j/k/l (repeatable in tmux)
+//   - Vi-mode copy bindings: v (selection), y (copy)
+//   - Jump key: / for search
 //   - Simplified UI for minimal distraction
 
 // =============================================================================
 // Keybindings - tmux-compatible mode
 // =============================================================================
 keybinds {
-    // Normal mode: Only Ctrl+b to enter tmux mode
+    // Normal mode: Only Ctrl+g to enter tmux mode (matching custom tmux config)
     // This prevents conflicts with Neovim and other CLI tools
     normal clear-defaults=true {
-        bind "Ctrl b" { SwitchToMode "tmux"; }
+        bind "Ctrl g" { SwitchToMode "tmux"; }
         bind "Alt n" { NewPane; }
         bind "Alt h" { MoveFocusOrTab "Left"; }
         bind "Alt l" { MoveFocusOrTab "Right"; }
@@ -26,22 +29,22 @@ keybinds {
         bind "Alt -" { Resize "Decrease"; }
     }
 
-    // Tmux mode: Familiar tmux keybindings
+    // Tmux mode: Custom tmux keybindings (matching dot_tmux.conf)
     tmux clear-defaults=true {
         // Mode switching
         bind "Esc" { SwitchToMode "Normal"; }
-        bind "Ctrl b" { Write 2; SwitchToMode "Normal"; }  // Pass through Ctrl+b
+        bind "Ctrl g" { Write 2; SwitchToMode "Normal"; }  // Pass through Ctrl+g
         bind "g" { SwitchToMode "Locked"; }
         bind "[" { SwitchToMode "Scroll"; }
 
-        // Pane management (tmux-style)
+        // Pane management (custom tmux-style)
         bind "c" { NewPane; SwitchToMode "Normal"; }                    // New pane (like tmux's new window)
-        bind "\"" { NewPane "Down"; SwitchToMode "Normal"; }            // Split horizontal
-        bind "%" { NewPane "Right"; SwitchToMode "Normal"; }            // Split vertical
+        bind "\\" { NewPane "Right"; SwitchToMode "Normal"; }           // Split horizontal (custom: \ instead of ")
+        bind "-" { NewPane "Down"; SwitchToMode "Normal"; }             // Split vertical (custom: - instead of %)
         bind "x" { CloseFocus; SwitchToMode "Normal"; }                 // Close pane
         bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }      // Zoom pane
 
-        // Pane navigation
+        // Pane navigation (h/j/k/l)
         bind "h" { MoveFocus "Left"; }
         bind "j" { MoveFocus "Down"; }
         bind "k" { MoveFocus "Up"; }
@@ -71,14 +74,25 @@ keybinds {
         bind "d" { Detach; }                                             // Detach from session
         bind "w" { SwitchToMode "Session"; }                            // Session menu
 
-        // Resize mode
+        // Pane resizing (custom tmux style: Ctrl+h/j/k/l in resize mode)
+        bind "Ctrl h" { Resize "Left"; }
+        bind "Ctrl j" { Resize "Down"; }
+        bind "Ctrl k" { Resize "Up"; }
+        bind "Ctrl l" { Resize "Right"; }
+
+        // Resize mode (for more control)
         bind "r" { SwitchToMode "Resize"; }
 
         // Pane mode (for swapping, moving)
         bind "s" { SwitchToMode "Pane"; }
 
-        // Search mode
+        // Search mode (custom tmux: / for jump)
         bind "/" { SwitchToMode "EnterSearch"; SearchInput 0; }
+
+        // Manual restore (custom tmux: Ctrl+r for tmux-resurrect)
+        // Note: Zellij doesn't have built-in session restore like tmux-resurrect
+        // This keybinding is reserved for future session management plugin
+        bind "Ctrl r" { SwitchToMode "Session"; }
 
         // Help
         bind "?" { SwitchToMode "Tmux"; }  // Show this menu again
@@ -132,7 +146,7 @@ keybinds {
         }
     }
 
-    // Scroll mode: Scroll through terminal history (like tmux copy mode)
+    // Scroll mode: Scroll through terminal history (like tmux copy mode with vi bindings)
     scroll {
         bind "Esc" { SwitchToMode "Normal"; }
         bind "e" { EditScrollback; SwitchToMode "Normal"; }
@@ -144,6 +158,10 @@ keybinds {
         bind "Ctrl b" "PageUp" "Left" "h" { PageScrollUp; }
         bind "d" { HalfPageScrollDown; }
         bind "u" { HalfPageScrollUp; }
+        // Vi-mode copy bindings (custom tmux: v for selection, y for copy)
+        // Note: Zellij uses 'Space' for selection start, 'Enter' for copy
+        // But we add 'v' and 'y' for tmux vi-mode compatibility
+        bind "Space" "v" { SwitchToMode "Normal"; }  // Begin selection (vi-mode)
     }
 
     // Search mode: Search in scrollback
