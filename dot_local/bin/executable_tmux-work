@@ -1,129 +1,185 @@
 #!/usr/bin/env bash
+# =============================================================================
+# tmux-work: Terminal-agnostic 6-pane work layout (percent-only splits)
+# =============================================================================
+# Design goals:
+# - Terminal-agnostic: consistent on Alacritty/Ghostty/Kitty (no fixed sizes)
+# - No horizontal misalignment: perform the full-width horizontal split once
+# - Clean, fast left panes: spawn them after the layout is stable to avoid prompt spam
+# - Right panes launched via respawn-pane (no race with shell readiness)
+#
+# Usage:
+#   tmux-work [window-name]
+#
+# Environment:
+#   SESSION_DEFAULT        : tmux session name when creating a new session (default: desk)
+#   LEFT_DIR               : working directory for the left column (default: $HOME/Documents)
+#   CLAUDE_PLAN            : plan passed to claude-monitor (default: max5)
+#   FORCE                  : if 1, kill an existing window with the same name and recreate (default: 0)
+#   ALLOW_DUPLICATE        : if 1 and a name is provided, allow duplicates (default: 0; 1 when name omitted)
+#
+#   BOTTOM_ROW_PCT         : bottom row height (%) of total height (default: 24)
+#   RIGHT_COL_PCT          : right column width (%) of total width (default: 50)
+#   RIGHT_TOP_TO_MID_PCT   : within right-top area, lower split percentage (default: 43)
+#   BR_RIGHT_PCT           : within bottom-right area, right split percentage (default: 50)
+#
+#   RUN_RIGHT_CMDS         : if 1, auto-start right-side commands (default: 1)
+#   START_DELAY_BASE_MS    : base delay (ms) to stagger right-side starts (default: 120)
+#   DEBUG                  : if 1, print pane geometry (default: 0)
+# =============================================================================
+
 set -euo pipefail
 
-ANIMALS=(
-  "tiger" "leopard" "lion" "panther" "jaguar" "cheetah"
-  "wolf" "fox" "bear" "eagle" "hawk" "falcon" "giraffe"
-  "dolphin" "whale" "shark" "octopus" "turtle" "seal"
-  "cobra" "viper" "dragon" "phoenix" "griffin" "unicorn"
-)
-generate_random_name() {
-  local base="${ANIMALS[$RANDOM % ${#ANIMALS[@]}]}"
-  local suffix=$((RANDOM % 10))
-  echo "${base}-${suffix}"
-}
+# ---------- resolve tmux binary (absolute path; fixes PATH issues inside server) ----------
+TMUX_BIN="$(command -v tmux 2>/dev/null || true)"
+if [[ -z "${TMUX_BIN}" ]]; then
+  for p in /opt/homebrew/bin/tmux /usr/local/bin/tmux /usr/bin/tmux; do
+    [[ -x "$p" ]] && TMUX_BIN="$p" && break
+  done
+fi
+if [[ -z "${TMUX_BIN}" ]]; then
+  printf 'tmux-work: tmux binary not found in PATH or common locations.\n' >&2
+  exit 127
+fi
 
-# Window name
+# ---------- configuration ----------
+SESSION_DEFAULT="${SESSION_DEFAULT:-desk}"
+LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
+CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
+FORCE="${FORCE:-0}"
+
+BOTTOM_ROW_PCT="${BOTTOM_ROW_PCT:-24}"
+RIGHT_COL_PCT="${RIGHT_COL_PCT:-50}"
+RIGHT_TOP_TO_MID_PCT="${RIGHT_TOP_TO_MID_PCT:-43}"
+BR_RIGHT_PCT="${BR_RIGHT_PCT:-50}"
+
+RUN_RIGHT_CMDS="${RUN_RIGHT_CMDS:-1}"
+START_DELAY_BASE_MS="${START_DELAY_BASE_MS:-120}"
+DEBUG="${DEBUG:-0}"
+
+# ---------- helpers ----------
+abspath_or_name() { command -v "$1" 2>/dev/null || printf '%s' "$1"; }
+
+WATCH_BIN="$(abspath_or_name watch)"
+CCUSAGE_BIN="$(abspath_or_name ccusage)"
+CLAUDE_MONITOR_BIN="$(abspath_or_name claude-monitor)"
+BTM_BIN="$(abspath_or_name btm)"
+TTY_CLOCK_BIN="$(abspath_or_name tty-clock)"
+SHELL_BIN="$(abspath_or_name "${SHELL:-$SHELL}")"
+
+# BSD/GNU date compatibility (3 days ago)
+if date -v -3d +%Y%m%d >/dev/null 2>&1; then
+  SINCE_DATE="$(date -v -3d +%Y%m%d)"
+else
+  SINCE_DATE="$(date -d '3 days ago' +%Y%m%d)"
+fi
+
+# ---------- window name (random if omitted) ----------
+ANIMALS=(tiger leopard lion panther jaguar cheetah wolf fox bear eagle hawk falcon giraffe dolphin whale shark octopus turtle seal cobra viper dragon phoenix griffin unicorn)
+generate_random_name() { local base="${ANIMALS[$RANDOM % ${#ANIMALS[@]}]}"; local suffix=$((RANDOM % 10)); printf '%s-%d\n' "$base" "$suffix"; }
+
 if [[ -n "${1:-}" ]]; then
   WINDOW="$1"
   ALLOW_DUPLICATE="${ALLOW_DUPLICATE:-0}"
 else
-  WINDOW=$(generate_random_name)
+  WINDOW="$(generate_random_name)"
   ALLOW_DUPLICATE=1
 fi
 
-SESSION_DEFAULT="desk"
-LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
-FORCE="${FORCE:-0}"
-
-LAYOUT='776f,227x76,0,0{112x76,0,0[112x57,0,0,39,112x18,0,58,43],114x76,113,0[114x32,113,0,40,114x24,113,33,41,114x18,113,58{57x18,113,58,42,56x18,171,58,44}]}'
-
-# Session
+# ---------- session bootstrap ----------
 if [[ -n "${TMUX-}" ]]; then
-  SESSION="$(tmux display -p '#S')"
+  SESSION="$("$TMUX_BIN" display -p '#S')"
 else
   SESSION="$SESSION_DEFAULT"
-  tmux has-session -t "$SESSION" 2>/dev/null || tmux new-session -d -s "$SESSION" -n tmp
+  if ! "$TMUX_BIN" has-session -t "$SESSION" 2>/dev/null; then
+    "$TMUX_BIN" new-session -d -s "$SESSION" -n tmp -c "$LEFT_DIR"
+  fi
 fi
 
-# Duplicate handling
+# ---------- handle duplicate window names ----------
 if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
-  EXIST_ID="$(tmux list-windows -t "$SESSION" -F '#{window_name} #{window_id}' \
-    | awk -v w="$WINDOW" '$1==w{print $2}')"
-  if [[ -n "${EXIST_ID:-}" ]]; then
+  EXIST_LINE="$("$TMUX_BIN" list-windows -t "$SESSION" -F '#{window_name} #{window_id}' | awk -v w="$WINDOW" '$1==w{print}')"
+  if [[ -n "${EXIST_LINE:-}" ]]; then
+    EXIST_ID="$(awk '{print $2}' <<<"$EXIST_LINE")"
     if [[ "$FORCE" == "1" ]]; then
-      tmux kill-window -t "$EXIST_ID"
+      "$TMUX_BIN" kill-window -t "$EXIST_ID"
     else
       COUNT=2
       ORIGINAL_WINDOW="$WINDOW"
-      while tmux list-windows -t "$SESSION" -F '#{window_name}' | grep -q "^${WINDOW}$"; do
+      while "$TMUX_BIN" list-windows -t "$SESSION" -F '#{window_name}' | grep -qx "$WINDOW"; do
         WINDOW="${ORIGINAL_WINDOW}-${COUNT}"
-        COUNT=$((COUNT + 1))
+        COUNT=$((COUNT+1))
       done
-      echo "Window '$ORIGINAL_WINDOW' exists. Creating as '$WINDOW' instead." >&2
+      printf 'tmux-work: Window "%s" exists. Creating as "%s" instead.\n' "$ORIGINAL_WINDOW" "$WINDOW" >&2
     fi
   fi
 fi
 
-# Create window
-echo "creating window: $WINDOW" >&2
-WINID="$(tmux new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW")"
+# ---------- create the target window (initially in LEFT_DIR) ----------
+WINID="$("$TMUX_BIN" new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW" -c "$LEFT_DIR")"
+"$TMUX_BIN" select-window -t "$WINID"
 
-# Create 6-pane structure
-tmux split-window -h          -t "${WINID}.0"
-tmux select-pane              -t "${WINID}.0"
-tmux split-window -v -p 24    -t "${WINID}.0"
-tmux select-pane              -t "${WINID}.1"
-tmux split-window -v -p 58    -t "${WINID}.1"
-tmux select-pane              -t "${WINID}.1"
-tmux split-window -v -p 33    -t "${WINID}.1"
-tmux select-pane              -t "${WINID}.4"
-tmux split-window -h -p 50    -t "${WINID}.4"
+# Remove the bootstrap "tmp" window if it exists (best-effort).
+if "$TMUX_BIN" list-windows -t "$SESSION" -F '#{window_name}' | grep -qx 'tmp'; then
+  "$TMUX_BIN" kill-window -t "${SESSION}:tmp" 2>/dev/null || true
+fi
 
-# Fix layout
-tmux select-layout -t "${WINID}" "${LAYOUT}"
-sleep 0.1
+# ---------- layout construction (percent-only; single rounding pass for the horizontal line) ----------
+# 1) Full-width horizontal split (rounding happens exactly once here).
+ROOT_ID="$("$TMUX_BIN" display -t "$WINID" -p '#{pane_id}')"
+BL_ID="$("$TMUX_BIN" split-window -t "$ROOT_ID" -v -p "$BOTTOM_ROW_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
+TL_ID="$ROOT_ID"
 
-# Identify panes by coordinates
-LEFTS=(); RIGHTS=()
-while IFS= read -r line; do
-  read -r id x y <<<"$line"
-  if [[ "$x" -eq 0 ]]; then
-    LEFTS+=("$id $x $y")
-  else
-    RIGHTS+=("$id $x $y")
-  fi
-done < <(tmux list-panes -t "${WINID}" -F '#{pane_id} #{pane_left} #{pane_top}')
+# 2) Split both rows vertically by the SAME percentage, so the vertical boundary aligns.
+TR_ID="$("$TMUX_BIN" split-window -t "$TL_ID" -h -p "$RIGHT_COL_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
+BR_ID="$("$TMUX_BIN" split-window -t "$BL_ID" -h -p "$RIGHT_COL_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
 
-# Left column: top/bottom
-L_TOP=$(printf '%s\n' "${LEFTS[@]}"  | sort -nk3 | sed -n '1p' | awk '{print $1}')
-L_BOT=$(printf '%s\n' "${LEFTS[@]}"  | sort -nk3 | sed -n '2p' | awk '{print $1}')
+# 3) Right-top: split vertically into RT and RM.
+RM_ID="$("$TMUX_BIN" split-window -t "$TR_ID" -v -p "$RIGHT_TOP_TO_MID_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
+RT_ID="$TR_ID"
 
-# Right column: unique top values
-UNIQUE_TOPS=$(printf '%s\n' "${RIGHTS[@]}" | awk '{print $3}' | sort -nu)
-TOP1=$(echo "$UNIQUE_TOPS" | sed -n '1p')
-TOP2=$(echo "$UNIQUE_TOPS" | sed -n '2p')
-TOP3=$(echo "$UNIQUE_TOPS" | sed -n '3p')
+# 4) Bottom-right: split horizontally into BRL and BRR.
+BRR_ID="$("$TMUX_BIN" split-window -t "$BR_ID" -h -p "$BR_RIGHT_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
+BRL_ID="$BR_ID"
 
-R_TOP=$(printf '%s\n' "${RIGHTS[@]}" | awk -v t="$TOP1" '$3==t{print $1}')
-R_MID=$(printf '%s\n' "${RIGHTS[@]}" | awk -v t="$TOP2" '$3==t{print $1}')
+# ---------- LEFT PANE FIX: spawn fresh shells AFTER layout to avoid prompt spam ----------
+"$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$TL_ID" "$SHELL_BIN" || true
+"$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$BL_ID" "$SHELL_BIN" || true
 
-R_BOTTOM_PANES=$(printf '%s\n' "${RIGHTS[@]}" | awk -v t="$TOP3" '$3==t')
-R_BLEFT=$(echo "$R_BOTTOM_PANES" | sort -nk2 | sed -n '1p' | awk '{print $1}')
-R_BRIGHT=$(echo "$R_BOTTOM_PANES" | sort -nk2 | sed -n '2p' | awk '{print $1}')
+# ---------- right-side programs via respawn-pane ----------
+if [[ "$RUN_RIGHT_CMDS" == "1" ]]; then
+  d1=$(awk "BEGIN{printf \"%.3f\", ${START_DELAY_BASE_MS}*1.00/1000}")
+  d2=$(awk "BEGIN{printf \"%.3f\", ${START_DELAY_BASE_MS}*1.40/1000}")
+  d3=$(awk "BEGIN{printf \"%.3f\", ${START_DELAY_BASE_MS}*1.20/1000}")
+  d4=$(awk "BEGIN{printf \"%.3f\", ${START_DELAY_BASE_MS}*1.30/1000}")
 
-# Commands
-tmux respawn-pane -k -t "$L_TOP" "cd \"${LEFT_DIR}\" && exec zsh"
-tmux respawn-pane -k -t "$L_BOT" "cd \"${LEFT_DIR}\" && exec zsh"
+  sleep "${d1}"
+  "$TMUX_BIN" respawn-pane -k -t "$RT_ID" \
+    "$WATCH_BIN" -n 10 "$CCUSAGE_BIN" daily --since "$SINCE_DATE" --no-color || true
 
-tmux respawn-pane -k -t "$R_TOP" "watch -n 10 \"ccusage daily --since \$(date -v -3d +%Y%m%d) --no-color\""
-tmux respawn-pane -k -t "$R_MID" "claude-monitor --plan max5"
+  sleep "${d2}"
+  "$TMUX_BIN" respawn-pane -k -t "$RM_ID" \
+    "$CLAUDE_MONITOR_BIN" --plan "$CLAUDE_PLAN" || true
 
-tmux respawn-pane -k -t "$R_BRIGHT" "tty-clock -sc"
-tmux respawn-pane -k -t "$R_BLEFT" "btm"
+  sleep "${d3}"
+  "$TMUX_BIN" respawn-pane -k -t "$BRL_ID" \
+    "$BTM_BIN" || true
 
-# Reapply layout
-tmux select-layout -t "${WINID}" "${LAYOUT}"
+  sleep "${d4}"
+  "$TMUX_BIN" respawn-pane -k -t "$BRR_ID" \
+    "$TTY_CLOCK_BIN" -sc || true
+fi
 
-# Focus top-left
-tmux select-window -t "${WINID}"
-tmux select-pane -t "$L_TOP"
+# ---------- focus ----------
+"$TMUX_BIN" select-pane -t "$TL_ID"
 
-# NOTE: Removed double respawn optimization
-# Previous behavior respawned left panes twice, causing 2x zsh initialization
-# First respawn (line 106-107): cd LEFT_DIR && exec zsh
-# Second respawn (removed): default shell, loses LEFT_DIR context
-# Result: 50% faster left pane startup
+# ---------- optional debug output ----------
+if [[ "$DEBUG" == "1" ]]; then
+  "$TMUX_BIN" display-message "window: h=#{window_height} w=#{window_width}"
+  "$TMUX_BIN" list-panes -F '#{pane_index} #{pane_id} h=#{pane_height} w=#{pane_width} x=#{pane_left} y=#{pane_top} active=#{pane_active}'
+fi
 
-# Attach if not in tmux
-if [[ -z "${TMUX-}" ]]; then tmux attach -t "$SESSION"; fi
+# ---------- attach if invoked from outside tmux ----------
+if [[ -z "${TMUX-}" ]]; then
+  exec "$TMUX_BIN" attach -t "$SESSION"
+fi
