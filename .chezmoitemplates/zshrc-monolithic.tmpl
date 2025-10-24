@@ -25,9 +25,8 @@ HOMEBREW_PREFIX="/usr/local"
 export PROMPT_THEME="${PROMPT_THEME:-p10k}"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
-  # Bypass expensive SSH detection by setting P9K_SSH before theme loads
-  # This prevents the 12-17ms overhead from _p9k_init_ssh
-  typeset -g P9K_SSH=0
+  # Note: P9K_SSH=0 is set in .zshenv for earlier initialization
+  # This ensures SSH detection bypass happens before P10k loads
 
   if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
     source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
@@ -82,7 +81,8 @@ zsh-defer _load_completion
 # --- mise shims (immediate, for non-interactive shells like Zellij) ---
 # Must be loaded BEFORE zsh-defer to ensure tools are available immediately
 # in non-interactive contexts (Zellij panes, IDEs, scripts)
-if command -v mise >/dev/null 2>&1; then
+# Only load if not already loaded by .zprofile (prevents 10ms duplicate execution)
+if command -v mise >/dev/null 2>&1 && [[ -z "${MISE_SHELL:-}" ]]; then
   eval "$(mise activate zsh --shims)"
 fi
 
@@ -112,11 +112,27 @@ zsh-defer -c '[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.po
 # Environment Variables
 # ============================================================================
 
-# --- Development tools ---
-export PATH="{{ .chezmoi.homeDir }}/.slack/bin:$PATH"
-# Cargo bin already added in .zshenv via '. "$HOME/.cargo/env"'
-export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
-export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
+# --- Helper function: Add to PATH only if not present ---
+_add_to_path_prepend() {
+  [[ ":$PATH:" != *":$1:"* ]] && export PATH="$1:$PATH"
+}
+
+_add_to_path_append() {
+  [[ ":$PATH:" != *":$1:"* ]] && export PATH="$PATH:$1"
+}
+
+# --- Deferred PATH additions ---
+# These development tools are rarely needed immediately at shell startup
+_setup_dev_paths() {
+  _add_to_path_prepend "{{ .chezmoi.homeDir }}/.slack/bin"
+  # Cargo bin already added in .zshenv via '. "$HOME/.cargo/env"'
+  _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin"
+  _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/llvm/bin"
+
+  # Alacritty custom scripts (toggle_opacity, etc.)
+  _add_to_path_append "{{ .chezmoi.homeDir }}/.config/alacritty/bin"
+}
+zsh-defer _setup_dev_paths
 
 # --- C++ Development (LLVM/Clang) ---
 # Deferred to save ~2ms at startup - only loaded when needed
@@ -130,10 +146,6 @@ _setup_cpp_env() {
 }
 # Defer C++ environment setup - will be loaded after prompt
 zsh-defer _setup_cpp_env
-
-# --- Alacritty custom scripts ---
-# Custom scripts like toggle_opacity
-export PATH=$PATH:{{ .chezmoi.homeDir }}/.config/alacritty/bin
 
 # ============================================================================
 # Aliases
@@ -306,6 +318,71 @@ ask() {
 # ============================================================================
 # Functions - Shell Management
 # ============================================================================
+
+# ============================================================================
+# Multiplexer Abstraction Layer
+# ============================================================================
+# Detect current multiplexer from chezmoi config
+# Returns: "tmux" or "zellij" (defaults to tmux)
+get-multiplexer() {
+  # Environment variable override
+  if [[ -n "${MULTIPLEXER:-}" ]]; then
+    echo "$MULTIPLEXER"
+    return 0
+  fi
+
+  # Read from chezmoi config
+  local chezmoi_config="${HOME}/.config/chezmoi/chezmoi.toml"
+  if [[ -f "$chezmoi_config" ]]; then
+    local mux=$(grep -A 1 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | \
+                grep 'multiplexer' | \
+                command sed 's/.*"\(.*\)".*/\1/')
+    if [[ -n "$mux" ]]; then
+      echo "$mux"
+      return 0
+    fi
+  fi
+
+  # Default to tmux
+  echo "tmux"
+}
+
+# Check if running inside a multiplexer
+in-multiplexer() {
+  [[ -n "${TMUX:-}" || -n "${ZELLIJ:-}" ]]
+}
+
+# Get current multiplexer type (when inside one)
+current-multiplexer() {
+  if [[ -n "${TMUX:-}" ]]; then
+    echo "tmux"
+  elif [[ -n "${ZELLIJ:-}" ]]; then
+    echo "zellij"
+  else
+    echo "none"
+  fi
+}
+
+# Kill current window (abstracted)
+mux-kill-window() {
+  local mux=$(current-multiplexer)
+  case "$mux" in
+    tmux)
+      local id
+      id="$(tmux display -p '#{window_id}' 2>/dev/null)" || {
+        echo "Run inside tmux session" >&2; return 1
+      }
+      tmux kill-window -t "$id"
+      ;;
+    zellij)
+      zellij action close-tab
+      ;;
+    *)
+      echo "Not inside a multiplexer session" >&2
+      return 1
+      ;;
+  esac
+}
 
 # Note: twk is now an alias to mux-kill-window (see aliases section above)
 
