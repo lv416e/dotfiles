@@ -183,8 +183,8 @@ switch-zsh-config() {
     return 1
   fi
 
-  # Use sed to update the variant value
-  sed -i '' "s/variant = \".*\"/variant = \"$variant\"/" "$chezmoi_config"
+  # Use sed to update the variant value (use command to bypass alias)
+  command sed -i '' "s/variant = \".*\"/variant = \"$variant\"/" "$chezmoi_config"
 
   echo "✅ Zsh configuration switched to: $variant"
   echo "📝 Updated: ~/.local/share/chezmoi/.chezmoi.toml.tmpl"
@@ -236,8 +236,8 @@ switch-multiplexer() {
     return 1
   fi
 
-  # Use sed to update the multiplexer value
-  sed -i '' "s/multiplexer = \".*\"/multiplexer = \"$mux\"/" "$chezmoi_config"
+  # Use sed to update the multiplexer value (use command to bypass alias)
+  command sed -i '' "s/multiplexer = \".*\"/multiplexer = \"$mux\"/" "$chezmoi_config"
 
   echo "✅ Multiplexer switched to: $mux"
   echo "📝 Updated: ~/.local/share/chezmoi/.chezmoi.toml.tmpl"
