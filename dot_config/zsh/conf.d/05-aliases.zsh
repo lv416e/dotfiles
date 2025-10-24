@@ -88,6 +88,28 @@ alias rtd='repo -t2'        # repo with multiplexer (dual panes)
 alias mr='mux-repo'         # direct mux-repo call
 alias mr2='mux-repo --dual' # direct mux-repo call (2 panes)
 
+# --- Additional productivity aliases ---
+alias tree='eza --tree'
+alias dig='doggo'
+alias http='xh'
+alias man='tldr'
+alias watch='viddy'
+alias find='fd'
+alias sed='sd'
+
+# --- pueue task queue ---
+alias pq='pueue'
+alias pqa='pueue add'
+alias pqs='pueue status'
+alias pql='pueue log'
+alias pqc='pueue clean'
+
+# --- ouch compression ---
+alias compress='ouch compress'
+alias decompress='ouch decompress'
+alias archive='ouch compress'
+alias extract='ouch decompress'
+
 # --- Misc ---
 alias c='clear'
 alias cl='tty-clock -sc'

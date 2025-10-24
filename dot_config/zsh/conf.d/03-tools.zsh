@@ -28,6 +28,7 @@ _load_completion() {
 zsh-defer _load_completion
 
 # --- Deferred tool initialization ---
+zsh-defer -c 'export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview \"eza --icons --color=always {2..}\""'
 zsh-defer -c 'eval "$(zoxide init --cmd j zsh)"'
 zsh-defer -c 'eval "$(atuin init zsh)"'
 # mise activate (full features) - deferred for interactive shells

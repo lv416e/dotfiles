@@ -277,7 +277,7 @@ description = "[workflow] Full sync: apply → update → clean"
 alias = "sy"
 depends = ["dot-apply", "sys-update", "sys-clean"]
 
-[tasks.worlflow-fresh]
+[tasks.workflow-fresh]
 description = "[workflow] Fresh start: clean → apply → update"
 alias = "f"
 run = [
@@ -285,3 +285,103 @@ run = [
   "mise run dot-apply",
   "mise run sys-update",
 ]
+
+# --- Benchmark & Performance ---
+
+[tasks.sys-bench-shell]
+description = "[sys] Benchmark shell startup times (zsh vs bash)"
+alias = "bsh"
+run = "hyperfine --warmup 3 'zsh -i -c exit' 'bash -i -c exit'"
+
+[tasks.sys-bench-multi]
+description = "[sys] Benchmark multiplexer startup times"
+alias = "bm"
+run = """
+echo "=== Tmux startup ==="
+hyperfine --warmup 2 'tmux new-session -d "exit" && tmux kill-server'
+echo "\n=== Zellij startup ==="
+hyperfine --warmup 2 'zellij --session test-bench && zellij delete-session test-bench -f'
+"""
+
+# --- Update & Maintenance ---
+
+[tasks.sys-outdated]
+description = "[sys] Check all outdated packages (brew + mise)"
+alias = "outd"
+run = """
+echo "=== Homebrew Outdated ==="
+brew outdated
+echo "\n=== Mise Outdated ==="
+mise outdated
+"""
+
+[tasks.sys-upgrade-all]
+description = "[sys] Upgrade all packages (brew + mise + cleanup)"
+alias = "ua"
+run = """
+echo "=== Upgrading Homebrew Packages ==="
+brew upgrade
+brew cleanup
+echo "\n=== Upgrading Mise Tools ==="
+mise upgrade
+mise prune -y
+echo "\n=== Checking Dotfiles ==="
+chezmoi git -- fetch origin
+chezmoi git -- log HEAD..origin/main --oneline || echo "Already up to date"
+"""
+
+# --- Backup & Archive ---
+
+[tasks.dot-backup-archive]
+description = "[dot] Create timestamped backup archive"
+alias = "bka"
+run = """
+mkdir -p ~/backups
+tar czf ~/backups/dotfiles-$(date +%Y%m%d-%H%M%S).tar.gz ~/.local/share/chezmoi
+echo "✅ Backup created: ~/backups/dotfiles-$(date +%Y%m%d-%H%M%S).tar.gz"
+find ~/backups -name "dotfiles-*.tar.gz" -mtime +30 -exec rm {} \\; -print
+echo "✅ Cleaned up backups older than 30 days"
+"""
+
+[tasks.dot-backup-list]
+description = "[dot] List all backup archives"
+alias = "bkl"
+run = "ls -lh ~/backups/dotfiles-*.tar.gz 2>/dev/null || echo 'No backups found'"
+
+# --- Diagnostics ---
+
+[tasks.sys-diag]
+description = "[sys] Full system diagnostics"
+alias = "diag"
+run = """
+echo "=== System Info ==="
+sw_vers
+echo "\n=== Shell ==="
+echo $SHELL
+$SHELL --version
+echo "\n=== Mise ==="
+mise doctor
+echo "\n=== Homebrew ==="
+brew doctor
+echo "\n=== Chezmoi ==="
+chezmoi verify
+echo "\n=== Disk Usage ==="
+df -h | grep -E '/$|/Users'
+echo "\n=== Memory ==="
+vm_stat | head -n 10
+"""
+
+# --- Workflow Enhancement ---
+
+[tasks.workflow-fresh-install]
+description = "[workflow] Fresh install setup (for new machines)"
+alias = "fresh"
+run = """
+echo "=== Running fresh install workflow ==="
+mise run sys-clean
+mise run tool-install
+mise run dot-apply
+mise run sys-update
+echo "\n=== Setup Complete! ==="
+mise run sys-health
+"""

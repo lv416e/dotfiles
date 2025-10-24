@@ -26,7 +26,7 @@
 # {{ .chezmoi.config.color }}_sync = true
 
 ## enable or disable automatic update checks
-# update_check = true
+update_check = false
 
 ## address of the sync server
 # sync_address = "https{{ .chezmoi.pathListSeparator }}{{ .chezmoi.pathSeparator }}{{ .chezmoi.pathSeparator }}api.atuin.sh"
@@ -43,7 +43,7 @@ search_mode = "fuzzy"
 ## which filter mode to use by default
 ## possible values{{ .chezmoi.pathListSeparator }} "global", "host", "session", "directory", "workspace"
 ## consider using search.filters to customize the enablement and order of filter modes
-# filter_mode = "global"
+filter_mode = "global"
 
 ## With workspace filtering enabled, Atuin will filter for commands executed
 ## in any directory within a {{ .chezmoi.config.git.command }} repository tree (default{{ .chezmoi.pathListSeparator }} false).
@@ -66,11 +66,11 @@ filter_mode_shell_up_key_binding = "global"
 
 ## which style to use
 ## possible values{{ .chezmoi.pathListSeparator }} {{ .chezmoi.config.color }}, full, compact
-# style = "{{ .chezmoi.config.color }}"
+style = "compact"
 
 ## the maximum number of lines the interface should take up
 ## set it to 0 to always go full screen
-# inline_height = 0
+inline_height = 20
 
 ## the maximum number of lines the interface should take up
 ## when atuin is invoked from a shell up-key binding
@@ -82,7 +82,7 @@ filter_mode_shell_up_key_binding = "global"
 
 ## enable or disable showing a preview of the selected command
 ## useful when the command is longer than the terminal width and is cut off
-# show_preview = true
+show_preview = true
 
 ## what to do when the escape key is pressed when searching
 ## possible values{{ .chezmoi.pathListSeparator }} return-original, return-query
@@ -131,7 +131,7 @@ filter_mode_shell_up_key_binding = "global"
 ## Configure whether or not to show the help row, which includes the current Atuin
 ## version (and whether an update is available), a keymap hint, and the total
 ## amount of commands in your history.
-# show_help = true
+show_help = true
 
 ## Configure whether or not to show tabs for search and inspect
 # show_tabs = true

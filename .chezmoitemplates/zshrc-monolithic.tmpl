@@ -87,6 +87,7 @@ if command -v mise >/dev/null 2>&1; then
 fi
 
 # --- Deferred tool initialization ---
+zsh-defer -c 'export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview \"eza --icons --color=always {2..}\""'
 zsh-defer -c 'eval "$(zoxide init --cmd j zsh)"'
 zsh-defer -c 'eval "$(atuin init zsh)"'
 # mise activate (full features) - deferred for interactive shells
@@ -219,6 +220,28 @@ alias rt='repo -t'
 alias rt2='repo -t2'
 alias rtd='repo -t2'
 
+# --- Additional productivity aliases ---
+alias tree='eza --tree'
+alias dig='doggo'
+alias http='xh'
+alias man='tldr'
+alias watch='viddy'
+alias find='fd'
+alias sed='sd'
+
+# --- pueue task queue ---
+alias pq='pueue'
+alias pqa='pueue add'
+alias pqs='pueue status'
+alias pql='pueue log'
+alias pqc='pueue clean'
+
+# --- ouch compression ---
+alias compress='ouch compress'
+alias decompress='ouch decompress'
+alias archive='ouch compress'
+alias extract='ouch decompress'
+
 # --- Misc ---
 alias c='clear'
 alias cl='tty-clock -sc'
@@ -228,6 +251,13 @@ alias zsh-bench='for i in $(seq 1 20); do time zsh -i -c exit; done'
 # ============================================================================
 # Functions - Utilities
 # ============================================================================
+
+# zoxide interactive mode
+# Usage: zi [keyword]
+# Note: Wrapper for __zoxide_zi (must be a function to work with zsh-defer)
+zi() {
+  __zoxide_zi "$@"
+}
 
 # 1Password sign in
 # Usage: ops

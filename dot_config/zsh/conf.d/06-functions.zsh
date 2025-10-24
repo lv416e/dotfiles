@@ -9,6 +9,13 @@
 # Utilities
 # ============================================================================
 
+# zoxide interactive mode
+# Usage: zi [keyword]
+# Note: Wrapper for __zoxide_zi (must be a function to work with zsh-defer)
+zi() {
+  __zoxide_zi "$@"
+}
+
 # 1Password sign in
 # Usage: ops
 ops() {
