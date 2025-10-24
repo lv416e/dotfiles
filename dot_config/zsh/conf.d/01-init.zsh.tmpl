@@ -22,8 +22,12 @@ HOMEBREW_PREFIX="/usr/local"
 export PROMPT_THEME="${PROMPT_THEME:-p10k}"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
-  # P9K_SSH=0 is now set in .zshenv for earlier initialization
-  # This ensures SSH detection is bypassed before P10k loads
+  # Bypass P10k SSH detection for local sessions (saves 12-20ms)
+  # Sets both P9K_SSH and _P9K_SSH_TTY to trigger early-exit in _p9k_init_ssh
+  # The function will still run for new TTYs (e.g., actual SSH sessions)
+  # Reference: https://github.com/romkatv/powerlevel10k/pull/2774
+  typeset -gix P9K_SSH=0
+  typeset -gx _P9K_SSH_TTY=$TTY
 
   if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
     source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
