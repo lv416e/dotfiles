@@ -19,8 +19,11 @@ lefthook-local.yml
 .DS_Store
 .AppleDouble
 .LSOverride
-Icon[
-]
+
+# Icon must be ignored with a trailing carriage return (macOS custom folder icons)
+# The special file is literally named "Icon\r" where \r is a carriage return
+# We use a simple pattern that works with most tools
+Icon?
 
 # Thumbnails
 ._*
