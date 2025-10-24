@@ -7,16 +7,25 @@
 # --- Critical PATH (needed immediately) ---
 # Empty for now - all PATHs can be deferred
 
+# --- Helper function: Add to PATH only if not present ---
+_add_to_path_prepend() {
+  [[ ":$PATH:" != *":$1:"* ]] && export PATH="$1:$PATH"
+}
+
+_add_to_path_append() {
+  [[ ":$PATH:" != *":$1:"* ]] && export PATH="$PATH:$1"
+}
+
 # --- Deferred PATH additions ---
 # These development tools are rarely needed immediately at shell startup
 _setup_dev_paths() {
-  export PATH="{{ .chezmoi.homeDir }}/.slack/bin:$PATH"
+  _add_to_path_prepend "{{ .chezmoi.homeDir }}/.slack/bin"
   # Cargo bin already added in .zshenv via '. "$HOME/.cargo/env"'
-  export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"
-  export PATH="${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH"
+  _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin"
+  _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/llvm/bin"
 
   # Alacritty custom scripts (toggle_opacity, etc.)
-  export PATH=$PATH:{{ .chezmoi.homeDir }}/.config/alacritty/bin
+  _add_to_path_append "{{ .chezmoi.homeDir }}/.config/alacritty/bin"
 }
 zsh-defer _setup_dev_paths
 

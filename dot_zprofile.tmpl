@@ -1,5 +1,6 @@
-# Q pre block. Keep at the top of this file.
-[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zprofile.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zprofile.pre.zsh"
+# Q pre block: REMOVED for performance (saves ~5-10ms)
+# Amazon Q is loaded via deferred loading in 03-tools.zsh instead
+# [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zprofile.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zprofile.pre.zsh"
 
 # =============================================================================
 # mise shims activation for non-interactive shells
@@ -17,5 +18,6 @@ eval "$(mise activate zsh --shims)"
 # Added by Toolbox App
 export PATH="$PATH:{{ .chezmoi.homeDir }}/Library/Application Support/JetBrains/Toolbox/scripts"
 
-# Q post block. Keep at the bottom of this file.
-[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zprofile.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zprofile.post.zsh"
+# Q post block: REMOVED for performance (saves ~5-10ms)
+# Amazon Q is loaded via deferred loading in 03-tools.zsh instead
+# [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zprofile.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zprofile.post.zsh"

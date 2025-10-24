@@ -10,6 +10,11 @@ export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-{{ .chezmoi.homeDir }}/.config}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-{{ .chezmoi.homeDir }}/.local/share}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-{{ .chezmoi.homeDir }}/.cache}"
 
+# Performance: Bypass P10k SSH detection (saves 13ms at startup)
+# Must be set before P10k loads (in .zshrc) to take effect
+# Reference: https://github.com/romkatv/powerlevel10k/pull/2774
+typeset -g P9K_SSH=0
+
 # Ensure that a non-login, non-interactive shell has a defined environment.
 if [[ ( "$SHLVL" -eq 1 && ! -o LOGIN ) && -s "${ZDOTDIR:-$HOME}/.zprofile" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprofile"
