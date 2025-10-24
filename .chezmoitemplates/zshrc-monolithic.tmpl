@@ -356,7 +356,7 @@ switch-multiplexer() {
 
   if [[ -z "$mux" ]]; then
     # Show current configuration
-    local current_mux=$(grep 'multiplexer' "$chezmoi_config" 2>/dev/null | sed 's/.*"\(.*\)".*/\1/')
+    local current_mux=$(grep 'multiplexer' "$chezmoi_config" 2>/dev/null | command sed 's/.*"\(.*\)".*/\1/')
     echo "Current multiplexer: ${current_mux:-tmux}"
     echo ""
     echo "Usage: switch-multiplexer [tmux|zellij]"
@@ -412,7 +412,7 @@ switch-zsh-config() {
 
   if [[ -z "$variant" ]]; then
     # Show current configuration
-    local current_variant=$(grep -A1 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | grep 'variant' | sed 's/.*"\(.*\)".*/\1/')
+    local current_variant=$(grep -A1 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | grep 'variant' | command sed 's/.*"\(.*\)".*/\1/')
     echo "Current zsh configuration: ${current_variant:-modular}"
     echo ""
     echo "Usage: switch-zsh-config [modular|monolithic]"
