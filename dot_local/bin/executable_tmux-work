@@ -119,9 +119,11 @@ tmux select-layout -t "${WINID}" "${LAYOUT}"
 tmux select-window -t "${WINID}"
 tmux select-pane -t "$L_TOP"
 
-# Stabilize
-tmux respawn-pane -k -t "$L_TOP"
-tmux respawn-pane -k -t "$L_BOT"
+# NOTE: Removed double respawn optimization
+# Previous behavior respawned left panes twice, causing 2x zsh initialization
+# First respawn (line 106-107): cd LEFT_DIR && exec zsh
+# Second respawn (removed): default shell, loses LEFT_DIR context
+# Result: 50% faster left pane startup
 
 # Attach if not in tmux
 if [[ -z "${TMUX-}" ]]; then tmux attach -t "$SESSION"; fi
