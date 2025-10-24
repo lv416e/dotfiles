@@ -2,14 +2,30 @@
 # =============================================================================
 # tmux-work: Terminal-agnostic 6-pane work layout (percent-only splits)
 # =============================================================================
-# Design goals:
-# - Terminal-agnostic: consistent on Alacritty/Ghostty/Kitty (no fixed sizes)
-# - No horizontal misalignment: perform the full-width horizontal split once
-# - Clean, fast left panes: spawn them after the layout is stable to avoid prompt spam
+# Goals:
+# - Terminal-agnostic (Alacritty/Ghostty/Kitty): percent-only; no fixed sizes
+# - No horizontal misalignment: one full-width horizontal split up front
+# - Left panes prioritized: spawn them as soon as column boundaries are set
+# - Clean left panes: spawn after layout stabilizes for that column (no prompt spam)
 # - Right panes launched via respawn-pane (no race with shell readiness)
 #
 # Usage:
-#   tmux-work [window-name]
+#   tmux-work [window-name] [directory]
+#
+# Arguments:
+#   window-name            : name for the tmux window (optional, random if omitted)
+#   directory              : working directory for left panes (optional, interactive if omitted)
+#
+# Interactive Directory Selection:
+#   If no directory is specified and both zoxide and fzf are available, an interactive
+#   directory picker will be launched using your zoxide history. Press ESC to use the
+#   default directory instead.
+#
+# Examples:
+#   tmux-work                           # Random name, interactive directory selection
+#   tmux-work myproject                 # Named window, interactive directory selection
+#   tmux-work myproject ~/code/app      # Named window, explicit directory
+#   LEFT_DIR=~/code tmux-work myproject # Named window, directory from environment
 #
 # Environment:
 #   SESSION_DEFAULT        : tmux session name when creating a new session (default: desk)
@@ -23,14 +39,15 @@
 #   RIGHT_TOP_TO_MID_PCT   : within right-top area, lower split percentage (default: 43)
 #   BR_RIGHT_PCT           : within bottom-right area, right split percentage (default: 50)
 #
-#   RUN_RIGHT_CMDS         : if 1, auto-start right-side commands (default: 1)
+#   RUN_RIGHT_CMDS         : if 1, auto-start right-side programs (default: 1)
 #   START_DELAY_BASE_MS    : base delay (ms) to stagger right-side starts (default: 120)
+#   LEAN_SHELL             : if 1, use a minimal shell for left panes: "$SHELL -f -i" (default: 0)
 #   DEBUG                  : if 1, print pane geometry (default: 0)
 # =============================================================================
 
 set -euo pipefail
 
-# ---------- resolve tmux binary (absolute path; fixes PATH issues inside server) ----------
+# ---------- resolve tmux binary (absolute path) ----------
 TMUX_BIN="$(command -v tmux 2>/dev/null || true)"
 if [[ -z "${TMUX_BIN}" ]]; then
   for p in /opt/homebrew/bin/tmux /usr/local/bin/tmux /usr/bin/tmux; do
@@ -42,11 +59,10 @@ if [[ -z "${TMUX_BIN}" ]]; then
   exit 127
 fi
 
-# ---------- configuration ----------
+# ---------- config ----------
 SESSION_DEFAULT="${SESSION_DEFAULT:-desk}"
-LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
-CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
 FORCE="${FORCE:-0}"
+CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
 
 BOTTOM_ROW_PCT="${BOTTOM_ROW_PCT:-24}"
 RIGHT_COL_PCT="${RIGHT_COL_PCT:-50}"
@@ -55,6 +71,7 @@ BR_RIGHT_PCT="${BR_RIGHT_PCT:-50}"
 
 RUN_RIGHT_CMDS="${RUN_RIGHT_CMDS:-1}"
 START_DELAY_BASE_MS="${START_DELAY_BASE_MS:-120}"
+LEAN_SHELL="${LEAN_SHELL:-0}"
 DEBUG="${DEBUG:-0}"
 
 # ---------- helpers ----------
@@ -65,14 +82,7 @@ CCUSAGE_BIN="$(abspath_or_name ccusage)"
 CLAUDE_MONITOR_BIN="$(abspath_or_name claude-monitor)"
 BTM_BIN="$(abspath_or_name btm)"
 TTY_CLOCK_BIN="$(abspath_or_name tty-clock)"
-SHELL_BIN="$(abspath_or_name "${SHELL:-$SHELL}")"
-
-# BSD/GNU date compatibility (3 days ago)
-if date -v -3d +%Y%m%d >/dev/null 2>&1; then
-  SINCE_DATE="$(date -v -3d +%Y%m%d)"
-else
-  SINCE_DATE="$(date -d '3 days ago' +%Y%m%d)"
-fi
+SHELL_BIN="$(abspath_or_name "${SHELL:-zsh}")"   # fallback to zsh if $SHELL unset
 
 # ---------- window name (random if omitted) ----------
 ANIMALS=(tiger leopard lion panther jaguar cheetah wolf fox bear eagle hawk falcon giraffe dolphin whale shark octopus turtle seal cobra viper dragon phoenix griffin unicorn)
@@ -84,6 +94,24 @@ if [[ -n "${1:-}" ]]; then
 else
   WINDOW="$(generate_random_name)"
   ALLOW_DUPLICATE=1
+fi
+
+# ---------- directory selection (zoxide+fzf integration) ----------
+if [[ -n "${2:-}" ]]; then
+  # Explicit directory provided as 2nd argument
+  LEFT_DIR="$2"
+elif [[ -t 0 ]] && command -v zoxide &>/dev/null && command -v fzf &>/dev/null; then
+  # Interactive mode: use zoxide+fzf to select directory
+  SELECTED_DIR=$(zoxide query -l 2>/dev/null | fzf \
+    --height 40% \
+    --reverse \
+    --header "Select working directory (ESC for default: ${LEFT_DIR:-$HOME/Documents})" \
+    --preview 'eza -al --tree --level=2 {} 2>/dev/null || ls -la {}' \
+    --preview-window=right:50%:wrap)
+  LEFT_DIR="${SELECTED_DIR:-${LEFT_DIR:-$HOME/Documents}}"
+else
+  # Fallback to default or environment variable
+  LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
 fi
 
 # ---------- session bootstrap ----------
@@ -115,38 +143,48 @@ if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
   fi
 fi
 
-# ---------- create the target window (initially in LEFT_DIR) ----------
+# ---------- create target window (starts in LEFT_DIR) ----------
 WINID="$("$TMUX_BIN" new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW" -c "$LEFT_DIR")"
 "$TMUX_BIN" select-window -t "$WINID"
 
-# Remove the bootstrap "tmp" window if it exists (best-effort).
+# Remove the bootstrap "tmp" window if present
 if "$TMUX_BIN" list-windows -t "$SESSION" -F '#{window_name}' | grep -qx 'tmp'; then
   "$TMUX_BIN" kill-window -t "${SESSION}:tmp" 2>/dev/null || true
 fi
 
-# ---------- layout construction (percent-only; single rounding pass for the horizontal line) ----------
+# ---------- layout (percent-only; one horizontal rounding pass) ----------
 # 1) Full-width horizontal split (rounding happens exactly once here).
 ROOT_ID="$("$TMUX_BIN" display -t "$WINID" -p '#{pane_id}')"
 BL_ID="$("$TMUX_BIN" split-window -t "$ROOT_ID" -v -p "$BOTTOM_ROW_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
 TL_ID="$ROOT_ID"
 
-# 2) Split both rows vertically by the SAME percentage, so the vertical boundary aligns.
+# 2) Split both rows vertically by the SAME percentage (column boundaries fixed now).
 TR_ID="$("$TMUX_BIN" split-window -t "$TL_ID" -h -p "$RIGHT_COL_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
 BR_ID="$("$TMUX_BIN" split-window -t "$BL_ID" -h -p "$RIGHT_COL_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
 
-# 3) Right-top: split vertically into RT and RM.
+# ---------- PRIORITIZE LEFT: spawn shells immediately after columns are fixed ----------
+if [[ "$LEAN_SHELL" == "1" ]]; then
+  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$TL_ID" "$SHELL_BIN" -f -i || true
+  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$BL_ID" "$SHELL_BIN" -f -i || true
+else
+  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$TL_ID" "$SHELL_BIN" || true
+  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$BL_ID" "$SHELL_BIN" || true
+fi
+
+# 3) Now finish the right column splits (left widths stay constant).
 RM_ID="$("$TMUX_BIN" split-window -t "$TR_ID" -v -p "$RIGHT_TOP_TO_MID_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
 RT_ID="$TR_ID"
-
-# 4) Bottom-right: split horizontally into BRL and BRR.
 BRR_ID="$("$TMUX_BIN" split-window -t "$BR_ID" -h -p "$BR_RIGHT_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
 BRL_ID="$BR_ID"
 
-# ---------- LEFT PANE FIX: spawn fresh shells AFTER layout to avoid prompt spam ----------
-"$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$TL_ID" "$SHELL_BIN" || true
-"$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$BL_ID" "$SHELL_BIN" || true
+# ---------- compute SINCE_DATE (BSD/GNU date) right before launching right programs ----------
+if date -v -3d +%Y%m%d >/dev/null 2>&1; then
+  SINCE_DATE="$(date -v -3d +%Y%m%d)"
+else
+  SINCE_DATE="$(date -d '3 days ago' +%Y%m%d)"
+fi
 
-# ---------- right-side programs via respawn-pane ----------
+# ---------- right-side programs ----------
 if [[ "$RUN_RIGHT_CMDS" == "1" ]]; then
   d1=$(awk "BEGIN{printf \"%.3f\", ${START_DELAY_BASE_MS}*1.00/1000}")
   d2=$(awk "BEGIN{printf \"%.3f\", ${START_DELAY_BASE_MS}*1.40/1000}")
@@ -173,7 +211,7 @@ fi
 # ---------- focus ----------
 "$TMUX_BIN" select-pane -t "$TL_ID"
 
-# ---------- optional debug output ----------
+# ---------- optional debug ----------
 if [[ "$DEBUG" == "1" ]]; then
   "$TMUX_BIN" display-message "window: h=#{window_height} w=#{window_width}"
   "$TMUX_BIN" list-panes -F '#{pane_index} #{pane_id} h=#{pane_height} w=#{pane_width} x=#{pane_left} y=#{pane_top} active=#{pane_active}'
