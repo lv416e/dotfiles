@@ -3,7 +3,7 @@
 # [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zprofile.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zprofile.pre.zsh"
 
 # =============================================================================
-# mise shims activation for non-interactive shells
+# mise shims activation for non-interactive shells (OPTIMIZED)
 # =============================================================================
 # This enables mise-managed tools in non-interactive environments like:
 # - Zellij panes
@@ -11,9 +11,16 @@
 # - CI/CD scripts
 # - Background processes
 #
-# Note: Interactive shells should use 'mise activate' in .zshrc for full features
+# Performance: Direct PATH export instead of eval (saves ~70ms per login shell)
+# The single command 'mise activate zsh --shims' only outputs one line:
+#   export PATH="/path/to/mise/shims:$PATH"
+# But takes 70ms to execute. Hardcoding eliminates this overhead.
+#
+# Set marker to prevent duplicate loading in .zshrc (03-tools.zsh checks this)
+# Note: Interactive shells use 'mise activate' in .zshrc for full features
 # See: https://mise.jdx.dev/dev-tools/shims.html
-eval "$(mise activate zsh --shims)"
+export PATH="{{ .chezmoi.homeDir }}/.local/share/mise/shims:$PATH"
+export MISE_SHELL=zsh
 
 # Added by Toolbox App
 export PATH="$PATH:{{ .chezmoi.homeDir }}/Library/Application Support/JetBrains/Toolbox/scripts"

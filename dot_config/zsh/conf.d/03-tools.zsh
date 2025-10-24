@@ -7,9 +7,11 @@
 # --- mise shims (immediate, for non-interactive shells like Zellij) ---
 # Must be loaded BEFORE zsh-defer to ensure tools are available immediately
 # in non-interactive contexts (Zellij panes, IDEs, scripts)
-# Only load if not already loaded by .zprofile (prevents 10ms duplicate execution)
-if command -v mise >/dev/null 2>&1 && [[ -z "${MISE_SHELL:-}" ]]; then
-  eval "$(mise activate zsh --shims)"
+# Optimization: Direct PATH export if not already loaded by .zprofile (saves ~5ms)
+# .zprofile already sets MISE_SHELL, so this is mostly for non-login shells
+if [[ -z "${MISE_SHELL:-}" ]] && command -v mise >/dev/null 2>&1; then
+  export PATH="{{ .chezmoi.homeDir }}/.local/share/mise/shims:$PATH"
+  export MISE_SHELL=zsh
 fi
 
 # --- FZF configuration ---

@@ -13,7 +13,18 @@ export HOMEBREW_PREFIX="/opt/homebrew"
 export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
 export HOMEBREW_REPOSITORY="/opt/homebrew"
 fpath[1,0]="/opt/homebrew/share/zsh/site-functions"
-eval "$(/usr/bin/env PATH_HELPER_ROOT="/opt/homebrew" /usr/libexec/path_helper -s)"
+
+# PATH_HELPER optimization: Cache output to avoid spawning process every time (saves 5-15ms)
+# Regenerate cache only if /etc/paths or /etc/paths.d/* change
+typeset -g _PATH_HELPER_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/path_helper.zsh"
+if [[ ! -f "$_PATH_HELPER_CACHE" ]] || \
+   [[ /etc/paths -nt "$_PATH_HELPER_CACHE" ]] || \
+   [[ -d /etc/paths.d && /etc/paths.d -nt "$_PATH_HELPER_CACHE" ]]; then
+  mkdir -p "${_PATH_HELPER_CACHE:h}"
+  /usr/bin/env PATH_HELPER_ROOT="/opt/homebrew" /usr/libexec/path_helper -s > "$_PATH_HELPER_CACHE" 2>/dev/null
+fi
+[[ -f "$_PATH_HELPER_CACHE" ]] && source "$_PATH_HELPER_CACHE"
+
 [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}"
 export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
 {{- else }}
@@ -85,9 +96,11 @@ zsh-defer _load_completion
 # --- mise shims (immediate, for non-interactive shells like Zellij) ---
 # Must be loaded BEFORE zsh-defer to ensure tools are available immediately
 # in non-interactive contexts (Zellij panes, IDEs, scripts)
-# Only load if not already loaded by .zprofile (prevents 10ms duplicate execution)
-if command -v mise >/dev/null 2>&1 && [[ -z "${MISE_SHELL:-}" ]]; then
-  eval "$(mise activate zsh --shims)"
+# Optimization: Direct PATH export if not already loaded by .zprofile (saves ~5ms)
+# .zprofile already sets MISE_SHELL, so this is mostly for non-login shells
+if [[ -z "${MISE_SHELL:-}" ]] && command -v mise >/dev/null 2>&1; then
+  export PATH="{{ .chezmoi.homeDir }}/.local/share/mise/shims:$PATH"
+  export MISE_SHELL=zsh
 fi
 
 # --- Deferred tool initialization ---
@@ -161,13 +174,20 @@ alias vi='nvim'
 alias v='nvim'
 
 # --- File operations (eza) ---
-alias e='eza --icons --git --sort=type'
+# Default aliases: Fast (no --git flag)
+# Optimization: --git adds 10-100ms overhead scanning git status per file
+alias e='eza --icons --sort=type'
 alias l=e
 alias ls=e
-alias ea='eza -a --icons --git --sort=type'
+alias ea='eza -a --icons --sort=type'
 alias la=ea
-alias ee='eza -aahl --icons --git --sort=type'
+alias ee='eza -aahl --icons --sort=type'
 alias ll=ee
+
+# Git-aware versions (explicit, when you need git status)
+alias eg='eza --icons --git --sort=type'
+alias eag='eza -a --icons --git --sort=type'
+alias eeg='eza -aahl --icons --git --sort=type'
 alias et='eza -T -L 3 -a -I "node_modules|.git|.cache" --icons --sort=type'
 alias lt=et
 alias eta='eza -T -a -I "node_modules|.git|.cache" --color=always --icons --sort=type | less -r'

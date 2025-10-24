@@ -10,17 +10,24 @@ alias vi='nvim'
 alias v='nvim'
 
 # --- File operations (eza) ---
-alias e='eza --icons --git --sort=type'
+# Default aliases: Fast (no --git flag)
+# Optimization: --git adds 10-100ms overhead scanning git status per file
+alias e='eza --icons --sort=type'
 alias l=e
 alias ls=e
-alias ea='eza -a --icons --git --sort=type'
+alias ea='eza -a --icons --sort=type'
 alias la=ea
-alias ee='eza -aahl --icons --git --sort=type'
+alias ee='eza -aahl --icons --sort=type'
 alias ll=ee
 alias et='eza -T -L 3 -a -I "node_modules|.git|.cache" --icons --sort=type'
 alias lt=et
 alias eta='eza -T -a -I "node_modules|.git|.cache" --color=always --icons --sort=type | less -r'
 alias lta=eta
+
+# Git-aware versions (explicit, when you need git status)
+alias eg='eza --icons --git --sort=type'
+alias eag='eza -a --icons --git --sort=type'
+alias eeg='eza -aahl --icons --git --sort=type'
 
 # --- Modern CLI tools ---
 alias cat='bat --paging=never'
