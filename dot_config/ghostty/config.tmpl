@@ -1,38 +1,79 @@
-# Ghostty configuration
-# https://ghostty.org/docs/config
+# ======================================================================
+# Ghostty configuration — Alacritty-parity edition
+# Goal: Make Ghostty look and feel as close to your Alacritty setup as possible.
+# Notes:
+# - Keys below are grouped by concern; Ghostty does not use sections.
+# - Every nontrivial choice is commented. Comments are intentionally explicit.
+# - Lines marked “(N/A in Ghostty)” document Alacritty options that have no
+#   first-class equivalent; behavior is either defaulted or approximated.
+# ======================================================================
 
-# ====================== FONT ======================
-# Nerd Font options (requires Nerd Font to be installed):
-# - HackGen35 Console NF (current in kitty)
-# - JetBrains Mono Nerd Font
-# - Fira Code Nerd Font
-# - Hack Nerd Font
-font-family = HackGen35 Console NF Regular
-font-size = 10.5
+# ====================== FONT & TEXT METRICS ============================
+# Use the exact same Nerd Font family and size as Alacritty.
+# NOTE: Do NOT include style name (Regular/Bold) in font-family - Ghostty will auto-detect styles
+font-family = HackGen35 Console NF
+font-size   = 11
 
-# Font rendering improvements for better appearance (macOS)
+# Enable font thickening to match Alacritty's rendering appearance
+# strength=70 matches Terminal.app/iTerm2 thickness (default macOS terminals)
 font-thicken = true
+font-thicken-strength = 70
 
-# ====================== CURSOR ======================
+# Do not synthesize fake bold/italic styles; stick to the font's real faces.
+# (Ghostty automatically maps Bold/Italic if available in the family.)
+font-synthetic-style = false
+
+# Cell adjustments to match Alacritty's compact appearance
+# - Negative cell-height reduces line spacing (makes rows tighter)
+# - Negative cell-width slightly tightens character spacing
+# - Baseline adjustment fine-tunes vertical alignment
+adjust-cell-width    = -5%
+adjust-cell-height   = -5%
+adjust-font-baseline = 0
+
+# Use standard Unicode grapheme width calculations (matches modern terminals).
+grapheme-width-method = unicode
+
+# =========================== CURSOR ====================================
+# Match Alacritty: block cursor; blinking enabled by shell/OSC/title integration.
 cursor-style = block
+# (Ghostty’s fine-grained blink interval/timeouts differ; defaults are sensible.)
 
-# ====================== WINDOW ======================
-window-padding-x = 8
-window-padding-y = 8
-window-padding-balance = true
-
-# Background opacity
-background-opacity = 0.8
-
-# Window size
-window-width = 200
+# ========================= WINDOW & PADDING ============================
+# Start dimensions in terminal columns/rows to mirror Alacritty.
+window-width  = 200
 window-height = 50
 
-# ====================== SHELL ======================
-# Auto-start multiplexer based on .chezmoi.toml.tmpl configuration
-# Switch with: switch-multiplexer tmux|zellij
+# Pixel padding around the content; match Alacritty padding {x=8,y=8}.
+window-padding-x = 8
+window-padding-y = 8
+
+# Balance extra padding evenly (Alacritty’s dynamic_padding=false → keep false).
+window-padding-balance = false
+
+# Hide the title bar (Alacritty: decorations="Buttonless").
+window-decoration = false
+
+# Optional: initial working directory (Alacritty: working_directory="~/Documents").
+# Comment out if you prefer inheriting the parent shell’s CWD.
+working-directory = ~/Documents
+
+# Close the app when the last window is closed (macOS ergonomics).
+quit-after-last-window-closed = true
+
+# ====================== TRANSPARENCY & COMPOSITING =====================
+# Alacritty opacity = 0.85 → mirror here.
+background-opacity = 0.85
+# Blur is intentionally not set. (Alacritty blur=false; Ghostty does not expose
+# a compositor blur toggle; use system/window manager if desired.)  # (N/A in Ghostty)
+
+# ========================= SHELL & STARTUP =============================
+# Keep Ghostty’s shell integration enabled for better title/cursor behavior.
 shell-integration = zsh
 shell-integration-features = cursor,sudo,title
+
+# Reproduce Alacritty’s tmux/zellij auto-attach logic via chezmoi templating.
+# NOTE: This assumes the same chezmoi variables you already use.
 {{- if eq .zsh.multiplexer "zellij" }}
 command = /bin/zsh --login -c "/opt/homebrew/bin/zellij attach -c"
 {{- else }}
@@ -43,33 +84,60 @@ command = /bin/zsh --login -c "/usr/local/bin/tmux a -t 0 || /usr/local/bin/tmux
 {{-   end }}
 {{- end }}
 
-# ====================== COLORS ======================
-# GitHub Dark theme (matching Alacritty and Kitty)
+# ========================== COLORS & THEME =============================
+# Use a GitHub Dark theme to align with your Alacritty import. Ensure the
+# theme name exists in your Ghostty theme list, or substitute a close variant.
+# Check available names with: `ghostty +list-themes`
 theme = GitHub Dark Default
 
-# High contrast setting
+# Enforce a minimum contrast ratio to preserve readability on dark backgrounds.
+# (Range typically 1.0–21.0; 4.0 is a sane accessibility baseline.)
 minimum-contrast = 4.0
 
-# ====================== MACOS SPECIFIC ======================
-macos-option-as-alt = false
-quit-after-last-window-closed = true
-window-decoration = false
-
-# ====================== MOUSE ======================
+# ==================== CLIPBOARD & SELECTION ============================
+# Mirror Alacritty’s “save_to_clipboard = true” semantics.
 copy-on-select = true
 
-# ====================== CLIPBOARD ======================
-# Allow clipboard access for image pasting
-clipboard-read = allow
+# Allow OSC 52 clipboard integration and image paste access.
+clipboard-read  = allow
 clipboard-write = allow
 
-# ====================== SCROLLBACK ======================
+# ============================ SCROLLBACK ===============================
+# Match Alacritty’s history depth.
 scrollback-limit = 100000
 
-# ====================== PERFORMANCE ======================
-# Ghostty is optimized by default, minimal config needed
+# ============================== MOUSE ==================================
+# Alacritty: hide_when_typing=true. Ghostty hides the *mouse pointer* on type
+# by system convention; no explicit knob is necessary here.  # (N/A in Ghostty)
 
-# ====================== KEYBOARD SHORTCUTS ======================
-# Ghostty uses different keybinding syntax
-# Most shortcuts work out of the box
-# Default keybindings are already good, no custom ones needed
+# ============================== BELL ===================================
+# Alacritty bell visuals are effectively disabled (duration=0). Ghostty’s bell
+# is unobtrusive by default; no additional setting is required.  # (N/A in Ghostty)
+
+# =========================== KEY BINDINGS ==============================
+# Alacritty custom bindings (CreateNewWindow, SpawnNewInstance, etc.) do not
+# map 1:1. Ghostty ships with sensible defaults (⌘N new window, ⌘T new tab,
+# ⌘W close, ⌥⌘F fullscreen on macOS). If you need exact replicas, define them
+# in Ghostty’s keybinding syntax separately.  # (Intentional omission)
+
+# ========================== ENV / TERM INFO ============================
+# Alacritty sets TERM and a few env keys in-config. Ghostty inherits TERM
+# from the login shell (commonly xterm-256color) and generally does not
+# require overriding here. If you *must* force TERM, do it in your shell rc.
+# (Avoid hardcoding TERM inside Ghostty unless strictly necessary.)  # (Best practice)
+
+# =========================== COMPAT MATRIX =============================
+# Alacritty → Ghostty equivalences you now have:
+# - font.normal/bold/italic/size        → font-family / font-size (+ native face mapping)
+# - font.offset / glyph_offset          → adjust-cell-width/height / adjust-font-baseline
+# - window.dimensions/padding/decor     → window-width/height, window-padding-*, window-decoration
+# - opacity                             → background-opacity
+# - working_directory                   → working-directory
+# - save_to_clipboard                   → copy-on-select
+# - history                             → scrollback-limit
+# - option_as_alt=None                  → macos-option-as-alt=false (default)
+# - dynamic_padding=false               → window-padding-balance=false
+# - title/dynamic_title                 → shell-integration-features includes “title”
+# Items intentionally not mirrored (API mismatch or unnecessary):
+# - blur, resize_increments, render_timer, debug toggles, bell animations.
+#   These are either not exposed by Ghostty or not needed to match appearance.

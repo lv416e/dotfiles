@@ -8,27 +8,27 @@ end)
 -- Uncomment one of the following to switch between terminals:
 
 -- -- ALACRITTY (Active)
-hs.hotkey.bind({ "⌥" }, "space", function()
-  local appName = "alacritty"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
+-- hs.hotkey.bind({ "⌥" }, "space", function()
+--   local appName = "alacritty"
+--   local app = hs.application.find(appName)
+--   local spaces = require("hs.spaces")
 
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
+--   function MoveActiveScreen(app)
+--     local window = app:focusedWindow()
+--     local focused = spaces.focusedSpace()
+--     spaces.moveWindowToSpace(window:id(), focused)
+--     window:focus()
+--   end
 
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus("Alacritty.app")
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
+--   print(app)
+--   if app == nil then
+--     hs.application.launchOrFocus("Alacritty.app")
+--   elseif app ~= nil and app:isFrontmost() then
+--     app:hide()
+--   else
+--     MoveActiveScreen(app)
+--   end
+-- end)
 
 -- -- KITTY(Inactive)
 -- hs.hotkey.bind({ "⌥" }, "space", function()
@@ -54,30 +54,8 @@ end)
 -- end)
 
 -- -- GHOSTTY (Inactive)
--- hs.hotkey.bind({ "⌥" }, "space", function()
---   local appName = "ghostty"
---   local app = hs.application.find(appName)
---   local spaces = require("hs.spaces")
---
---   function MoveActiveScreen(app)
---     local window = app:focusedWindow()
---     local focused = spaces.focusedSpace()
---     spaces.moveWindowToSpace(window:id(), focused)
---     window:focus()
---   end
---
---   print(app)
---   if app == nil then
---     hs.application.launchOrFocus("Ghostty.app")
---   elseif app ~= nil and app:isFrontmost() then
---     app:hide()
---   else
---     MoveActiveScreen(app)
---   end
--- end)
--- toggle Warp windows
-hs.hotkey.bind({ "⌥" }, "W", function()
-  local appName = "Warp"
+hs.hotkey.bind({ "⌥" }, "space", function()
+  local appName = "ghostty"
   local app = hs.application.find(appName)
   local spaces = require("hs.spaces")
 
@@ -90,13 +68,36 @@ hs.hotkey.bind({ "⌥" }, "W", function()
 
   print(app)
   if app == nil then
-    hs.application.launchOrFocus("Warp.app")
+    hs.application.launchOrFocus("Ghostty.app")
   elseif app ~= nil and app:isFrontmost() then
     app:hide()
   else
     MoveActiveScreen(app)
   end
 end)
+
+-- -- toggle Warp windows
+-- hs.hotkey.bind({ "⌥" }, "W", function()
+--   local appName = "Warp"
+--   local app = hs.application.find(appName)
+--   local spaces = require("hs.spaces")
+
+--   function MoveActiveScreen(app)
+--     local window = app:focusedWindow()
+--     local focused = spaces.focusedSpace()
+--     spaces.moveWindowToSpace(window:id(), focused)
+--     window:focus()
+--   end
+
+--   print(app)
+--   if app == nil then
+--     hs.application.launchOrFocus("Warp.app")
+--   elseif app ~= nil and app:isFrontmost() then
+--     app:hide()
+--   else
+--     MoveActiveScreen(app)
+--   end
+-- end)
 
 -- toggle Slack windows
 hs.hotkey.bind({ "⌥" }, "S", function()
