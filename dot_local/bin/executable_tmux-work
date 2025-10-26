@@ -172,6 +172,9 @@ else
 fi
 
 # Set pane title for promptq detection (TL_ID is where claude is typically opened)
+# Disable automatic-rename and allow-rename to prevent shell from overwriting title
+"$TMUX_BIN" set-option -p -t "$TL_ID" automatic-rename off
+"$TMUX_BIN" set-option -p -t "$TL_ID" allow-rename off
 "$TMUX_BIN" select-pane -t "$TL_ID" -T "claude"
 
 # 3) Now finish the right column splits (left widths stay constant).
@@ -213,6 +216,9 @@ fi
 
 # ---------- focus ----------
 # Re-set pane title after all programs have started (in case shell overwrites it)
+# Ensure options are still set (in case they were reset)
+"$TMUX_BIN" set-option -p -t "$TL_ID" automatic-rename off
+"$TMUX_BIN" set-option -p -t "$TL_ID" allow-rename off
 "$TMUX_BIN" select-pane -t "$TL_ID" -T "claude"
 "$TMUX_BIN" select-pane -t "$TL_ID"
 

@@ -102,6 +102,9 @@ tmux respawn-pane -k -t "$RTOP" "zsh -lc ' \
   exec zsh \
 '"
 # Set pane title for promptq detection
+# Disable automatic-rename and allow-rename to prevent shell from overwriting title
+tmux set-option -p -t "$RTOP" automatic-rename off
+tmux set-option -p -t "$RTOP" allow-rename off
 tmux select-pane -t "$RTOP" -T "claude"
 
 if command -v claude-monitor >/dev/null 2>&1; then
@@ -125,6 +128,9 @@ tmux respawn-pane -k -t "$RBR" "bash -lc 'btm || htop || top'"
 # Initial focus
 tmux select-window -t "${WINID}"
 # Re-set pane title after all programs have started (in case shell overwrites it)
+# Ensure options are still set (in case they were reset)
+tmux set-option -p -t "$RTOP" automatic-rename off
+tmux set-option -p -t "$RTOP" allow-rename off
 tmux select-pane -t "$RTOP" -T "claude"
 tmux select-pane -t "$RTOP"
 

@@ -329,17 +329,23 @@ When you run `promptq send`, it tries these methods in order:
 
 **Note**: When running `promptq` from inside a tmux session, it **only searches the current window** for Claude panes. This ensures prompts are sent to the nearby Claude instance and prevents accidentally sending to a different window. If no Claude is found in the current window, it will fall back to clipboard copy with a helpful message.
 
-The following tmux workspace scripts automatically set pane titles to "claude":
+The following tmux workspace scripts automatically set pane titles to "claude" and protect them from being overwritten:
 - **tmux-work**: Left-top pane (where you manually start claude)
 - **tmux-claude**: Right-top pane (auto-starts claude)
 - **tmux-nvim**: Right-top pane (auto-starts claude when `TOP_PANES=2`)
 
-To manually set a pane title:
+These scripts use `tmux set-option -p automatic-rename off` and `allow-rename off` to ensure the "claude" title persists even after shells start or commands run.
+
+To manually set a pane title and protect it from being overwritten:
 ```bash
 # In the pane where Claude Code runs
+tmux set-option -p automatic-rename off
+tmux set-option -p allow-rename off
 tmux select-pane -T "claude"
 
 # Or from another pane
+tmux set-option -p -t "%381" automatic-rename off
+tmux set-option -p -t "%381" allow-rename off
 tmux select-pane -t "%381" -T "claude"
 ```
 
