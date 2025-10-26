@@ -1,0 +1,781 @@
+#!/usr/bin/env bash
+# =============================================================================
+# promptq - Prompt Queue Manager for Claude Code
+# =============================================================================
+# A lightweight JSONL-based queue system for managing and sending prompts
+# to Claude Code via tmux send-keys or clipboard.
+#
+# Usage:
+#   promptq add "question text" [#tag1 #tag2]  - Add prompt to queue
+#   promptq list                                - List all queued prompts
+#   promptq count                               - Show queue size
+#   promptq send                                - Send first prompt (FIFO)
+#   promptq select-send                         - Interactive send with fzf
+#   promptq clear                               - Clear all queued prompts
+#   promptq help                                - Show this help
+#
+# Queue Format (JSONL):
+#   {"ts":"2025-10-26T15:00:00+09:00","text":"Question","tags":["tag1"]}
+#
+# Send Priority:
+#   1. tmux send-keys (if Claude detected in tmux pane)
+#   2. Clipboard copy (pbcopy) with notification
+#   3. Manual fallback with printed prompt
+# =============================================================================
+
+set -euo pipefail
+
+# Configuration
+readonly Q_DIR="${HOME}/.config/promptq"
+readonly QUEUE="${Q_DIR}/queue.jsonl"
+readonly SENT="${Q_DIR}/sent.jsonl"
+readonly TEMPLATES="${Q_DIR}/templates"
+readonly CONFIG="${Q_DIR}/config"
+readonly VERSION="0.1.0"
+
+# Colors
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[0;33m'
+readonly BLUE='\033[0;34m'
+readonly MAGENTA='\033[0;35m'
+readonly CYAN='\033[0;36m'
+readonly RESET='\033[0m'
+
+# =============================================================================
+# Utility Functions
+# =============================================================================
+
+# Print colored message
+msg() {
+  local color="$1"
+  shift
+  echo -e "${color}${*}${RESET}"
+}
+
+# Print error and exit
+die() {
+  msg "$RED" "❌ Error: $*" >&2
+  exit 1
+}
+
+# Ensure config directory and queue file exist
+ensure_config() {
+  mkdir -p "$Q_DIR"
+  touch "$QUEUE" "$SENT"
+}
+
+# Get ISO 8601 timestamp with timezone
+timestamp() {
+  date +"%Y-%m-%dT%H:%M:%S%z"
+}
+
+# =============================================================================
+# Queue Management Functions
+# =============================================================================
+
+# Add prompt to queue
+# Usage: add_prompt "text" ["#tag1 #tag2"]
+add_prompt() {
+  ensure_config
+
+  local text="$1"
+  local tags="${2:-}"
+
+  if [[ -z "$text" ]]; then
+    die "Prompt text cannot be empty"
+  fi
+
+  # Extract tags (words starting with #)
+  local tag_array="[]"
+  if [[ -n "$tags" ]]; then
+    # Convert "#tag1 #tag2" to ["tag1","tag2"]
+    tag_array=$(echo "$tags" | grep -oE '#[a-zA-Z0-9_-]+' | sed 's/#//g' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+  fi
+
+  # Create JSON entry using jq for safe escaping (compact format)
+  local entry
+  entry=$(jq -n -c \
+    --arg ts "$(timestamp)" \
+    --arg text "$text" \
+    --argjson tags "$tag_array" \
+    '{ts: $ts, text: $text, tags: $tags}')
+
+  echo "$entry" >> "$QUEUE"
+  msg "$GREEN" "✅ Added to queue ($(count_queue) items)"
+}
+
+# List all queued prompts
+list_queue() {
+  ensure_config
+
+  local count
+  count=$(count_queue)
+
+  if [[ $count -eq 0 ]]; then
+    msg "$YELLOW" "📭 Queue is empty"
+    return 0
+  fi
+
+  msg "$CYAN" "📋 Queue ($count items):"
+  echo ""
+
+  # Format and display with numbering
+  local idx=1
+  while IFS= read -r line; do
+    local text tags
+    text=$(echo "$line" | jq -r '.text')
+    tags=$(echo "$line" | jq -r '.tags | join(" #")' | sed 's/^/#/')
+
+    # Replace newlines with spaces for single-line display
+    text=$(echo "$text" | tr '\n' ' ' | tr -s ' ')
+
+    # Truncate long text
+    if [[ ${#text} -gt 80 ]]; then
+      text="${text:0:77}..."
+    fi
+
+    if [[ "$tags" == "#" ]]; then
+      printf "${BLUE}%2d${RESET}. %s\n" "$idx" "$text"
+    else
+      printf "${BLUE}%2d${RESET}. %s ${MAGENTA}%s${RESET}\n" "$idx" "$text" "$tags"
+    fi
+
+    ((idx++))
+  done < "$QUEUE"
+}
+
+# Count queued prompts
+count_queue() {
+  ensure_config
+  wc -l < "$QUEUE" | tr -d ' '
+}
+
+# Clear all queued prompts
+clear_queue() {
+  ensure_config
+
+  local count
+  count=$(count_queue)
+
+  if [[ $count -eq 0 ]]; then
+    msg "$YELLOW" "📭 Queue is already empty"
+    return 0
+  fi
+
+  # Backup to sent log before clearing
+  if [[ -s "$QUEUE" ]]; then
+    cat "$QUEUE" >> "$SENT"
+  fi
+
+  > "$QUEUE"
+  msg "$GREEN" "✅ Cleared $count items from queue"
+}
+
+# Filter queue by tag
+filter_by_tag() {
+  ensure_config
+
+  local tag="$1"
+  # Remove # prefix if present
+  tag="${tag#\#}"
+
+  if [[ -z "$tag" ]]; then
+    die "Usage: promptq filter #tag"
+  fi
+
+  local count=0
+  local idx=1
+
+  msg "$CYAN" "📋 Prompts tagged with #${tag}:"
+  echo ""
+
+  while IFS= read -r line; do
+    local tags_array
+    tags_array=$(echo "$line" | jq -r '.tags[]' 2>/dev/null)
+
+    # Check if tag exists in array
+    if echo "$tags_array" | grep -qx "$tag"; then
+      local text
+      text=$(echo "$line" | jq -r '.text')
+      local all_tags
+      all_tags=$(echo "$line" | jq -r '.tags | join(" #")' | sed 's/^/#/')
+
+      # Replace newlines with spaces for single-line display
+      text=$(echo "$text" | tr '\n' ' ' | tr -s ' ')
+
+      # Truncate long text
+      if [[ ${#text} -gt 80 ]]; then
+        text="${text:0:77}..."
+      fi
+
+      printf "${BLUE}%2d${RESET}. %s ${MAGENTA}%s${RESET}\n" "$idx" "$text" "$all_tags"
+      ((count++))
+    fi
+    ((idx++))
+  done < "$QUEUE"
+
+  if [[ $count -eq 0 ]]; then
+    msg "$YELLOW" "No prompts found with tag #${tag}"
+  fi
+}
+
+# List all unique tags
+list_tags() {
+  ensure_config
+
+  local count
+  count=$(count_queue)
+
+  if [[ $count -eq 0 ]]; then
+    msg "$YELLOW" "📭 Queue is empty"
+    return 0
+  fi
+
+  msg "$CYAN" "🏷️  Tags in queue:"
+  echo ""
+
+  # Extract all tags, sort, and count occurrences
+  jq -r '.tags[]' "$QUEUE" 2>/dev/null | sort | uniq -c | sort -rn | while read -r count tag; do
+    printf "${MAGENTA}#%-20s${RESET} ${BLUE}(%d)${RESET}\n" "$tag" "$count"
+  done
+}
+
+# =============================================================================
+# Template Functions
+# =============================================================================
+
+# List available templates
+list_templates() {
+  ensure_config
+  mkdir -p "$TEMPLATES"
+
+  if [[ ! -d "$TEMPLATES" ]] || [[ -z "$(ls -A "$TEMPLATES" 2>/dev/null)" ]]; then
+    msg "$YELLOW" "📝 No templates found in $TEMPLATES"
+    msg "$BLUE" "Create templates with .tmpl extension and use ${VARIABLE} for substitution"
+    return 0
+  fi
+
+  msg "$CYAN" "📝 Available templates:"
+  echo ""
+
+  for template in "$TEMPLATES"/*.tmpl; do
+    if [[ -f "$template" ]]; then
+      local name
+      name=$(basename "$template" .tmpl)
+
+      # Extract variables from template
+      local vars
+      vars=$(grep -oE '\$\{[A-Z_]+\}' "$template" 2>/dev/null | sort -u | sed 's/\${\(.*\)}/\1/' | tr '\n' ' ' || echo "")
+
+      printf "${GREEN}%-20s${RESET} " "$name"
+      if [[ -n "$vars" ]]; then
+        printf "${BLUE}Variables: ${YELLOW}%s${RESET}\n" "$vars"
+      else
+        echo ""
+      fi
+    fi
+  done
+}
+
+# Show template content
+show_template() {
+  local name="$1"
+
+  if [[ -z "$name" ]]; then
+    die "Usage: promptq template show <name>"
+  fi
+
+  local template_file="${TEMPLATES}/${name}.tmpl"
+
+  if [[ ! -f "$template_file" ]]; then
+    die "Template not found: $name"
+  fi
+
+  msg "$CYAN" "📝 Template: $name"
+  echo ""
+  cat "$template_file"
+}
+
+# Add prompt from template
+add_from_template() {
+  local name="$1"
+  shift
+
+  if [[ -z "$name" ]]; then
+    die "Usage: promptq template add <name> [VAR=value ...]"
+  fi
+
+  local template_file="${TEMPLATES}/${name}.tmpl"
+
+  if [[ ! -f "$template_file" ]]; then
+    die "Template not found: $name"
+  fi
+
+  # Read template content
+  local content
+  content=$(cat "$template_file")
+
+  # Parse and substitute variables directly
+  for arg in "$@"; do
+    if [[ "$arg" =~ ^([A-Z_]+)=(.*)$ ]]; then
+      local var="${BASH_REMATCH[1]}"
+      local val="${BASH_REMATCH[2]}"
+      # Replace all occurrences of ${VAR} with value
+      content="${content//\$\{${var}\}/${val}}"
+    fi
+  done
+
+  # Check for unsubstituted variables
+  if echo "$content" | grep -qE '\$\{[A-Z_]+\}'; then
+    local missing
+    missing=$(echo "$content" | grep -oE '\$\{[A-Z_]+\}' | sort -u | tr '\n' ' ')
+    msg "$RED" "⚠️  Missing required variables: $missing"
+    msg "$YELLOW" "Example: promptq template add $name VAR=value"
+    return 1
+  fi
+
+  # Extract tags from the last line if it starts with #
+  local text="$content"
+  local tags=""
+  local last_line
+  last_line=$(echo "$content" | tail -1)
+
+  if echo "$last_line" | grep -qE '^#[a-zA-Z0-9_-]+'; then
+    tags="$last_line"
+    # Remove last line from content (portable way)
+    text=$(echo "$content" | sed '$d')
+  fi
+
+  # Add to queue
+  add_prompt "$text" "$tags"
+}
+
+# =============================================================================
+# Send Functions
+# =============================================================================
+
+# Detect Claude Code pane in tmux
+detect_claude_pane() {
+  if ! command -v tmux &> /dev/null; then
+    return 1
+  fi
+
+  # Check if tmux server is running (works both inside and outside tmux)
+  if ! tmux list-sessions &> /dev/null; then
+    return 1
+  fi
+
+  local pane_id
+
+  # Priority 1: Use PROMPTQ_PANE environment variable if set
+  if [[ -n "${PROMPTQ_PANE:-}" ]]; then
+    # Verify the pane exists
+    if tmux list-panes -a -F '#{pane_id}' 2>/dev/null | grep -qx "$PROMPTQ_PANE"; then
+      echo "$PROMPTQ_PANE"
+      return 0
+    fi
+  fi
+
+  # Priority 2: Check config file for target_pane
+  if [[ -f "$CONFIG" ]]; then
+    local config_pane
+    config_pane=$(grep -E '^target_pane=' "$CONFIG" 2>/dev/null | cut -d= -f2)
+    if [[ -n "$config_pane" ]]; then
+      if tmux list-panes -a -F '#{pane_id}' 2>/dev/null | grep -qx "$config_pane"; then
+        echo "$config_pane"
+        return 0
+      fi
+    fi
+  fi
+
+  # Priority 3: Look for "Claude Code" in title (most specific)
+  pane_id=$(tmux list-panes -a -F '#{pane_id} #{pane_title}' 2>/dev/null | \
+    command grep -iE 'claude code' | \
+    head -1 | \
+    awk '{print $1}')
+
+  if [[ -n "$pane_id" ]]; then
+    echo "$pane_id"
+    return 0
+  fi
+
+  # Priority 4: Look for just "claude" in command or title
+  pane_id=$(tmux list-panes -a -F '#{pane_id} #{pane_current_command} #{pane_title}' 2>/dev/null | \
+    command grep -iE 'claude' | \
+    command grep -viE 'claude-monitor' | \
+    head -1 | \
+    awk '{print $1}')
+
+  if [[ -n "$pane_id" ]]; then
+    echo "$pane_id"
+    return 0
+  fi
+
+  return 1
+}
+
+# Send text to Claude via tmux
+send_via_tmux() {
+  local text="$1"
+  local pane_id="$2"
+
+  # Send text to pane (use -l for literal text, no key interpretation)
+  if tmux send-keys -t "$pane_id" -l "$text" 2>/dev/null; then
+    # Send Enter key
+    tmux send-keys -t "$pane_id" Enter 2>/dev/null
+    return 0
+  fi
+
+  return 1
+}
+
+# Send text to clipboard
+send_via_clipboard() {
+  local text="$1"
+
+  if command -v pbcopy &> /dev/null; then
+    echo "$text" | pbcopy
+    return 0
+  elif command -v xclip &> /dev/null; then
+    echo "$text" | xclip -selection clipboard
+    return 0
+  elif command -v xsel &> /dev/null; then
+    echo "$text" | xsel --clipboard
+    return 0
+  fi
+
+  return 1
+}
+
+# Send first prompt in queue (FIFO)
+send_prompt() {
+  ensure_config
+
+  local count
+  count=$(count_queue)
+
+  if [[ $count -eq 0 ]]; then
+    msg "$YELLOW" "📭 Queue is empty"
+    return 0
+  fi
+
+  # Get first line
+  local entry
+  entry=$(head -1 "$QUEUE")
+  local text
+  text=$(echo "$entry" | jq -r '.text')
+
+  msg "$CYAN" "📤 Sending: ${text:0:60}..."
+
+  # Try tmux first
+  local pane_id
+  if pane_id=$(detect_claude_pane); then
+    if send_via_tmux "$text" "$pane_id"; then
+      msg "$GREEN" "✅ Sent via tmux (pane: $pane_id)"
+
+      # Move to sent log and remove from queue
+      echo "$entry" >> "$SENT"
+      tail -n +2 "$QUEUE" > "${QUEUE}.tmp" && mv "${QUEUE}.tmp" "$QUEUE"
+
+      msg "$BLUE" "📋 Remaining: $(count_queue) items"
+      return 0
+    fi
+  fi
+
+  # Try clipboard
+  if send_via_clipboard "$text"; then
+    msg "$YELLOW" "📋 Copied to clipboard (paste manually)"
+
+    # Move to sent log and remove from queue
+    echo "$entry" >> "$SENT"
+    tail -n +2 "$QUEUE" > "${QUEUE}.tmp" && mv "${QUEUE}.tmp" "$QUEUE"
+
+    msg "$BLUE" "📋 Remaining: $(count_queue) items"
+    return 0
+  fi
+
+  # Fallback: print to stdout
+  msg "$RED" "⚠️  Could not send automatically"
+  msg "$YELLOW" "Please copy manually:"
+  echo ""
+  echo "$text"
+
+  return 1
+}
+
+# Interactive send with fzf
+select_and_send() {
+  ensure_config
+
+  local count
+  count=$(count_queue)
+
+  if [[ $count -eq 0 ]]; then
+    msg "$YELLOW" "📭 Queue is empty"
+    return 0
+  fi
+
+  if ! command -v fzf &> /dev/null; then
+    die "fzf is not installed. Install with: brew install fzf"
+  fi
+
+  # Format queue for fzf
+  local selected_idx
+  selected_idx=$(awk '{print NR ". " $0}' "$QUEUE" | \
+    fzf --height 50% \
+        --reverse \
+        --header "Select prompt to send (ESC to cancel)" \
+        --preview 'echo {} | sed "s/^[0-9]*\. //" | jq -r ".text"' \
+        --preview-window=up:3:wrap | \
+    awk '{print $1}' | \
+    tr -d '.')
+
+  if [[ -z "$selected_idx" ]]; then
+    msg "$YELLOW" "❌ Cancelled"
+    return 0
+  fi
+
+  # Get selected entry
+  local entry
+  entry=$(sed -n "${selected_idx}p" "$QUEUE")
+  local text
+  text=$(echo "$entry" | jq -r '.text')
+
+  msg "$CYAN" "📤 Sending: ${text:0:60}..."
+
+  # Try tmux first
+  local pane_id
+  if pane_id=$(detect_claude_pane); then
+    if send_via_tmux "$text" "$pane_id"; then
+      msg "$GREEN" "✅ Sent via tmux (pane: $pane_id)"
+
+      # Move to sent log and remove from queue
+      echo "$entry" >> "$SENT"
+      sed -i '' "${selected_idx}d" "$QUEUE"
+
+      msg "$BLUE" "📋 Remaining: $(count_queue) items"
+      return 0
+    fi
+  fi
+
+  # Try clipboard
+  if send_via_clipboard "$text"; then
+    msg "$YELLOW" "📋 Copied to clipboard (paste manually)"
+
+    # Move to sent log and remove from queue
+    echo "$entry" >> "$SENT"
+    sed -i '' "${selected_idx}d" "$QUEUE"
+
+    msg "$BLUE" "📋 Remaining: $(count_queue) items"
+    return 0
+  fi
+
+  # Fallback: print to stdout
+  msg "$RED" "⚠️  Could not send automatically"
+  msg "$YELLOW" "Please copy manually:"
+  echo ""
+  echo "$text"
+
+  return 1
+}
+
+# =============================================================================
+# Main CLI
+# =============================================================================
+
+show_help() {
+  cat << 'EOF'
+promptq - Prompt Queue Manager for Claude Code
+
+Usage:
+  promptq add <text> [#tags]        Add prompt to queue
+  promptq list                      List all queued prompts
+  promptq count                     Show queue size
+  promptq send                      Send first prompt (FIFO)
+  promptq select-send               Interactive send with fzf
+  promptq filter <#tag>             Filter prompts by tag
+  promptq tags                      List all tags with counts
+  promptq template list             List available templates
+  promptq template show <name>      Show template content
+  promptq template add <name> ...   Add prompt from template
+  promptq config set-pane <pane>    Set target tmux pane
+  promptq config show-pane          Show current target pane
+  promptq clear                     Clear all queued prompts
+  promptq help                      Show this help
+  promptq version                   Show version
+
+Examples:
+  # Add simple prompt
+  promptq add "Explain async/await in JavaScript"
+
+  # Add with tags
+  promptq add "Review this PR" #review #urgent
+
+  # Send first prompt automatically
+  promptq send
+
+  # Interactive selection
+  promptq select-send
+
+  # Filter by tag
+  promptq filter #rust
+
+  # List all tags
+  promptq tags
+
+  # Use templates
+  promptq template list
+  promptq template show code-review
+  promptq template add explain-concept CONCEPT="async/await" LANGUAGE="rust"
+
+Queue Location:
+  ~/.config/promptq/queue.jsonl
+
+Templates Location:
+  ~/.config/promptq/templates/
+
+Send Priority:
+  1. tmux send-keys (auto-detected Claude pane)
+  2. Clipboard copy (pbcopy)
+  3. Manual output to terminal
+EOF
+}
+
+main() {
+  local cmd="${1:-help}"
+
+  case "$cmd" in
+    add|a)
+      shift
+      if [[ $# -eq 0 ]]; then
+        die "Usage: promptq add <text> [#tags]"
+      fi
+
+      local text="$1"
+      shift
+      local tags="$*"
+
+      add_prompt "$text" "$tags"
+      ;;
+
+    list|ls|l)
+      list_queue
+      ;;
+
+    count|c)
+      echo "$(count_queue)"
+      ;;
+
+    send|s)
+      send_prompt
+      ;;
+
+    select-send|ss)
+      select_and_send
+      ;;
+
+    filter|f)
+      shift
+      if [[ $# -eq 0 ]]; then
+        die "Usage: promptq filter #tag"
+      fi
+      filter_by_tag "$1"
+      ;;
+
+    tags|t)
+      list_tags
+      ;;
+
+    template|tmpl)
+      shift
+      local subcmd="${1:-list}"
+      shift || true
+
+      case "$subcmd" in
+        list|ls|l)
+          list_templates
+          ;;
+        show|s)
+          if [[ $# -eq 0 ]]; then
+            die "Usage: promptq template show <name>"
+          fi
+          show_template "$1"
+          ;;
+        add|a)
+          if [[ $# -eq 0 ]]; then
+            die "Usage: promptq template add <name> [VAR=value ...]"
+          fi
+          add_from_template "$@"
+          ;;
+        *)
+          msg "$RED" "Unknown template command: $subcmd"
+          msg "$YELLOW" "Available: list, show, add"
+          exit 1
+          ;;
+      esac
+      ;;
+
+    config|cfg)
+      shift
+      local subcmd="${1:-}"
+      shift || true
+
+      case "$subcmd" in
+        set-pane|sp)
+          if [[ $# -eq 0 ]]; then
+            die "Usage: promptq config set-pane <pane_id>"
+          fi
+          ensure_config
+          echo "target_pane=$1" > "$CONFIG"
+          msg "$GREEN" "✅ Target pane set to: $1"
+          msg "$BLUE" "Verify with: promptq config show-pane"
+          ;;
+        show-pane|gp)
+          if detect_claude_pane > /dev/null; then
+            local pane
+            pane=$(detect_claude_pane)
+            msg "$CYAN" "🎯 Target pane: $pane"
+
+            # Show pane details
+            local pane_info
+            pane_info=$(tmux list-panes -a -F '#{pane_id} #{pane_title} #{pane_current_command}' 2>/dev/null | command grep "^$pane ")
+            if [[ -n "$pane_info" ]]; then
+              msg "$BLUE" "   $pane_info"
+            fi
+          else
+            msg "$RED" "❌ No Claude Code pane detected"
+            msg "$YELLOW" "Set manually with: promptq config set-pane <pane_id>"
+            msg "$YELLOW" "List panes: tmux list-panes -a"
+          fi
+          ;;
+        *)
+          msg "$RED" "Unknown config command: $subcmd"
+          msg "$YELLOW" "Available: set-pane, show-pane"
+          exit 1
+          ;;
+      esac
+      ;;
+
+    clear|clr)
+      clear_queue
+      ;;
+
+    help|h|-h|--help)
+      show_help
+      ;;
+
+    version|v|-v|--version)
+      echo "promptq v${VERSION}"
+      ;;
+
+    *)
+      msg "$RED" "Unknown command: $cmd"
+      echo ""
+      show_help
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

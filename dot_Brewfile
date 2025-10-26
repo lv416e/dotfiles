@@ -10,7 +10,7 @@ brew "berkeley-db", link: true
 brew "bottom"
 brew "ccache"
 brew "glib"
-# brew "cheat"  # Replaced by navi
+# brew "cheat"         # Replaced by navi
 brew "chezmoi"
 brew "choose"          # Modern cut/awk alternative (intuitive syntax)
 brew "cmake"
@@ -50,7 +50,7 @@ brew "node"
 brew "marp-cli"
 brew "mise"
 brew "neovim"
-brew "helix"             # Modern modal editor with built-in LSP/tree-sitter (Kakoune-inspired)
+brew "helix"           # Modern modal editor with built-in LSP/tree-sitter (Kakoune-inspired)
 brew "ninja"
 brew "nghttp2"
 brew "openjdk"
@@ -79,15 +79,14 @@ brew "yarn"
 brew "zlib"
 brew "zoxide"
 brew "zsh-completions"
-brew "sheldon"          # Fast zsh plugin manager (Rust-based)
-# Additional useful tools
-brew "ghq"            # Git repository manager (unified directory structure)
-brew "yq"             # YAML processor (jq for YAML)
-brew "tig"            # Git text-mode interface
-brew "tokei"          # Code statistics
-brew "hyperfine"      # Benchmarking tool
-brew "bandwhich"      # Network bandwidth monitor
-brew "doggo"          # DNS client (dig alternative)
+brew "sheldon"         # Fast zsh plugin manager (Rust-based)
+brew "ghq"             # Git repository manager (unified directory structure)
+brew "yq"              # YAML processor (jq for YAML)
+brew "tig"             # Git text-mode interface
+brew "tokei"           # Code statistics
+brew "hyperfine"       # Benchmarking tool
+brew "bandwhich"       # Network bandwidth monitor
+brew "doggo"           # DNS client (dig alternative)
 brew "gitui"           # Blazing fast Git TUI (replacement for lazygit)
 brew "atuin"           # Magical shell history sync & search
 brew "lazydocker"      # Docker TUI manager
@@ -100,18 +99,18 @@ brew "age"             # Modern file encryption tool (for chezmoi secrets)
 brew "pueue"           # Task queue manager for long-running commands
 brew "ouch"            # Universal compression/decompression tool
 brew "viu"             # Terminal image viewer
-cask "alacritty"  # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
-cask "kitty"      # GPU-accelerated terminal (alternative to alacritty)
-cask "ghostty"    # Fast, native, GPU-accelerated terminal (Zig-based, experimental)
-cask "wezterm"    # Lua-configurable terminal with SSH integration
-cask "orbstack"   # Fast, lightweight Docker Desktop alternative
+cask "alacritty"       # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
+cask "kitty"           # GPU-accelerated terminal (alternative to alacritty)
+cask "ghostty"         # Fast, native, GPU-accelerated terminal (Zig-based, experimental)
+cask "wezterm"         # Lua-configurable terminal with SSH integration
+cask "orbstack"        # Fast, lightweight Docker Desktop alternative
 cask "arc"
 cask "chromedriver"
 cask "claude"
 cask "cursor"
-cask "1password"      # 1Password app (optional, enables biometric auth for CLI)
-cask "1password-cli"  # 1Password CLI for secrets management with chezmoi
-cask "dash"           # API documentation browser
+cask "1password"       # 1Password app (optional, enables biometric auth for CLI)
+cask "1password-cli"   # 1Password CLI for secrets management with chezmoi
+cask "dash"            # API documentation browser
 cask "font-hackgen-nerd"
 cask "hammerspoon"
 cask "jetbrains-toolbox"

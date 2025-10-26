@@ -112,6 +112,8 @@ if [[ -n "$RTOP" ]]; then
   claude; \
   exec zsh \
 '"
+  # Set pane title for promptq detection
+  tmux select-pane -t "$RTOP" -T "claude"
 fi
 
 if command -v claude-monitor >/dev/null 2>&1; then

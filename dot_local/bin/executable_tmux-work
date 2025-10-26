@@ -171,6 +171,9 @@ else
   "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$BL_ID" "$SHELL_BIN" || true
 fi
 
+# Set pane title for promptq detection (TL_ID is where claude is typically opened)
+"$TMUX_BIN" select-pane -t "$TL_ID" -T "claude"
+
 # 3) Now finish the right column splits (left widths stay constant).
 RM_ID="$("$TMUX_BIN" split-window -t "$TR_ID" -v -p "$RIGHT_TOP_TO_MID_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
 RT_ID="$TR_ID"

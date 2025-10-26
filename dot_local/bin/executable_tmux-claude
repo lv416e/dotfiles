@@ -101,6 +101,8 @@ tmux respawn-pane -k -t "$RTOP" "zsh -lc ' \
   claude; \
   exec zsh \
 '"
+# Set pane title for promptq detection
+tmux select-pane -t "$RTOP" -T "claude"
 
 if command -v claude-monitor >/dev/null 2>&1; then
   tmux respawn-pane -k -t "$LBOT" "claude-monitor --plan ${CLAUDE_PLAN}"
