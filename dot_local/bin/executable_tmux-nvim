@@ -72,10 +72,6 @@ fi
 echo "creating window: $WINDOW" >&2
 WINID="$(tmux new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW")"
 
-# Disable automatic-rename and allow-rename for this window to protect pane titles
-tmux set-option -w -t "$WINID" automatic-rename off
-tmux set-option -w -t "$WINID" allow-rename off
-
 # Calculate BOTTOM_PCT from terminal height (lines take priority)
 WINH="$(tmux display -p -t "$WINID" '#{window_height}')"
 if [[ -n "${BOTTOM_LINES}" ]]; then

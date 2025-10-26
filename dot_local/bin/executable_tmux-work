@@ -147,10 +147,6 @@ fi
 WINID="$("$TMUX_BIN" new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW" -c "$LEFT_DIR")"
 "$TMUX_BIN" select-window -t "$WINID"
 
-# Disable automatic-rename and allow-rename for this window to protect pane titles
-"$TMUX_BIN" set-option -w -t "$WINID" automatic-rename off
-"$TMUX_BIN" set-option -w -t "$WINID" allow-rename off
-
 # Remove the bootstrap "tmp" window if present
 if "$TMUX_BIN" list-windows -t "$SESSION" -F '#{window_name}' | grep -qx 'tmp'; then
   "$TMUX_BIN" kill-window -t "${SESSION}:tmp" 2>/dev/null || true
