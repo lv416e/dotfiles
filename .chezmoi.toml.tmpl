@@ -13,6 +13,11 @@ encryption = "age"
     variant = "monolithic"
     multiplexer = "tmux"
 
+# Difftastic integration
+# Controls conditional rendering of difftastic aliases in .gitconfig
+[data.difftastic]
+    enabled = true
+
 # 1Password integration for secrets management
 # Requires: 1password-cli (brew install --cask 1password-cli)
 # Usage in .tmpl files: onepasswordRead "op://vault/item/field"

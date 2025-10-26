@@ -20,6 +20,9 @@
 [diff]
     colorMoved = default
     algorithm = histogram
+{{- if .difftastic.enabled }}
+    tool = difftastic
+{{- end }}
 [rerere]
     enabled = true
 [push]
@@ -28,3 +31,34 @@
     prune = true
 [branch]
     sort = -committerdate
+{{- if .difftastic.enabled }}
+
+# ============================================================================
+# Difftastic Configuration
+# ============================================================================
+# Difftastic: Structural diff tool using tree-sitter AST parsing.
+# Ignores formatting changes to focus on semantic code modifications.
+#
+# Usage:
+#   git diff      → delta (default)
+#   git ddiff     → difftastic (syntax-aware diff)
+#   git dshow     → difftastic show
+#   git dlog      → difftastic log
+#   git dft FILE  → difftastic difftool
+#
+# Primary use cases:
+#   - Post-formatter analysis (Prettier, Black, rustfmt)
+#   - YAML/JSON structural changes
+#   - Refactoring reviews
+#   - Debugging sessions with extensive history
+# ============================================================================
+[difftool]
+    prompt = false
+[difftool "difftastic"]
+    cmd = difft "$LOCAL" "$REMOTE"
+[alias]
+    ddiff = -c diff.external=difft diff
+    dshow = -c diff.external=difft show --ext-diff
+    dlog = -c diff.external=difft log -p --ext-diff
+    dft = difftool
+{{- end }}

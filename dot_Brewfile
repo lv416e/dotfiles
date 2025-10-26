@@ -29,6 +29,7 @@ brew "geckodriver"
 brew "gh"
 brew "git"
 brew "git-delta"
+brew "difftastic"      # Structural diff tool - syntax-aware diffs ignoring formatting changes
 brew "gitleaks"        # Secret detection tool (also managed by mise for project-specific versions)
 brew "jj"              # Jujutsu VCS - modern Git alternative with undo and branchless workflow
 brew "git-lfs"
