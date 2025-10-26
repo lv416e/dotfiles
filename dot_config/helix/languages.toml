@@ -1,0 +1,166 @@
+# =============================================================================
+# Helix Language Server Configuration
+# =============================================================================
+# LSP servers are installed via mise (see ~/.config/mise/config.toml)
+# Check installation: hx --health <language>
+# Docs: https://docs.helix-editor.com/languages.html
+
+# =============================================================================
+# TypeScript/JavaScript
+# =============================================================================
+
+[[language]]
+name = "typescript"
+language-servers = ["typescript-language-server"]
+auto-format = true
+formatter = { command = "sh", args = ["-c", "mise exec -- prettier --parser typescript"] }
+
+[language-server.typescript-language-server]
+command = "sh"
+args = ["-c", "mise exec -- typescript-language-server --stdio"]
+
+[[language]]
+name = "javascript"
+language-servers = ["typescript-language-server"]
+auto-format = true
+formatter = { command = "prettier", args = ["--parser", "javascript"] }
+
+[[language]]
+name = "tsx"
+language-servers = ["typescript-language-server"]
+auto-format = true
+formatter = { command = "prettier", args = ["--parser", "typescript"] }
+
+[[language]]
+name = "jsx"
+language-servers = ["typescript-language-server"]
+auto-format = true
+formatter = { command = "prettier", args = ["--parser", "javascript"] }
+
+# =============================================================================
+# Python
+# =============================================================================
+
+[[language]]
+name = "python"
+language-servers = ["pyright"]
+auto-format = true
+formatter = { command = "ruff", args = ["format", "-"] }
+
+[language-server.pyright]
+command = "sh"
+args = ["-c", "mise exec -- pyright-langserver --stdio"]
+
+[language-server.pyright.config.python.analysis]
+typeCheckingMode = "basic"
+autoSearchPaths = true
+useLibraryCodeForTypes = true
+
+# =============================================================================
+# Go
+# =============================================================================
+
+[[language]]
+name = "go"
+language-servers = ["gopls"]
+auto-format = true
+formatter = { command = "gofmt" }
+
+[language-server.gopls]
+command = "gopls"
+
+[language-server.gopls.config]
+gofumpt = true
+staticcheck = true
+usePlaceholders = true
+
+# =============================================================================
+# Rust
+# =============================================================================
+
+[[language]]
+name = "rust"
+language-servers = ["rust-analyzer"]
+auto-format = true
+
+[language-server.rust-analyzer]
+command = "rust-analyzer"
+
+[language-server.rust-analyzer.config]
+check.command = "clippy"
+diagnostics.disabled = ["unresolved-proc-macro"]
+
+[language-server.rust-analyzer.config.cargo]
+features = "all"
+
+# =============================================================================
+# C/C++
+# =============================================================================
+
+[[language]]
+name = "c"
+language-servers = ["clangd"]
+auto-format = true
+
+[[language]]
+name = "cpp"
+language-servers = ["clangd"]
+auto-format = true
+
+[language-server.clangd]
+command = "clangd"
+args = ["--background-index", "--clang-tidy", "--completion-style=detailed"]
+
+# =============================================================================
+# HTML/CSS/JSON
+# =============================================================================
+
+[[language]]
+name = "html"
+language-servers = ["vscode-html-language-server"]
+auto-format = true
+formatter = { command = "prettier", args = ["--parser", "html"] }
+
+[[language]]
+name = "css"
+language-servers = ["vscode-css-language-server"]
+auto-format = true
+formatter = { command = "prettier", args = ["--parser", "css"] }
+
+[[language]]
+name = "json"
+language-servers = ["vscode-json-language-server"]
+auto-format = true
+formatter = { command = "prettier", args = ["--parser", "json"] }
+
+# =============================================================================
+# Markdown
+# =============================================================================
+
+[[language]]
+name = "markdown"
+auto-format = true
+formatter = { command = "prettier", args = ["--parser", "markdown"] }
+
+# =============================================================================
+# TOML/YAML
+# =============================================================================
+
+[[language]]
+name = "toml"
+auto-format = true
+formatter = { command = "prettier", args = ["--parser", "toml"] }
+
+[[language]]
+name = "yaml"
+auto-format = true
+formatter = { command = "prettier", args = ["--parser", "yaml"] }
+
+# =============================================================================
+# Shell
+# =============================================================================
+
+[[language]]
+name = "bash"
+auto-format = true
+formatter = { command = "shfmt", args = ["-i", "2"] }
