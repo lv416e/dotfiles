@@ -1,0 +1,62 @@
+# =============================================================================
+# Helix Editor Configuration
+# =============================================================================
+# Docs: https://docs.helix-editor.com/
+
+theme = "onedark"
+
+[editor]
+line-number = "relative"
+cursorline = true
+cursorcolumn = false
+auto-save = true
+bufferline = "multiple"
+color-modes = true
+popup-border = "all"
+text-width = 100
+rulers = [100]
+
+[editor.statusline]
+left = ["mode", "spinner", "version-control", "file-name", "read-only-indicator", "file-modification-indicator"]
+center = []
+right = ["diagnostics", "selections", "register", "position", "file-encoding"]
+
+[editor.lsp]
+enable = true
+display-messages = true
+display-inlay-hints = true
+display-signature-help-docs = true
+snippets = true
+goto-reference-include-declaration = true
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false
+
+[editor.indent-guides]
+render = true
+character = "│"
+
+[editor.soft-wrap]
+enable = true
+
+# =============================================================================
+# Keybindings
+# =============================================================================
+
+[keys.normal]
+# Tmux integration
+C-t = ":sh tmux split-window -v -p 30"
+C-h = ":sh tmux select-pane -L"
+C-l = ":sh tmux select-pane -R"
+
+# Quick save
+C-s = ":w"
+
+[keys.insert]
+# Quick exit insert mode
+j = { k = "normal_mode" }

@@ -52,6 +52,7 @@ brew "node"
 brew "marp-cli"
 brew "mise"
 brew "neovim"
+brew "helix"             # Modern modal editor with built-in LSP/tree-sitter (Kakoune-inspired)
 brew "ninja"
 brew "nghttp2"
 brew "openjdk"
