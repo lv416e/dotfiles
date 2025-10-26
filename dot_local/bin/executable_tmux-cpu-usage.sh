@@ -15,8 +15,10 @@ if [[ -f "$CACHE_FILE" ]]; then
 fi
 
 # Get CPU idle percentage using iostat (much faster than top)
-# iostat shows: %user %nice %sys %idle
-CPU_IDLE=$(iostat -c 2 -w 1 | tail -n 1 | awk '{print $6}' 2>/dev/null || echo "0")
+# iostat output format: ... us sy id ...
+# Use $(NF-3) to get 'id' (idle) field from the end of the line
+# -w 3: 3-second sampling interval for more stable average
+CPU_IDLE=$(iostat -c 2 -w 3 | tail -n 1 | awk '{print $(NF-3)}' 2>/dev/null || echo "0")
 
 # Calculate CPU usage (100 - idle)
 if [[ -n "$CPU_IDLE" ]] && [[ "$CPU_IDLE" != "0" ]]; then
