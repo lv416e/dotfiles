@@ -58,6 +58,7 @@ source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/04-env.zsh"
 zsh-defer source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/05-aliases.zsh"
 zsh-defer source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/06-functions.zsh"
 zsh-defer source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/07-repo.zsh"
+zsh-defer source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/08-promptq.zsh"
 
 # Performance profiling (uncomment when benchmarking)
 # zprof | head -40
@@ -84,4 +85,5 @@ source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/04-env.zsh"
 zsh-defer source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/05-aliases.zsh"
 zsh-defer source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/06-functions.zsh"
 zsh-defer source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/07-repo.zsh"
+zsh-defer source "${ZDOTDIR:-{{ .chezmoi.homeDir }}/.config/zsh}/conf.d/08-promptq.zsh"
 {{- end }}
