@@ -334,24 +334,28 @@ The following tmux workspace scripts automatically set pane titles to "claude" a
 - **tmux-claude**: Right-top pane (auto-starts claude)
 - **tmux-nvim**: Right-top pane (auto-starts claude when `TOP_PANES=2`)
 
-These scripts use `tmux set-option -w automatic-rename off` and `allow-rename off` at the window level to ensure the "claude" title persists even after shells start or commands run.
+These scripts use two mechanisms to protect pane titles:
+1. **Window-level tmux options**: `automatic-rename off` and `allow-rename off` prevent tmux from automatically renaming based on running programs
+2. **Shell environment variable**: `DISABLE_AUTO_TITLE=true` prevents zsh (and oh-my-zsh) from using terminal escape sequences to override pane titles
 
 To manually set a pane title and protect it from being overwritten:
 ```bash
-# First, disable automatic renaming for the window
+# Method 1: Using tmux options (protects from tmux auto-rename)
 tmux set-option -w automatic-rename off
 tmux set-option -w allow-rename off
-
-# Then set the pane title
 tmux select-pane -T "claude"
 
-# Or from another pane/window
-tmux set-option -w -t "@77" automatic-rename off
-tmux set-option -w -t "@77" allow-rename off
+# Method 2: Start shell with DISABLE_AUTO_TITLE (protects from zsh)
+env DISABLE_AUTO_TITLE=true zsh
+
+# Method 3: Both combined (most reliable)
+tmux set-option -w automatic-rename off
+tmux set-option -w allow-rename off
+tmux respawn-pane -k -t "%381" "env DISABLE_AUTO_TITLE=true zsh"
 tmux select-pane -t "%381" -T "claude"
 ```
 
-**Note**: `automatic-rename` and `allow-rename` are **window-level options** (not pane-level), so use `-w` flag and target the window (e.g., `@77`), not the pane.
+**Note**: `automatic-rename` and `allow-rename` are **window-level options** (not pane-level), so use `-w` flag and target the window (e.g., `@77`), not the pane. The `DISABLE_AUTO_TITLE` environment variable specifically prevents zsh precmd/preexec hooks from sending terminal escape sequences that override pane titles.
 
 To configure a specific pane:
 ```bash

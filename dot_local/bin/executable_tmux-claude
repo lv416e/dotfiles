@@ -95,12 +95,13 @@ RBR="$(tmux split-window -h -p "$RIGHT_BOTTOM_SPLIT" -t "$RB1" -P -F '#{pane_id}
 RBL="$RB1"
 
 # Commands
-tmux respawn-pane -k -t "$LTOP" "zsh -lc ' \
+# Set DISABLE_AUTO_TITLE=true to prevent zsh from overwriting pane titles
+tmux respawn-pane -k -t "$LTOP" "env DISABLE_AUTO_TITLE=true zsh -lc ' \
   cd -- \"$LEFT_DIR\" 2>/dev/null || cd ~; \
   nvim; \
   exec zsh \
 '"
-tmux respawn-pane -k -t "$RTOP" "zsh -lc ' \
+tmux respawn-pane -k -t "$RTOP" "env DISABLE_AUTO_TITLE=true zsh -lc ' \
   cd -- \"$LEFT_DIR\" 2>/dev/null || cd ~; \
   claude; \
   exec zsh \
