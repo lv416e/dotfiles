@@ -321,12 +321,14 @@ When you run `promptq send`, it tries these methods in order:
 
 ### tmux Integration
 
-`promptq` automatically detects tmux panes with:
+`promptq` automatically detects tmux panes with the following priority:
 1. **Environment variable**: `export PROMPTQ_PANE="%381"` (highest priority)
 2. **Config file**: `~/.config/promptq/config` with `target_pane=%381`
-3. **Pane title "claude"**: Automatically set by tmux workspace scripts
-4. **Pane title "Claude Code"**: Default when running Claude Code
-5. **Command/title with "claude"**: Fallback detection
+3. **Current window** (when run inside tmux): Searches current window first for "claude" panes
+4. **All windows**: Searches all windows for "Claude Code" or "claude" in title/command
+5. **Fallback**: Any pane with "claude" (excluding claude-monitor)
+
+**Note**: When running `promptq` from inside a tmux session, it prioritizes Claude panes in the current window, ensuring prompts are sent to the nearby Claude instance rather than one in a different window.
 
 The following tmux workspace scripts automatically set pane titles to "claude":
 - **tmux-work**: Left-top pane (where you manually start claude)

@@ -478,7 +478,29 @@ detect_claude_pane() {
     fi
   fi
 
-  # Priority 3: Look for "Claude Code" in title (most specific)
+  # Priority 3: If inside tmux, prefer current window's panes
+  if [[ -n "${TMUX:-}" ]]; then
+    # Search in current window first
+    pane_id=$(tmux list-panes -F '#{pane_id} #{pane_title}' 2>/dev/null | \
+      command grep -iE 'claude code' | \
+      head -1 | \
+      awk '{print $1}')
+
+    if [[ -z "$pane_id" ]]; then
+      pane_id=$(tmux list-panes -F '#{pane_id} #{pane_current_command} #{pane_title}' 2>/dev/null | \
+        command grep -iE 'claude' | \
+        command grep -viE 'claude-monitor' | \
+        head -1 | \
+        awk '{print $1}')
+    fi
+
+    if [[ -n "$pane_id" ]]; then
+      echo "$pane_id"
+      return 0
+    fi
+  fi
+
+  # Priority 4: Search all windows for "Claude Code" in title
   pane_id=$(tmux list-panes -a -F '#{pane_id} #{pane_title}' 2>/dev/null | \
     command grep -iE 'claude code' | \
     head -1 | \
@@ -489,7 +511,7 @@ detect_claude_pane() {
     return 0
   fi
 
-  # Priority 4: Look for just "claude" in command or title
+  # Priority 5: Search all windows for "claude" in command or title
   pane_id=$(tmux list-panes -a -F '#{pane_id} #{pane_current_command} #{pane_title}' 2>/dev/null | \
     command grep -iE 'claude' | \
     command grep -viE 'claude-monitor' | \
@@ -609,13 +631,22 @@ select_and_send() {
     die "fzf is not installed. Install with: brew install fzf"
   fi
 
-  # Format queue for fzf
+  # Format queue for fzf with safe preview
+  # Create display format: index + truncated text + tags
+  local display_lines
+  display_lines=$(jq -r --arg q "$QUEUE" 'input_filename as $f | . as $entry |
+    (input_line_number | tostring) + ". " +
+    (.text | gsub("\n"; " ") | gsub("\\s+"; " ") | .[0:80]) +
+    (if (.text | length) > 80 then "..." else "" end) +
+    " " +
+    (if (.tags | length) > 0 then (.tags | map("#" + .) | join(" ")) else "" end)' "$QUEUE")
+
   local selected_idx
-  selected_idx=$(awk '{print NR ". " $0}' "$QUEUE" | \
+  selected_idx=$(echo "$display_lines" | \
     fzf --height 50% \
         --reverse \
         --header "Select prompt to send (ESC to cancel)" \
-        --preview 'echo {} | sed "s/^[0-9]*\. //" | jq -r ".text"' \
+        --preview "sed -n '{1}p' \"$QUEUE\" | jq -r '.text'" \
         --preview-window=up:3:wrap | \
     awk '{print $1}' | \
     tr -d '.')
