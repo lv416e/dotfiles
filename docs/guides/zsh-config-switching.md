@@ -287,9 +287,9 @@ To add a new variant (e.g., "minimal"):
 
 ## Related Documentation
 
-- [ZSH_MODULAR_CONFIG.md](ZSH_MODULAR_CONFIG.md) - Modular configuration details
-- [ZSH_ROLLBACK.md](ZSH_ROLLBACK.md) - Rollback procedures
-- [NEW_MACHINE_SETUP.md](NEW_MACHINE_SETUP.md) - New machine setup guide
+- [Zsh Modular Configuration](../explanation/zsh-modular-config.md) - Modular configuration details
+- [Zsh Rollback Guide](zsh-rollback.md) - Rollback procedures
+- [New Machine Setup](../getting-started/new-machine-setup.md) - New machine setup guide
 
 ## Technical Details
 
