@@ -147,6 +147,10 @@ fi
 WINID="$("$TMUX_BIN" new-window -P -F '#{window_id}' -t "${SESSION}:" -n "$WINDOW" -c "$LEFT_DIR")"
 "$TMUX_BIN" select-window -t "$WINID"
 
+# Disable automatic-rename and allow-rename for this window to protect pane titles
+"$TMUX_BIN" set-option -w -t "$WINID" automatic-rename off
+"$TMUX_BIN" set-option -w -t "$WINID" allow-rename off
+
 # Remove the bootstrap "tmp" window if present
 if "$TMUX_BIN" list-windows -t "$SESSION" -F '#{window_name}' | grep -qx 'tmp'; then
   "$TMUX_BIN" kill-window -t "${SESSION}:tmp" 2>/dev/null || true
@@ -172,9 +176,7 @@ else
 fi
 
 # Set pane title for promptq detection (TL_ID is where claude is typically opened)
-# Disable automatic-rename and allow-rename to prevent shell from overwriting title
-"$TMUX_BIN" set-option -p -t "$TL_ID" automatic-rename off
-"$TMUX_BIN" set-option -p -t "$TL_ID" allow-rename off
+# Window-level options are already set above, just set the pane title
 "$TMUX_BIN" select-pane -t "$TL_ID" -T "claude"
 
 # 3) Now finish the right column splits (left widths stay constant).
@@ -216,9 +218,6 @@ fi
 
 # ---------- focus ----------
 # Re-set pane title after all programs have started (in case shell overwrites it)
-# Ensure options are still set (in case they were reset)
-"$TMUX_BIN" set-option -p -t "$TL_ID" automatic-rename off
-"$TMUX_BIN" set-option -p -t "$TL_ID" allow-rename off
 "$TMUX_BIN" select-pane -t "$TL_ID" -T "claude"
 "$TMUX_BIN" select-pane -t "$TL_ID"
 

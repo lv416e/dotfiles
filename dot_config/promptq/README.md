@@ -334,20 +334,24 @@ The following tmux workspace scripts automatically set pane titles to "claude" a
 - **tmux-claude**: Right-top pane (auto-starts claude)
 - **tmux-nvim**: Right-top pane (auto-starts claude when `TOP_PANES=2`)
 
-These scripts use `tmux set-option -p automatic-rename off` and `allow-rename off` to ensure the "claude" title persists even after shells start or commands run.
+These scripts use `tmux set-option -w automatic-rename off` and `allow-rename off` at the window level to ensure the "claude" title persists even after shells start or commands run.
 
 To manually set a pane title and protect it from being overwritten:
 ```bash
-# In the pane where Claude Code runs
-tmux set-option -p automatic-rename off
-tmux set-option -p allow-rename off
+# First, disable automatic renaming for the window
+tmux set-option -w automatic-rename off
+tmux set-option -w allow-rename off
+
+# Then set the pane title
 tmux select-pane -T "claude"
 
-# Or from another pane
-tmux set-option -p -t "%381" automatic-rename off
-tmux set-option -p -t "%381" allow-rename off
+# Or from another pane/window
+tmux set-option -w -t "@77" automatic-rename off
+tmux set-option -w -t "@77" allow-rename off
 tmux select-pane -t "%381" -T "claude"
 ```
+
+**Note**: `automatic-rename` and `allow-rename` are **window-level options** (not pane-level), so use `-w` flag and target the window (e.g., `@77`), not the pane.
 
 To configure a specific pane:
 ```bash
