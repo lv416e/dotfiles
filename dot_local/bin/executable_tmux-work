@@ -212,6 +212,8 @@ if [[ "$RUN_RIGHT_CMDS" == "1" ]]; then
 fi
 
 # ---------- focus ----------
+# Re-set pane title after all programs have started (in case shell overwrites it)
+"$TMUX_BIN" select-pane -t "$TL_ID" -T "claude"
 "$TMUX_BIN" select-pane -t "$TL_ID"
 
 # ---------- optional debug ----------

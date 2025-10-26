@@ -135,7 +135,13 @@ tmux respawn-pane -k -t "$RBR" "bash -lc 'btm || htop || top'"
 
 # Initial focus
 tmux select-window -t "${WINID}"
-tmux select-pane -t "$RTOP"
+if [[ -n "$RTOP" ]]; then
+  # Re-set pane title after all programs have started (in case shell overwrites it)
+  tmux select-pane -t "$RTOP" -T "claude"
+  tmux select-pane -t "$RTOP"
+else
+  tmux select-pane -t "$LTOP"
+fi
 
 # Stabilize
 # tmux respawn-pane -k -t "$LTOP"

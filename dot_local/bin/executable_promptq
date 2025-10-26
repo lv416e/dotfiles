@@ -478,16 +478,23 @@ detect_claude_pane() {
     fi
   fi
 
-  # Priority 3: If inside tmux, prefer current window's panes
+  # Priority 3: If inside tmux, ONLY search current window
   if [[ -n "${TMUX:-}" ]]; then
-    # Search in current window first
-    pane_id=$(tmux list-panes -F '#{pane_id} #{pane_title}' 2>/dev/null | \
-      command grep -iE 'claude code' | \
+    local current_window_id
+    current_window_id=$(tmux display -p '#{window_id}' 2>/dev/null)
+
+    # Search in current window only - explicitly filter by window_id
+    # This ensures we NEVER accidentally send to a different window
+    pane_id=$(tmux list-panes -a -F '#{window_id} #{pane_id} #{pane_title}' 2>/dev/null | \
+      awk -v wid="$current_window_id" '$1 == wid {print $2, $3}' | \
+      command grep -iE 'claude' | \
       head -1 | \
       awk '{print $1}')
 
     if [[ -z "$pane_id" ]]; then
-      pane_id=$(tmux list-panes -F '#{pane_id} #{pane_current_command} #{pane_title}' 2>/dev/null | \
+      # Try searching by command in current window only
+      pane_id=$(tmux list-panes -a -F '#{window_id} #{pane_id} #{pane_current_command}' 2>/dev/null | \
+        awk -v wid="$current_window_id" '$1 == wid {print $2, $3}' | \
         command grep -iE 'claude' | \
         command grep -viE 'claude-monitor' | \
         head -1 | \
@@ -498,6 +505,10 @@ detect_claude_pane() {
       echo "$pane_id"
       return 0
     fi
+
+    # If no claude found in current window, stop here
+    # This prevents accidentally sending to a different window
+    return 1
   fi
 
   # Priority 4: Search all windows for "Claude Code" in title
@@ -592,6 +603,13 @@ send_prompt() {
       msg "$BLUE" "📋 Remaining: $(count_queue) items"
       return 0
     fi
+  else
+    # If inside tmux but no claude found in current window
+    if [[ -n "${TMUX:-}" ]]; then
+      msg "$YELLOW" "⚠️  No Claude pane found in current window"
+      msg "$BLUE" "Hint: Open Claude in this window, or set target pane:"
+      msg "$BLUE" "  promptq config set-pane <pane_id>"
+    fi
   fi
 
   # Try clipboard
@@ -634,8 +652,8 @@ select_and_send() {
   # Format queue for fzf with safe preview
   # Create display format: index + truncated text + tags
   local display_lines
-  display_lines=$(jq -r --arg q "$QUEUE" 'input_filename as $f | . as $entry |
-    (input_line_number | tostring) + ". " +
+  display_lines=$(jq -r 'input_line_number as $n |
+    ($n | tostring) + ". " +
     (.text | gsub("\n"; " ") | gsub("\\s+"; " ") | .[0:80]) +
     (if (.text | length) > 80 then "..." else "" end) +
     " " +
@@ -646,7 +664,7 @@ select_and_send() {
     fzf --height 50% \
         --reverse \
         --header "Select prompt to send (ESC to cancel)" \
-        --preview "sed -n '{1}p' \"$QUEUE\" | jq -r '.text'" \
+        --preview "LINE=\$(echo {1} | tr -d '.'); sed -n \"\${LINE}p\" \"$QUEUE\" | jq -r '.text'" \
         --preview-window=up:3:wrap | \
     awk '{print $1}' | \
     tr -d '.')
@@ -676,6 +694,13 @@ select_and_send() {
 
       msg "$BLUE" "📋 Remaining: $(count_queue) items"
       return 0
+    fi
+  else
+    # If inside tmux but no claude found in current window
+    if [[ -n "${TMUX:-}" ]]; then
+      msg "$YELLOW" "⚠️  No Claude pane found in current window"
+      msg "$BLUE" "Hint: Open Claude in this window, or set target pane:"
+      msg "$BLUE" "  promptq config set-pane <pane_id>"
     fi
   fi
 
