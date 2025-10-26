@@ -82,6 +82,7 @@ alias adot='chezmoi apply'
 
 # --- Claude Code ---
 alias ai='claude'
+alias ppq='promptq'
 
 # --- Git ---
 alias lg='gitui'
