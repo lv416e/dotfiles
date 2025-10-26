@@ -30,6 +30,7 @@ readonly Q_DIR="${HOME}/.config/promptq"
 readonly QUEUE="${Q_DIR}/queue.jsonl"
 readonly SENT="${Q_DIR}/sent.jsonl"
 readonly TEMPLATES="${Q_DIR}/templates"
+readonly SNIPPETS="${Q_DIR}/snippets"
 readonly CONFIG="${Q_DIR}/config"
 readonly VERSION="0.1.0"
 
@@ -352,6 +353,94 @@ add_from_template() {
 }
 
 # =============================================================================
+# Snippet Functions
+# =============================================================================
+
+# List available snippets
+list_snippets() {
+  ensure_config
+  mkdir -p "$SNIPPETS"
+
+  if [[ ! -d "$SNIPPETS" ]] || [[ -z "$(ls -A "$SNIPPETS" 2>/dev/null)" ]]; then
+    msg "$YELLOW" "📌 No snippets found in $SNIPPETS"
+    msg "$BLUE" "Create .txt files with fixed prompts you want to reuse"
+    return 0
+  fi
+
+  msg "$CYAN" "📌 Available snippets:"
+  echo ""
+
+  for snippet in "$SNIPPETS"/*.txt; do
+    if [[ -f "$snippet" ]]; then
+      local name
+      name=$(basename "$snippet" .txt)
+
+      # Show first line as preview (up to 60 chars)
+      local preview
+      preview=$(head -1 "$snippet" | cut -c1-60)
+      if [[ ${#preview} -eq 60 ]]; then
+        preview="${preview}..."
+      fi
+
+      printf "${GREEN}%-20s${RESET} ${BLUE}%s${RESET}\n" "$name" "$preview"
+    fi
+  done
+}
+
+# Show snippet content
+show_snippet() {
+  local name="$1"
+
+  if [[ -z "$name" ]]; then
+    die "Usage: promptq snippet show <name>"
+  fi
+
+  local snippet_file="${SNIPPETS}/${name}.txt"
+
+  if [[ ! -f "$snippet_file" ]]; then
+    die "Snippet not found: $name"
+  fi
+
+  msg "$CYAN" "📌 Snippet: $name"
+  echo ""
+  cat "$snippet_file"
+}
+
+# Add prompt from snippet
+add_from_snippet() {
+  local name="$1"
+
+  if [[ -z "$name" ]]; then
+    die "Usage: promptq snippet add <name>"
+  fi
+
+  local snippet_file="${SNIPPETS}/${name}.txt"
+
+  if [[ ! -f "$snippet_file" ]]; then
+    die "Snippet not found: $name"
+  fi
+
+  # Read snippet content
+  local content
+  content=$(cat "$snippet_file")
+
+  # Extract tags from the last line if it starts with #
+  local text="$content"
+  local tags=""
+  local last_line
+  last_line=$(echo "$content" | tail -1)
+
+  if echo "$last_line" | grep -qE '^#[a-zA-Z0-9_-]+'; then
+    tags="$last_line"
+    # Remove last line from content (portable way)
+    text=$(echo "$content" | sed '$d')
+  fi
+
+  # Add to queue
+  add_prompt "$text" "$tags"
+}
+
+# =============================================================================
 # Send Functions
 # =============================================================================
 
@@ -599,6 +688,9 @@ Usage:
   promptq template list             List available templates
   promptq template show <name>      Show template content
   promptq template add <name> ...   Add prompt from template
+  promptq snippet list              List available snippets
+  promptq snippet show <name>       Show snippet content
+  promptq snippet add <name>        Add prompt from snippet
   promptq config set-pane <pane>    Set target tmux pane
   promptq config show-pane          Show current target pane
   promptq clear                     Clear all queued prompts
@@ -629,11 +721,19 @@ Examples:
   promptq template show code-review
   promptq template add explain-concept CONCEPT="async/await" LANGUAGE="rust"
 
+  # Use snippets (reusable prompts)
+  promptq snippet list
+  promptq snippet show daily-standup
+  promptq snippet add daily-standup
+
 Queue Location:
   ~/.config/promptq/queue.jsonl
 
 Templates Location:
   ~/.config/promptq/templates/
+
+Snippets Location:
+  ~/.config/promptq/snippets/
 
 Send Priority:
   1. tmux send-keys (auto-detected Claude pane)
@@ -710,6 +810,35 @@ main() {
           ;;
         *)
           msg "$RED" "Unknown template command: $subcmd"
+          msg "$YELLOW" "Available: list, show, add"
+          exit 1
+          ;;
+      esac
+      ;;
+
+    snippet|snip)
+      shift
+      local subcmd="${1:-list}"
+      shift || true
+
+      case "$subcmd" in
+        list|ls|l)
+          list_snippets
+          ;;
+        show|s)
+          if [[ $# -eq 0 ]]; then
+            die "Usage: promptq snippet show <name>"
+          fi
+          show_snippet "$1"
+          ;;
+        add|a)
+          if [[ $# -eq 0 ]]; then
+            die "Usage: promptq snippet add <name>"
+          fi
+          add_from_snippet "$1"
+          ;;
+        *)
+          msg "$RED" "Unknown snippet command: $subcmd"
           msg "$YELLOW" "Available: list, show, add"
           exit 1
           ;;

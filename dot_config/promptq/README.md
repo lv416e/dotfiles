@@ -47,6 +47,13 @@ promptq filter "#rust"
 
 # Show all tags
 promptq tags
+
+# Use snippets (reusable prompts)
+promptq snippet list
+promptq snippet add daily-standup
+
+# Use templates (with variables)
+promptq template add explain-concept CONCEPT="async/await" LANGUAGE="rust"
 ```
 
 ## Usage
@@ -73,6 +80,14 @@ promptq tags
 | `promptq template list` | `tmpl ls` | List available templates |
 | `promptq template show <name>` | `tmpl s` | Show template content |
 | `promptq template add <name> [VARS]` | `tmpl a` | Add prompt from template |
+
+### Snippet Commands
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `promptq snippet list` | `snip ls` | List available snippets |
+| `promptq snippet show <name>` | `snip s` | Show snippet content |
+| `promptq snippet add <name>` | `snip a` | Add prompt from snippet |
 
 ## Templates
 
@@ -153,6 +168,78 @@ Use variables in format: `${VARIABLE_NAME}` (must be uppercase).
 
 Tags can be added on the last line starting with `#`.
 
+## Snippets
+
+Snippets are **reusable, fixed prompts** that can be added to your queue multiple times without modification. Unlike templates, snippets don't use variables - they're ready-to-use prompts you find yourself using repeatedly.
+
+### Using Snippets
+
+Snippets are stored in `~/.config/promptq/snippets/` with `.txt` extension.
+
+```bash
+# List available snippets
+promptq snippet list
+
+# View snippet content
+promptq snippet show daily-standup
+
+# Add snippet to queue (can be used repeatedly)
+promptq snippet add daily-standup
+```
+
+### Built-in Snippets
+
+#### daily-standup.txt
+Quick daily standup format prompt.
+
+**Example**:
+```bash
+promptq snippet add daily-standup
+```
+
+#### code-review-checklist.txt
+Comprehensive code review checklist.
+
+**Example**:
+```bash
+promptq snippet add code-review-checklist
+```
+
+#### explain-like-im-five.txt
+Request simple, beginner-friendly explanations.
+
+**Example**:
+```bash
+promptq snippet add explain-like-im-five
+```
+
+### Creating Custom Snippets
+
+Create a new file in `~/.config/promptq/snippets/`:
+
+```bash
+# Example: refactor-plan.txt
+Please help me create a refactoring plan for the following code:
+
+1. Identify code smells and issues
+2. Suggest improvements
+3. Prioritize changes by impact
+4. Consider backwards compatibility
+
+#refactor #planning
+```
+
+Snippets can include tags on the last line (just like templates).
+
+### Snippets vs Templates
+
+- **Snippets**: Fixed text, reusable, no variables
+  - Example: "Daily standup update format"
+  - Use when: Same prompt every time
+- **Templates**: Parameterized text with variables
+  - Example: "Explain ${CONCEPT} in ${LANGUAGE}"
+  - Use when: Same structure, different values
+
 ## Tag System
 
 ### Adding Tags
@@ -200,10 +287,14 @@ promptq tags
 ~/.config/promptq/
 ├── queue.jsonl          # Active queue (JSONL format)
 ├── sent.jsonl          # Sent prompts log
-├── templates/          # Custom templates
+├── templates/          # Parameterized templates
 │   ├── code-review.tmpl
 │   ├── debug-help.tmpl
 │   └── explain-concept.tmpl
+├── snippets/           # Reusable fixed prompts
+│   ├── daily-standup.txt
+│   ├── code-review-checklist.txt
+│   └── explain-like-im-five.txt
 ├── README.md           # This file
 └── INTEGRATION.md      # Editor integration guide
 ```
@@ -306,6 +397,24 @@ promptq template add debug-help \
   ACTUAL="Getting undefined"
 
 # Send and work through issues
+promptq send
+```
+
+### Daily Routine with Snippets
+
+```bash
+# Morning standup
+promptq snippet add daily-standup
+promptq send
+
+# Code review session
+promptq snippet add code-review-checklist
+promptq send
+
+# Learning something new - combine snippet + specific question
+promptq snippet add explain-like-im-five
+promptq add "Specifically about Rust's borrow checker" "#rust #learning"
+promptq send
 promptq send
 ```
 
