@@ -33,6 +33,42 @@ rust = "stable"        # Rust stable (managed by mise instead of rustup)
 # Terminal multiplexer tools
 "go:github.com/dphaener/zellijinator" = "latest"    # Zellij session manager (tmuxp/tmuxinator alternative)
 
+# =============================================================================
+# LSP Servers - Language Server Protocol for all development languages
+# =============================================================================
+
+# --- TypeScript/JavaScript ---
+"npm:typescript-language-server" = "latest"         # TypeScript/JavaScript LSP
+"npm:typescript" = "latest"                         # TypeScript compiler (required by ts-language-server)
+
+# --- Python ---
+"npm:pyright" = "latest"                            # Python LSP (fast, type-aware)
+
+# --- Go ---
+"go:golang.org/x/tools/gopls" = "latest"            # Official Go LSP
+
+# --- Rust ---
+# Note: rust-analyzer is installed via rustup (not mise)
+# Install: rustup component add rust-analyzer
+# Reason: rust-analyzer is a rustup component, not a cargo installable binary
+
+# --- C/C++ ---
+"ubi:clangd/clangd" = "latest"                      # C/C++ LSP (from GitHub releases)
+
+# --- HTML/CSS/JSON/ESLint ---
+"npm:vscode-langservers-extracted" = "latest"       # HTML, CSS, JSON, ESLint LSP servers
+
+# =============================================================================
+# Code Formatters & Linters
+# =============================================================================
+
+"npm:prettier" = "latest"                           # Multi-language formatter
+"npm:@fsouza/prettierd" = "latest"                  # Faster prettier daemon
+"cargo:stylua" = "latest"                           # Lua formatter
+"go:mvdan.cc/sh/v3/cmd/shfmt" = "latest"           # Shell script formatter
+"pipx:ruff" = "latest"                              # Fast Python linter/formatter
+"pipx:black" = "latest"                             # Python code formatter
+
 [settings]
 experimental = true
 
@@ -158,12 +194,12 @@ run = "op vault list"
 [tasks.op-items]
 description = "[1pass] List items in vault"
 alias = "opi"
-run = "op item list --vault {{ .onepassword.vault }}"
+run = "op item list --vault Personal"
 
 [tasks.op-get]
 description = "[1pass] Get item details (usage: mise op-get <item-name>)"
 alias = "opg"
-run = "op item get \"$1\" --vault {{ .onepassword.vault }}"
+run = "op item get \"$1\" --vault Personal"
 
 [tasks.secrets-age-key-backup]
 description = "[secrets] Backup age key to 1Password"
@@ -178,23 +214,23 @@ if [ ! -f ~/.config/chezmoi/key.txt ]; then
 fi
 
 # Check if item already exists
-if op item get "chezmoi-age-key" --vault {{ .onepassword.vault }} > /dev/null 2>&1; then
+if op item get "chezmoi-age-key" --vault Personal > /dev/null 2>&1; then
   echo "⚠️  'chezmoi-age-key' already exists in 1Password"
-  echo "   Delete it first with: op item delete 'chezmoi-age-key' --vault {{ .onepassword.vault }}"
+  echo "   Delete it first with: op item delete 'chezmoi-age-key' --vault Personal"
   exit 1
 fi
 
 # Create secure note with age key
 op item create --category="Secure Note" \
   --title="chezmoi-age-key" \
-  --vault={{ .onepassword.vault }} \
+  --vault=Personal \
   notesPlain="$(cat ~/.config/chezmoi/key.txt)"
 
 echo "✅ Age key backed up to 1Password as 'chezmoi-age-key'"
-echo "   Vault: {{ .onepassword.vault }}"
+echo "   Vault: Personal"
 echo ""
 echo "To restore on a new machine:"
-echo "  op item get 'chezmoi-age-key' --fields notesPlain --vault {{ .onepassword.vault }} > ~/.config/chezmoi/key.txt"
+echo "  op item get 'chezmoi-age-key' --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt"
 echo "  chmod 600 ~/.config/chezmoi/key.txt"
 """
 
@@ -218,7 +254,7 @@ fi
 mkdir -p ~/.config/chezmoi
 
 # Restore from 1Password
-op item get "chezmoi-age-key" --fields notesPlain --vault {{ .onepassword.vault }} > ~/.config/chezmoi/key.txt
+op item get "chezmoi-age-key" --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt
 chmod 600 ~/.config/chezmoi/key.txt
 
 echo "✅ Age key restored from 1Password"
@@ -238,7 +274,7 @@ echo "✅ 1Password authenticated"
 echo "\nVaults available:"
 op vault list
 echo "\nTest reading a secret (replace with your actual op:// path):"
-echo "Example: chezmoi execute-template '{{ "{{" }} onepasswordRead \"op://Personal/API/password\" {{ "}}" }}'"
+echo "Example: chezmoi execute-template '{{ onepasswordRead \"op://Personal/API/password\" }}'"
 """
 
 [tasks.secrets-list]
