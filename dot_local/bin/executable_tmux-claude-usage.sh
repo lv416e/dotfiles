@@ -2,7 +2,7 @@
 # Lightweight Claude Code usage display for tmux status bar
 set -euo pipefail
 
-# Ensure Homebrew binaries are in PATH (needed for timeout command)
+# Ensure Homebrew binaries are in PATH
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 # Get ccusage path dynamically (mise-managed or system-wide)
@@ -68,8 +68,8 @@ if [[ -f "$CACHE_FILE" ]]; then
         # Create lock file
         touch "$UPDATE_LOCK"
 
-        # Update cache in background with timeout
-        timeout 10 bash "$0" --update-cache >/dev/null 2>&1 || true
+        # Update cache in background (no timeout needed - ccusage is fast)
+        bash "$0" --update-cache >/dev/null 2>&1 || true
 
         # Remove lock file
         rm -f "$UPDATE_LOCK"
@@ -85,9 +85,9 @@ fi
 # Get today's date in the format ccusage uses (YYYY-MM-DD)
 TODAY=$(date +%Y-%m-%d)
 
-# Get JSON output with timeout to prevent hanging
-# Use shorter timeout for tmux - if it takes too long, use old cache
-JSON_OUTPUT=$(timeout 5 "$CCUSAGE" --today --json 2>/tmp/tmux-claude-usage.err || echo "")
+# Get JSON output - ccusage is fast enough that timeout isn't necessary
+# The timeout command was causing issues in tmux environment
+JSON_OUTPUT=$("$CCUSAGE" --today --json 2>/tmp/tmux-claude-usage.err || echo "")
 
 # More robust empty check
 if [[ -z "$JSON_OUTPUT" ]] || [[ "$JSON_OUTPUT" == "{}" ]] || ! echo "$JSON_OUTPUT" | grep -q '"daily"'; then
