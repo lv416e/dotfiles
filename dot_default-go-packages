@@ -1,0 +1,40 @@
+# =============================================================================
+# Default Go Packages - Auto-installed with new Go versions
+# =============================================================================
+# These packages are automatically installed whenever mise installs a new Go version
+# Managed by mise: https://mise.jdx.dev/lang/go.html
+#
+# Usage:
+#   - Packages are installed with 'go install <package>@latest'
+#   - Installed to $GOPATH/bin (managed by mise)
+#   - Available for all projects using this Go version
+
+# =============================================================================
+# Debugger
+# =============================================================================
+github.com/go-delve/delve/cmd/dlv@latest
+
+# =============================================================================
+# Language Server & Development Tools
+# =============================================================================
+golang.org/x/tools/gopls@latest            # Official Go LSP
+github.com/ramya-rao-a/go-outline@latest   # Document outline
+golang.org/x/lint/golint@latest            # Linter (deprecated but still used)
+honnef.co/go/tools/cmd/staticcheck@latest  # Advanced static analysis
+
+# =============================================================================
+# Code Generation & Refactoring
+# =============================================================================
+github.com/fatih/gomodifytags@latest       # Modify struct tags
+github.com/cweill/gotests/gotests@latest   # Generate tests
+github.com/josharian/impl@latest           # Generate interface stubs
+
+# =============================================================================
+# Package Discovery
+# =============================================================================
+github.com/uudashr/gopkgs/v2/cmd/gopkgs@latest  # List Go packages
+
+# =============================================================================
+# Learning & Experimentation
+# =============================================================================
+github.com/haya14busa/goplay/cmd/goplay@latest  # Run code in Go Playground
