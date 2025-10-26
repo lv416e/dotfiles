@@ -21,6 +21,7 @@ rust = "stable"        # Rust stable (managed by mise instead of rustup)
 "npm:ccusage" = "latest"                    # Claude Code usage tracker
 
 # Python tools (pipx/uvx)
+"pipx:pre-commit" = "latest"                # Git pre-commit framework
 "pipx:claude-monitor" = "latest"            # Claude Code usage monitor
 
 # Modern shell (experimental)
