@@ -329,40 +329,48 @@ When you run `promptq send`, it tries these methods in order:
 
 **Note**: When running `promptq` from inside a tmux session, it **only searches the current window** for Claude panes. This ensures prompts are sent to the nearby Claude instance and prevents accidentally sending to a different window. If no Claude is found in the current window, it will fall back to clipboard copy with a helpful message.
 
-The following tmux workspace scripts automatically set pane titles to "claude" and protect them from being overwritten:
+The following tmux workspace scripts automatically tag Claude panes for reliable detection:
 - **tmux-work**: Left-top pane (where you manually start claude)
 - **tmux-claude**: Right-top pane (auto-starts claude)
 - **tmux-nvim**: Right-top pane (auto-starts claude when `TOP_PANES=2`)
 
-These scripts use two mechanisms to protect pane titles:
-1. **Window-level tmux options**: `automatic-rename off` and `allow-rename off` prevent tmux from automatically renaming based on running programs
-2. **Shell environment variable**: `DISABLE_AUTO_TITLE=true` prevents zsh (and oh-my-zsh) from using terminal escape sequences to override pane titles
+### Detection Method: `@role` User Option
 
-To manually set a pane title and protect it from being overwritten:
+`promptq` uses tmux's **user options** (tmux 3.0+) to tag Claude panes with `@role=claude`. This approach is:
+- **Immune to shell overwrites**: Unlike `pane_title`, `@role` cannot be changed by zsh, vim, or other programs
+- **Stable and persistent**: Survives shell restarts, cd commands, and any terminal escape sequences
+- **Simple and reliable**: No need to configure shell settings or fight with precmd/preexec hooks
+
+**Detection Priority:**
+1. `PROMPTQ_PANE` environment variable (explicit override)
+2. `~/.config/promptq/config` file (`target_pane=...`)
+3. **Current window with `@role=claude`** (most common)
+4. **Any window with `@role=claude`** (fallback)
+5. Title/command search (backward compatibility)
+
+### Manual Tagging
+
+To tag any pane as a Claude target:
+
 ```bash
-# Method 1: Using tmux options (protects from tmux auto-rename)
-tmux set-option -w automatic-rename off
-tmux set-option -w allow-rename off
-tmux select-pane -T "claude"
+# Tag current pane
+tmux set-option -pt "$(tmux display -p '#{pane_id}')" @role "claude"
 
-# Method 2: Start shell with DISABLE_AUTO_TITLE (protects from zsh)
-env DISABLE_AUTO_TITLE=true zsh
+# Tag specific pane
+tmux set-option -pt "%381" @role "claude"
 
-# Method 3: Both combined (most reliable)
-tmux set-option -w automatic-rename off
-tmux set-option -w allow-rename off
-tmux respawn-pane -k -t "%381" "env DISABLE_AUTO_TITLE=true zsh"
-tmux select-pane -t "%381" -T "claude"
+# Verify tagged panes
+tmux list-panes -a -F '#{pane_id} role=#{?@role,#{@role},-} title=#{pane_title}'
 ```
 
-**Note**: `automatic-rename` and `allow-rename` are **window-level options** (not pane-level), so use `-w` flag and target the window (e.g., `@77`), not the pane. The `DISABLE_AUTO_TITLE` environment variable specifically prevents zsh precmd/preexec hooks from sending terminal escape sequences that override pane titles.
+**Note**: The `@role` tag is **pane-specific** and requires tmux 3.0+. It's completely independent of `pane_title`, which can still be set for visual identification but is not used for detection.
 
-To configure a specific pane:
+To configure detection behavior:
 ```bash
 # One-time setup (persists in config file)
 promptq config set-pane "%381"
 
-# Verify current target
+# Verify current detection target
 promptq config show-pane
 ```
 

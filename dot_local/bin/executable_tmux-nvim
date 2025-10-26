@@ -105,20 +105,22 @@ RBR="$(tmux split-window -h -p "$RIGHT_BOTTOM_SPLIT" -t "$RB1" -P -F '#{pane_id}
 RBL="$RB1"
 
 # Commands
-# Set DISABLE_AUTO_TITLE=true to prevent zsh from overwriting pane titles
-tmux respawn-pane -k -t "$LTOP" "env DISABLE_AUTO_TITLE=true zsh -lc ' \
+tmux respawn-pane -k -t "$LTOP" "zsh -lc ' \
   cd -- \"$LEFT_DIR\" 2>/dev/null || cd ~; \
   nvim; \
   exec zsh \
 '"
 if [[ -n "$RTOP" ]]; then
-  tmux respawn-pane -k -t "$RTOP" "env DISABLE_AUTO_TITLE=true zsh -lc ' \
+  tmux respawn-pane -k -t "$RTOP" "zsh -lc ' \
   cd -- \"$LEFT_DIR\" 2>/dev/null || cd ~; \
   claude; \
   exec zsh \
 '"
-  # Set pane title for promptq detection
-  # Window-level options are already set above, just set the pane title
+
+  # Tag RTOP pane with @role=claude for stable promptq detection (immune to title changes)
+  tmux set-option -pt "$RTOP" @role "claude"
+
+  # Optional: Set pane title for visual identification (not used for detection)
   tmux select-pane -t "$RTOP" -T "claude"
 fi
 

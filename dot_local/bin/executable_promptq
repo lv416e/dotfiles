@@ -446,89 +446,69 @@ add_from_snippet() {
 
 # Detect Claude Code pane in tmux
 detect_claude_pane() {
-  if ! command -v tmux &> /dev/null; then
-    return 1
-  fi
+  command -v tmux >/dev/null 2>&1 || return 1
+  tmux list-sessions >/dev/null 2>&1 || return 1
 
-  # Check if tmux server is running (works both inside and outside tmux)
-  if ! tmux list-sessions &> /dev/null; then
-    return 1
-  fi
-
-  local pane_id
+  # helper: verify pane exists
+  _exists() { tmux list-panes -a -F '#{pane_id}' 2>/dev/null | grep -qx "$1"; }
 
   # Priority 1: Use PROMPTQ_PANE environment variable if set
-  if [[ -n "${PROMPTQ_PANE:-}" ]]; then
-    # Verify the pane exists
-    if tmux list-panes -a -F '#{pane_id}' 2>/dev/null | grep -qx "$PROMPTQ_PANE"; then
-      echo "$PROMPTQ_PANE"
-      return 0
-    fi
+  if [[ -n "${PROMPTQ_PANE:-}" ]] && _exists "$PROMPTQ_PANE"; then
+    echo "$PROMPTQ_PANE"
+    return 0
   fi
 
   # Priority 2: Check config file for target_pane
   if [[ -f "$CONFIG" ]]; then
     local config_pane
     config_pane=$(grep -E '^target_pane=' "$CONFIG" 2>/dev/null | cut -d= -f2)
-    if [[ -n "$config_pane" ]]; then
-      if tmux list-panes -a -F '#{pane_id}' 2>/dev/null | grep -qx "$config_pane"; then
-        echo "$config_pane"
-        return 0
-      fi
+    if [[ -n "$config_pane" ]] && _exists "$config_pane"; then
+      echo "$config_pane"
+      return 0
     fi
   fi
 
-  # Priority 3: If inside tmux, ONLY search current window
+  local pane_id=""
+
+  # Priority 3: Current window, @role=claude (most specific)
   if [[ -n "${TMUX:-}" ]]; then
-    local current_window_id
-    current_window_id=$(tmux display -p '#{window_id}' 2>/dev/null)
-
-    # Search in current window only - explicitly filter by window_id
-    # This ensures we NEVER accidentally send to a different window
-    pane_id=$(tmux list-panes -a -F '#{window_id} #{pane_id} #{pane_title}' 2>/dev/null | \
-      awk -v wid="$current_window_id" '$1 == wid {print $2, $3}' | \
-      command grep -iE 'claude' | \
-      head -1 | \
-      awk '{print $1}')
-
-    if [[ -z "$pane_id" ]]; then
-      # Try searching by command in current window only
-      pane_id=$(tmux list-panes -a -F '#{window_id} #{pane_id} #{pane_current_command}' 2>/dev/null | \
-        awk -v wid="$current_window_id" '$1 == wid {print $2, $3}' | \
-        command grep -iE 'claude' | \
-        command grep -viE 'claude-monitor' | \
-        head -1 | \
-        awk '{print $1}')
-    fi
-
+    local wid
+    wid=$(tmux display -p '#{window_id}' 2>/dev/null)
+    pane_id=$(
+      tmux list-panes -F '#{window_id} #{pane_id} #{?@role,#{@role},-}' 2>/dev/null \
+      | awk -v wid="$wid" 'tolower($1)==tolower(wid) && tolower($3)=="claude" {print $2; exit}'
+    )
     if [[ -n "$pane_id" ]]; then
       echo "$pane_id"
       return 0
     fi
-
-    # If no claude found in current window, stop here
-    # This prevents accidentally sending to a different window
-    return 1
   fi
 
-  # Priority 4: Search all windows for "Claude Code" in title
-  pane_id=$(tmux list-panes -a -F '#{pane_id} #{pane_title}' 2>/dev/null | \
-    command grep -iE 'claude code' | \
-    head -1 | \
-    awk '{print $1}')
-
+  # Priority 4: Any window, @role=claude (stable tag-based detection)
+  pane_id=$(
+    tmux list-panes -a -F '#{pane_id} #{?@role,#{@role},-}' 2>/dev/null \
+    | awk 'tolower($2)=="claude" {print $1; exit}'
+  )
   if [[ -n "$pane_id" ]]; then
     echo "$pane_id"
     return 0
   fi
 
-  # Priority 5: Search all windows for "claude" in command or title
-  pane_id=$(tmux list-panes -a -F '#{pane_id} #{pane_current_command} #{pane_title}' 2>/dev/null | \
-    command grep -iE 'claude' | \
-    command grep -viE 'claude-monitor' | \
-    head -1 | \
-    awk '{print $1}')
+  # Priority 5: Fallback - title contains "claude code"
+  pane_id=$(
+    tmux list-panes -a -F '#{pane_id} #{pane_title}' 2>/dev/null \
+    | awk 'tolower($2) ~ /claude[[:space:]]+code/ {print $1; exit}'
+  )
+  if [[ -n "$pane_id" ]]; then
+    echo "$pane_id"
+    return 0
+  fi
 
+  # Priority 6: Fallback - command/title contains "claude" (exclude claude-monitor)
+  pane_id=$(
+    tmux list-panes -a -F '#{pane_id} #{pane_current_command} #{pane_title}' 2>/dev/null \
+    | awk 'BEGIN{IGNORECASE=1} $2 ~ /claude/ || $3 ~ /claude/ { if($2 !~ /claude-monitor/ && $3 !~ /claude-monitor/) {print $1; exit} }'
+  )
   if [[ -n "$pane_id" ]]; then
     echo "$pane_id"
     return 0

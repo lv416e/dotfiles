@@ -167,17 +167,18 @@ TR_ID="$("$TMUX_BIN" split-window -t "$TL_ID" -h -p "$RIGHT_COL_PCT" -c "$LEFT_D
 BR_ID="$("$TMUX_BIN" split-window -t "$BL_ID" -h -p "$RIGHT_COL_PCT" -c "$LEFT_DIR" -P -F '#{pane_id}')"
 
 # ---------- PRIORITIZE LEFT: spawn shells immediately after columns are fixed ----------
-# Set DISABLE_AUTO_TITLE=true to prevent zsh from overwriting pane titles
 if [[ "$LEAN_SHELL" == "1" ]]; then
-  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$TL_ID" "env DISABLE_AUTO_TITLE=true $SHELL_BIN -f -i" || true
-  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$BL_ID" "env DISABLE_AUTO_TITLE=true $SHELL_BIN -f -i" || true
+  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$TL_ID" "$SHELL_BIN -f -i" || true
+  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$BL_ID" "$SHELL_BIN -f -i" || true
 else
-  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$TL_ID" "env DISABLE_AUTO_TITLE=true $SHELL_BIN" || true
-  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$BL_ID" "env DISABLE_AUTO_TITLE=true $SHELL_BIN" || true
+  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$TL_ID" "$SHELL_BIN" || true
+  "$TMUX_BIN" respawn-pane -k -c "$LEFT_DIR" -t "$BL_ID" "$SHELL_BIN" || true
 fi
 
-# Set pane title for promptq detection (TL_ID is where claude is typically opened)
-# Window-level options are already set above, just set the pane title
+# Tag TL pane with @role=claude for stable promptq detection (immune to title changes)
+"$TMUX_BIN" set-option -pt "$TL_ID" @role "claude"
+
+# Optional: Set pane title for visual identification (not used for detection)
 "$TMUX_BIN" select-pane -t "$TL_ID" -T "claude"
 
 # 3) Now finish the right column splits (left widths stay constant).
