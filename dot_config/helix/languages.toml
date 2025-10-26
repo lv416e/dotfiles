@@ -45,7 +45,7 @@ formatter = { command = "prettier", args = ["--parser", "javascript"] }
 name = "python"
 language-servers = ["pyright"]
 auto-format = true
-formatter = { command = "ruff", args = ["format", "-"] }
+formatter = { command = "sh", args = ["-c", "mise exec -- ruff format -"] }
 
 [language-server.pyright]
 command = "sh"
