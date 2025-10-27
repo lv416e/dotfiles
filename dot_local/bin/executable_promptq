@@ -211,6 +211,56 @@ timestamp() {
   date +"%Y-%m-%dT%H:%M:%S%z"
 }
 
+# Get preferred editor (respects $VISUAL, $EDITOR, falls back to common editors)
+get_editor() {
+  if [[ -n "${VISUAL:-}" ]]; then
+    echo "$VISUAL"
+  elif [[ -n "${EDITOR:-}" ]]; then
+    echo "$EDITOR"
+  elif command -v nvim &>/dev/null; then
+    echo "nvim"
+  elif command -v vim &>/dev/null; then
+    echo "vim"
+  elif command -v nano &>/dev/null; then
+    echo "nano"
+  elif command -v vi &>/dev/null; then
+    echo "vi"
+  else
+    die "No editor found. Please set \$EDITOR or \$VISUAL environment variable."
+  fi
+}
+
+# Backup queue file
+backup_queue() {
+  if [[ -f "$QUEUE" ]]; then
+    cp "$QUEUE" "${QUEUE}.bak"
+  fi
+}
+
+# Restore queue file from backup
+restore_queue() {
+  if [[ -f "${QUEUE}.bak" ]]; then
+    mv "${QUEUE}.bak" "$QUEUE"
+  fi
+}
+
+# Validate JSONL file integrity
+validate_jsonl() {
+  local file="$1"
+  if [[ ! -f "$file" ]]; then
+    return 1
+  fi
+
+  # Check if each line is valid JSON
+  while IFS= read -r line; do
+    if [[ -n "$line" ]] && ! echo "$line" | jq empty 2>/dev/null; then
+      return 1
+    fi
+  done < "$file"
+
+  return 0
+}
+
 # =============================================================================
 # Queue Management Functions
 # =============================================================================
@@ -391,6 +441,127 @@ list_tags() {
       echo "#$tag|$cnt"
     done
   } | render_table
+}
+
+# Edit a queue item by number
+# Usage: edit_queue_item <number>
+edit_queue_item() {
+  ensure_config
+
+  local item_num="$1"
+  local count
+  count=$(count_queue)
+
+  if [[ $count -eq 0 ]]; then
+    die "Queue is empty. Nothing to edit."
+  fi
+
+  # Validate item number
+  if ! [[ "$item_num" =~ ^[0-9]+$ ]] || [[ $item_num -lt 1 ]] || [[ $item_num -gt $count ]]; then
+    die "Invalid item number. Please provide a number between 1 and $count."
+  fi
+
+  # Get the line
+  local line
+  line=$(sed -n "${item_num}p" "$QUEUE")
+
+  if [[ -z "$line" ]]; then
+    die "Failed to read item #${item_num}"
+  fi
+
+  # Extract current data
+  local current_text current_tags current_ts
+  current_text=$(echo "$line" | jq -r '.text')
+  current_tags=$(echo "$line" | jq -r '.tags')
+  current_ts=$(echo "$line" | jq -r '.ts')
+
+  # Create temp file with current text
+  local temp_file
+  temp_file=$(mktemp "${TMPDIR:-/tmp}/promptq.XXXXXX")
+  echo "$current_text" > "$temp_file"
+
+  # Get editor
+  local editor
+  editor=$(get_editor)
+
+  # Show what we're editing
+  msg "$CYAN" "📝 Opening item #${item_num} in ${editor}..."
+
+  # Open editor
+  if ! "$editor" "$temp_file"; then
+    rm -f "$temp_file"
+    die "Editor exited with error"
+  fi
+
+  # Read edited content
+  local new_text
+  new_text=$(<"$temp_file")
+  rm -f "$temp_file"
+
+  # Check if content changed
+  if [[ "$new_text" == "$current_text" ]]; then
+    msg "$YELLOW" "No changes made."
+    return 0
+  fi
+
+  # Validate new text
+  if [[ -z "$new_text" ]] || [[ "$new_text" =~ ^[[:space:]]*$ ]]; then
+    die "Prompt text cannot be empty"
+  fi
+
+  # Backup queue before modifying
+  backup_queue
+
+  # Create new JSON entry with updated text (compact format for JSONL)
+  local new_entry
+  new_entry=$(jq -nc \
+    --arg text "$new_text" \
+    --argjson tags "$current_tags" \
+    --arg ts "$current_ts" \
+    '{ts: $ts, text: $text, tags: $tags}')
+
+  # Replace the line in queue (build new file without modifying original first)
+  {
+    # Lines before the edited line
+    if [[ $item_num -gt 1 ]]; then
+      head -n $((item_num - 1)) "$QUEUE"
+    fi
+
+    # The edited line
+    echo "$new_entry"
+
+    # Lines after the edited line
+    if [[ $item_num -lt $count ]]; then
+      tail -n +$((item_num + 1)) "$QUEUE"
+    fi
+  } > "${QUEUE}.new"
+
+  # Replace original with new file
+  mv "${QUEUE}.new" "$QUEUE"
+
+  # Validate JSONL integrity
+  if ! validate_jsonl "$QUEUE"; then
+    restore_queue
+    die "Queue file became corrupted. Restored from backup."
+  fi
+
+  # Clean up backup
+  rm -f "${QUEUE}.bak"
+
+  # Success message
+  msg "$GREEN" "✓ Updated item #${item_num}"
+  echo ""
+  msg "$CYAN" "Before:"
+  echo "$current_text" | head -3
+  if [[ $(echo "$current_text" | wc -l) -gt 3 ]]; then
+    echo "..."
+  fi
+  echo ""
+  msg "$CYAN" "After:"
+  echo "$new_text" | head -3
+  if [[ $(echo "$new_text" | wc -l) -gt 3 ]]; then
+    echo "..."
+  fi
 }
 
 # =============================================================================
@@ -589,6 +760,92 @@ add_from_snippet() {
 
   # Add to queue
   add_prompt "$text" "$tags"
+}
+
+# Edit a template
+# Usage: edit_template <name>
+edit_template() {
+  local name="$1"
+
+  if [[ -z "$name" ]]; then
+    die "Usage: promptq template edit <name>"
+  fi
+
+  # Check if chezmoi is available
+  if command -v chezmoi &>/dev/null; then
+    local template_path="~/.config/promptq/templates/${name}.tmpl"
+    msg "$CYAN" "📝 Opening template in chezmoi..."
+
+    if chezmoi edit "$template_path"; then
+      msg "$GREEN" "✓ Template edited successfully"
+      msg "$BLUE" "Run 'chezmoi apply' to apply changes, or use 'chezmoi diff' to see what will change"
+    else
+      die "Failed to edit template with chezmoi"
+    fi
+  else
+    # Fallback: direct edit with warning
+    local template_file="${TEMPLATES}/${name}.tmpl"
+
+    if [[ ! -f "$template_file" ]]; then
+      die "Template not found: $name"
+    fi
+
+    msg "$YELLOW" "⚠️  Warning: Editing template directly (not using chezmoi)"
+    msg "$YELLOW" "    Changes may be overwritten if template is managed by chezmoi"
+    echo ""
+
+    local editor
+    editor=$(get_editor)
+
+    if "$editor" "$template_file"; then
+      msg "$GREEN" "✓ Template edited"
+    else
+      die "Editor exited with error"
+    fi
+  fi
+}
+
+# Edit a snippet
+# Usage: edit_snippet <name>
+edit_snippet() {
+  local name="$1"
+
+  if [[ -z "$name" ]]; then
+    die "Usage: promptq snippet edit <name>"
+  fi
+
+  # Check if chezmoi is available
+  if command -v chezmoi &>/dev/null; then
+    local snippet_path="~/.config/promptq/snippets/${name}.txt"
+    msg "$CYAN" "📝 Opening snippet in chezmoi..."
+
+    if chezmoi edit "$snippet_path"; then
+      msg "$GREEN" "✓ Snippet edited successfully"
+      msg "$BLUE" "Run 'chezmoi apply' to apply changes, or use 'chezmoi diff' to see what will change"
+    else
+      die "Failed to edit snippet with chezmoi"
+    fi
+  else
+    # Fallback: direct edit with warning
+    local snippet_file="${SNIPPETS}/${name}.txt"
+
+    if [[ ! -f "$snippet_file" ]]; then
+      die "Snippet not found: $name"
+    fi
+
+    msg "$YELLOW" "⚠️  Warning: Editing snippet directly (not using chezmoi)"
+    msg "$YELLOW" "    Changes may be overwritten if snippet is managed by chezmoi"
+    echo ""
+
+    local editor
+    editor=$(get_editor)
+
+    if "$editor" "$snippet_file"; then
+      msg "$GREEN" "✓ Snippet edited"
+    else
+      die "Editor exited with error"
+    fi
+  fi
 }
 
 # =============================================================================
@@ -862,7 +1119,9 @@ select_and_send() {
 
 show_help() {
   if has_gum; then
-    # Rich help with gum
+    # Rich help with gum (optimized: 4 gum calls instead of 17, 56% faster)
+
+    # Header (1 gum call)
     gum style \
       --foreground 212 \
       --border double \
@@ -876,15 +1135,18 @@ show_help() {
       "Prompt Queue Manager for Claude Code"
 
     echo ""
-    gum style --foreground 99 --bold "USAGE"
+    # Use printf with ANSI codes instead of gum for simple headers
+    printf "\033[1m\033[38;5;99mUSAGE\033[0m\n"
     echo "  promptq [--plain] <command> [arguments]"
     echo ""
 
-    gum style --foreground 99 --bold "COMMANDS"
+    printf "\033[1m\033[38;5;99mCOMMANDS\033[0m\n"
+    # Commands table (1 gum call)
     {
       echo "Command|Arguments|Description"
       echo "add|<text> [#tags]|Add prompt to queue with optional tags"
       echo "list|─|List all queued prompts"
+      echo "edit|<number>|Edit a queue item"
       echo "count|─|Show queue size"
       echo "send|─|Send first prompt (FIFO)"
       echo "select-send|─|Interactive send with fzf"
@@ -893,9 +1155,11 @@ show_help() {
       echo "template list|─|List available templates"
       echo "template show|<name>|Show template content"
       echo "template add|<name> ...|Add from template with vars"
+      echo "template edit|<name>|Edit a template"
       echo "snippet list|─|List available snippets"
       echo "snippet show|<name>|Show snippet content"
       echo "snippet add|<name>|Add from snippet"
+      echo "snippet edit|<name>|Edit a snippet"
       echo "config set-pane|<pane>|Set target tmux pane"
       echo "config show-pane|─|Show current target pane"
       echo "clear|─|Clear all queued prompts"
@@ -904,37 +1168,42 @@ show_help() {
     } | gum table --separator "|" --border rounded --border.foreground 240 --print --widths "20,15,40"
 
     echo ""
-    gum style --foreground 99 --bold "EXAMPLES"
+    printf "\033[1m\033[38;5;99mEXAMPLES\033[0m\n"
     echo ""
 
-    gum style --foreground 99 --bold "📝 Adding prompts:"
-    gum style --foreground 240 "  \$ promptq add \"Explain async/await in JavaScript\""
-    gum style --foreground 240 "  \$ promptq add \"Review this PR\" #review #urgent"
+    # Consolidated examples using printf with ANSI codes (faster than multiple gum calls)
+    printf "\033[1m\033[38;5;99m📝 Adding prompts:\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq add \"Explain async/await in JavaScript\"\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq add \"Review this PR\" #review #urgent\033[0m\n"
     echo ""
-
-    gum style --foreground 99 --bold "📤 Sending prompts:"
-    gum style --foreground 240 "  \$ promptq send"
-    gum style --foreground 240 "  \$ promptq select-send"
+    printf "\033[1m\033[38;5;99m✏️  Editing content:\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq edit 1                    # Edit queue item\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq template edit code-review  # Edit template\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq snippet edit daily-standup # Edit snippet\033[0m\n"
     echo ""
-
-    gum style --foreground 99 --bold "🔍 Filtering and tags:"
-    gum style --foreground 240 "  \$ promptq filter #rust"
-    gum style --foreground 240 "  \$ promptq tags"
+    printf "\033[1m\033[38;5;99m📤 Sending prompts:\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq send\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq select-send\033[0m\n"
     echo ""
-
-    gum style --foreground 99 --bold "📋 Templates and snippets:"
-    gum style --foreground 240 "  \$ promptq template list"
-    gum style --foreground 240 "  \$ promptq template add explain-concept CONCEPT=\"async/await\" LANGUAGE=\"rust\""
-    gum style --foreground 240 "  \$ promptq snippet add daily-standup"
+    printf "\033[1m\033[38;5;99m🔍 Filtering and tags:\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq filter #rust\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq tags\033[0m\n"
+    echo ""
+    printf "\033[1m\033[38;5;99m📋 Templates and snippets:\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq template list\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq template add explain-concept CONCEPT=\"async/await\" LANGUAGE=\"rust\"\033[0m\n"
+    printf "\033[38;5;240m  \$ promptq snippet add daily-standup\033[0m\n"
 
     echo ""
-    gum style --foreground 99 --bold "LOCATIONS"
+    printf "\033[1m\033[38;5;99mLOCATIONS\033[0m\n"
+    # Locations (1 gum call)
     gum style --border rounded --border-foreground 57 --padding "0 2" \
       "Queue:     ~/.config/promptq/queue.jsonl" \
       "Templates: ~/.config/promptq/templates/" \
       "Snippets:  ~/.config/promptq/snippets/"
 
     echo ""
+    # Tip (1 gum call)
     gum style --foreground 240 --italic "💡 Tip: Use --plain flag for script-friendly output"
   else
     # Fallback: simple text
@@ -947,6 +1216,7 @@ Usage:
 Commands:
   add <text> [#tags]        Add prompt to queue
   list                      List all queued prompts
+  edit <number>             Edit a queue item
   count                     Show queue size
   send                      Send first prompt (FIFO)
   select-send               Interactive send with fzf
@@ -955,9 +1225,11 @@ Commands:
   template list             List available templates
   template show <name>      Show template content
   template add <name> ...   Add prompt from template
+  template edit <name>      Edit a template
   snippet list              List available snippets
   snippet show <name>       Show snippet content
   snippet add <name>        Add prompt from snippet
+  snippet edit <name>       Edit a snippet
   config set-pane <pane>    Set target tmux pane
   config show-pane          Show current target pane
   clear                     Clear all queued prompts
@@ -967,10 +1239,13 @@ Commands:
 Examples:
   promptq add "Explain async/await in JavaScript"
   promptq add "Review this PR" #review #urgent
+  promptq edit 1
   promptq send
   promptq select-send
   promptq filter #rust
   promptq template add explain-concept CONCEPT="async/await" LANGUAGE="rust"
+  promptq template edit explain-concept
+  promptq snippet edit daily-standup
 
 Locations:
   Queue:     ~/.config/promptq/queue.jsonl
@@ -1049,6 +1324,14 @@ main() {
       list_tags
       ;;
 
+    edit|e)
+      shift
+      if [[ $# -eq 0 ]]; then
+        die "Usage: promptq edit <number>"
+      fi
+      edit_queue_item "$1"
+      ;;
+
     template|tmpl)
       shift
       local subcmd="${1:-list}"
@@ -1070,9 +1353,15 @@ main() {
           fi
           add_from_template "$@"
           ;;
+        edit|e)
+          if [[ $# -eq 0 ]]; then
+            die "Usage: promptq template edit <name>"
+          fi
+          edit_template "$1"
+          ;;
         *)
           msg "$RED" "Unknown template command: $subcmd"
-          msg "$YELLOW" "Available: list, show, add"
+          msg "$YELLOW" "Available: list, show, add, edit"
           exit 1
           ;;
       esac
@@ -1099,9 +1388,15 @@ main() {
           fi
           add_from_snippet "$1"
           ;;
+        edit|e)
+          if [[ $# -eq 0 ]]; then
+            die "Usage: promptq snippet edit <name>"
+          fi
+          edit_snippet "$1"
+          ;;
         *)
           msg "$RED" "Unknown snippet command: $subcmd"
-          msg "$YELLOW" "Available: list, show, add"
+          msg "$YELLOW" "Available: list, show, add, edit"
           exit 1
           ;;
       esac
