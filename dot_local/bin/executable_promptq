@@ -47,20 +47,19 @@ readonly RESET='\033[0m'
 # Modern Rendering System
 # =============================================================================
 
-# Global flag for plain output (no styling)
-PLAIN_OUTPUT="${PLAIN_OUTPUT:-0}"
+# Global flags
+PLAIN_OUTPUT="${PLAIN_OUTPUT:-0}"  # Disable styling when set to 1
+KEEP_QUEUE="${KEEP_QUEUE:-0}"      # Keep items in queue after sending when set to 1
 
 # Check if gum is available (respects PLAIN_OUTPUT flag)
 has_gum() {
   [[ "$PLAIN_OUTPUT" == "0" ]] && command -v gum >/dev/null 2>&1
 }
 
-# Render bordered header
-# Usage: render_header "text" ["icon"]
+# Render bordered header without emoji
+# Usage: render_header "text"
 render_header() {
   local text="$1"
-  local icon="${2:-📋}"
-  local display="$icon $text"
 
   if has_gum; then
     gum style \
@@ -69,17 +68,17 @@ render_header() {
       --border rounded \
       --padding "0 2" \
       --bold \
-      "$display"
+      "$text"
   else
     # Fallback: Unicode box drawing
-    local len=${#display}
+    local len=${#text}
     local border_len=$((len + 4))
 
     printf "╭"
     printf '─%.0s' $(seq 1 $border_len)
     printf "╮\n"
 
-    printf "│  %s  │\n" "$display"
+    printf "│  %s  │\n" "$text"
 
     printf "╰"
     printf '─%.0s' $(seq 1 $border_len)
@@ -196,7 +195,7 @@ msg() {
 
 # Print error and exit
 die() {
-  msg "$RED" "❌ Error: $*" >&2
+  msg "$RED" "Error: $*" >&2
   exit 1
 }
 
@@ -212,11 +211,16 @@ timestamp() {
 }
 
 # Get preferred editor (respects $VISUAL, $EDITOR, falls back to common editors)
+# Prioritizes lightweight modern editors: helix > nvim > vim
 get_editor() {
   if [[ -n "${VISUAL:-}" ]]; then
     echo "$VISUAL"
   elif [[ -n "${EDITOR:-}" ]]; then
     echo "$EDITOR"
+  elif command -v helix &>/dev/null; then
+    echo "helix"
+  elif command -v hx &>/dev/null; then
+    echo "hx"
   elif command -v nvim &>/dev/null; then
     echo "nvim"
   elif command -v vim &>/dev/null; then
@@ -293,7 +297,7 @@ add_prompt() {
     '{ts: $ts, text: $text, tags: $tags}')
 
   echo "$entry" >> "$QUEUE"
-  msg "$GREEN" "✅ Added to queue ($(count_queue) items)"
+  msg "$GREEN" "Added to queue ($(count_queue) items)"
 }
 
 # List all queued prompts
@@ -304,11 +308,11 @@ list_queue() {
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
-    render_header "Queue is empty" "📭"
+    render_header "Queue is empty"
     return 0
   fi
 
-  render_header "Prompt Queue • $count items" "📋"
+  render_header "Prompt Queue - $count items"
 
   # Build table data
   {
@@ -357,7 +361,7 @@ clear_queue() {
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
-    msg "$YELLOW" "📭 Queue is already empty"
+    msg "$YELLOW" "Queue is already empty"
     return 0
   fi
 
@@ -367,7 +371,7 @@ clear_queue() {
   fi
 
   > "$QUEUE"
-  msg "$GREEN" "✅ Cleared $count items from queue"
+  msg "$GREEN" "Cleared $count items from queue"
 }
 
 # Filter queue by tag
@@ -385,7 +389,7 @@ filter_by_tag() {
   local count=0
   local idx=1
 
-  msg "$CYAN" "📋 Prompts tagged with #${tag}:"
+  msg "$CYAN" "Prompts tagged with #${tag}:"
   echo ""
 
   while IFS= read -r line; do
@@ -426,11 +430,11 @@ list_tags() {
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
-    render_header "No tags yet" "🏷️"
+    render_header "No tags yet"
     return 0
   fi
 
-  render_header "Tags in Queue" "🏷️"
+  render_header "Tags in Queue"
 
   # Build table data
   {
@@ -443,8 +447,8 @@ list_tags() {
   } | render_table
 }
 
-# Edit a queue item by number
-# Usage: edit_queue_item <number>
+# Edit a queue item by number (or select with fzf if no number provided)
+# Usage: edit_queue_item [number]
 edit_queue_item() {
   ensure_config
 
@@ -453,7 +457,36 @@ edit_queue_item() {
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
-    die "Queue is empty. Nothing to edit."
+    msg "$YELLOW" "Queue is empty. Nothing to edit."
+    return 1
+  fi
+
+  # If no item number provided, use fzf to select
+  if [[ -z "$item_num" ]]; then
+    if ! command -v fzf &>/dev/null; then
+      die "fzf is not installed. Please provide item number: promptq edit <number>"
+    fi
+
+    msg "$CYAN" "Select item to edit:"
+    echo ""
+
+    # Build fzf list with preview
+    local selection
+    selection=$(awk 'BEGIN{idx=1} {
+      text=$0;
+      gsub(/.*"text":"/, "", text);
+      gsub(/","tags.*/, "", text);
+      if (length(text) > 60) text = substr(text, 1, 57) "...";
+      printf "%d. %s\n", idx++, text;
+    }' "$QUEUE" | fzf --height=40% --reverse --prompt="Edit> " --preview-window=hidden)
+
+    if [[ -z "$selection" ]]; then
+      msg "$YELLOW" "No item selected."
+      return 1
+    fi
+
+    # Extract number from selection
+    item_num=$(echo "$selection" | awk '{print $1}' | tr -d '.')
   fi
 
   # Validate item number
@@ -485,7 +518,7 @@ edit_queue_item() {
   editor=$(get_editor)
 
   # Show what we're editing
-  msg "$CYAN" "📝 Opening item #${item_num} in ${editor}..."
+  msg "$CYAN" "Opening item #${item_num} in ${editor}..."
 
   # Open editor
   if ! "$editor" "$temp_file"; then
@@ -549,7 +582,7 @@ edit_queue_item() {
   rm -f "${QUEUE}.bak"
 
   # Success message
-  msg "$GREEN" "✓ Updated item #${item_num}"
+  msg "$GREEN" "Updated item #${item_num}"
   echo ""
   msg "$CYAN" "Before:"
   echo "$current_text" | head -3
@@ -574,12 +607,12 @@ list_templates() {
   mkdir -p "$TEMPLATES"
 
   if [[ ! -d "$TEMPLATES" ]] || [[ -z "$(ls -A "$TEMPLATES" 2>/dev/null)" ]]; then
-    msg "$YELLOW" "📝 No templates found in $TEMPLATES"
+    msg "$YELLOW" "No templates found in $TEMPLATES"
     msg "$BLUE" "Create templates with .tmpl extension and use ${VARIABLE} for substitution"
     return 0
   fi
 
-  msg "$CYAN" "📝 Available templates:"
+  msg "$CYAN" "Available templates:"
   echo ""
 
   for template in "$TEMPLATES"/*.tmpl; do
@@ -615,7 +648,7 @@ show_template() {
     die "Template not found: $name"
   fi
 
-  msg "$CYAN" "📝 Template: $name"
+  msg "$CYAN" "Template: $name"
   echo ""
   cat "$template_file"
 }
@@ -653,7 +686,7 @@ add_from_template() {
   if echo "$content" | grep -qE '\$\{[A-Z_]+\}'; then
     local missing
     missing=$(echo "$content" | grep -oE '\$\{[A-Z_]+\}' | sort -u | tr '\n' ' ')
-    msg "$RED" "⚠️  Missing required variables: $missing"
+    msg "$RED" "Warning: Missing required variables: $missing"
     msg "$YELLOW" "Example: promptq template add $name VAR=value"
     return 1
   fi
@@ -684,12 +717,12 @@ list_snippets() {
   mkdir -p "$SNIPPETS"
 
   if [[ ! -d "$SNIPPETS" ]] || [[ -z "$(ls -A "$SNIPPETS" 2>/dev/null)" ]]; then
-    msg "$YELLOW" "📌 No snippets found in $SNIPPETS"
+    msg "$YELLOW" "No snippets found in $SNIPPETS"
     msg "$BLUE" "Create .txt files with fixed prompts you want to reuse"
     return 0
   fi
 
-  msg "$CYAN" "📌 Available snippets:"
+  msg "$CYAN" "Available snippets:"
   echo ""
 
   for snippet in "$SNIPPETS"/*.txt; do
@@ -723,7 +756,7 @@ show_snippet() {
     die "Snippet not found: $name"
   fi
 
-  msg "$CYAN" "📌 Snippet: $name"
+  msg "$CYAN" "Snippet: $name"
   echo ""
   cat "$snippet_file"
 }
@@ -762,22 +795,45 @@ add_from_snippet() {
   add_prompt "$text" "$tags"
 }
 
-# Edit a template
-# Usage: edit_template <name>
+# Edit a template (or select with fzf if no name provided)
+# Usage: edit_template [name]
 edit_template() {
   local name="$1"
 
+  # If no name provided, use fzf to select
   if [[ -z "$name" ]]; then
-    die "Usage: promptq template edit <name>"
+    mkdir -p "$TEMPLATES"
+
+    if [[ ! -d "$TEMPLATES" ]] || [[ -z "$(ls -A "$TEMPLATES" 2>/dev/null)" ]]; then
+      msg "$YELLOW" "No templates found in $TEMPLATES"
+      return 1
+    fi
+
+    if ! command -v fzf &>/dev/null; then
+      die "fzf is not installed. Please provide template name: promptq template edit <name>"
+    fi
+
+    msg "$CYAN" "Select template to edit:"
+    echo ""
+
+    local selection
+    selection=$(cd "$TEMPLATES" && ls -1 *.tmpl 2>/dev/null | sed 's/\.tmpl$//' | fzf --height=40% --reverse --prompt="Template> ")
+
+    if [[ -z "$selection" ]]; then
+      msg "$YELLOW" "No template selected."
+      return 1
+    fi
+
+    name="$selection"
   fi
 
   # Check if chezmoi is available
   if command -v chezmoi &>/dev/null; then
     local template_path="~/.config/promptq/templates/${name}.tmpl"
-    msg "$CYAN" "📝 Opening template in chezmoi..."
+    msg "$CYAN" "Opening template in chezmoi..."
 
     if chezmoi edit "$template_path"; then
-      msg "$GREEN" "✓ Template edited successfully"
+      msg "$GREEN" "Template edited successfully"
       msg "$BLUE" "Run 'chezmoi apply' to apply changes, or use 'chezmoi diff' to see what will change"
     else
       die "Failed to edit template with chezmoi"
@@ -790,7 +846,7 @@ edit_template() {
       die "Template not found: $name"
     fi
 
-    msg "$YELLOW" "⚠️  Warning: Editing template directly (not using chezmoi)"
+    msg "$YELLOW" "Warning: Editing template directly (not using chezmoi)"
     msg "$YELLOW" "    Changes may be overwritten if template is managed by chezmoi"
     echo ""
 
@@ -798,29 +854,52 @@ edit_template() {
     editor=$(get_editor)
 
     if "$editor" "$template_file"; then
-      msg "$GREEN" "✓ Template edited"
+      msg "$GREEN" "Template edited"
     else
       die "Editor exited with error"
     fi
   fi
 }
 
-# Edit a snippet
-# Usage: edit_snippet <name>
+# Edit a snippet (or select with fzf if no name provided)
+# Usage: edit_snippet [name]
 edit_snippet() {
   local name="$1"
 
+  # If no name provided, use fzf to select
   if [[ -z "$name" ]]; then
-    die "Usage: promptq snippet edit <name>"
+    mkdir -p "$SNIPPETS"
+
+    if [[ ! -d "$SNIPPETS" ]] || [[ -z "$(ls -A "$SNIPPETS" 2>/dev/null)" ]]; then
+      msg "$YELLOW" "No snippets found in $SNIPPETS"
+      return 1
+    fi
+
+    if ! command -v fzf &>/dev/null; then
+      die "fzf is not installed. Please provide snippet name: promptq snippet edit <name>"
+    fi
+
+    msg "$CYAN" "Select snippet to edit:"
+    echo ""
+
+    local selection
+    selection=$(cd "$SNIPPETS" && ls -1 *.txt 2>/dev/null | sed 's/\.txt$//' | fzf --height=40% --reverse --prompt="Snippet> ")
+
+    if [[ -z "$selection" ]]; then
+      msg "$YELLOW" "No snippet selected."
+      return 1
+    fi
+
+    name="$selection"
   fi
 
   # Check if chezmoi is available
   if command -v chezmoi &>/dev/null; then
     local snippet_path="~/.config/promptq/snippets/${name}.txt"
-    msg "$CYAN" "📝 Opening snippet in chezmoi..."
+    msg "$CYAN" "Opening snippet in chezmoi..."
 
     if chezmoi edit "$snippet_path"; then
-      msg "$GREEN" "✓ Snippet edited successfully"
+      msg "$GREEN" "Snippet edited successfully"
       msg "$BLUE" "Run 'chezmoi apply' to apply changes, or use 'chezmoi diff' to see what will change"
     else
       die "Failed to edit snippet with chezmoi"
@@ -833,7 +912,7 @@ edit_snippet() {
       die "Snippet not found: $name"
     fi
 
-    msg "$YELLOW" "⚠️  Warning: Editing snippet directly (not using chezmoi)"
+    msg "$YELLOW" "Warning: Editing snippet directly (not using chezmoi)"
     msg "$YELLOW" "    Changes may be overwritten if snippet is managed by chezmoi"
     echo ""
 
@@ -841,7 +920,7 @@ edit_snippet() {
     editor=$(get_editor)
 
     if "$editor" "$snippet_file"; then
-      msg "$GREEN" "✓ Snippet edited"
+      msg "$GREEN" "Snippet edited"
     else
       die "Editor exited with error"
     fi
@@ -966,7 +1045,7 @@ send_prompt() {
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
-    msg "$YELLOW" "📭 Queue is empty"
+    msg "$YELLOW" "Queue is empty"
     return 0
   fi
 
@@ -976,25 +1055,31 @@ send_prompt() {
   local text
   text=$(echo "$entry" | jq -r '.text')
 
-  msg "$CYAN" "📤 Sending: ${text:0:60}..."
+  msg "$CYAN" "Sending: ${text:0:60}..."
 
   # Try tmux first
   local pane_id
   if pane_id=$(detect_claude_pane); then
     if send_via_tmux "$text" "$pane_id"; then
-      msg "$GREEN" "✅ Sent via tmux (pane: $pane_id)"
+      msg "$GREEN" "Sent via tmux (pane: $pane_id)"
 
-      # Move to sent log and remove from queue
+      # Add to sent log
       echo "$entry" >> "$SENT"
-      tail -n +2 "$QUEUE" > "${QUEUE}.tmp" && mv "${QUEUE}.tmp" "$QUEUE"
 
-      msg "$BLUE" "📋 Remaining: $(count_queue) items"
+      # Remove from queue unless --keep flag is set
+      if [[ "$KEEP_QUEUE" == "0" ]]; then
+        tail -n +2 "$QUEUE" > "${QUEUE}.tmp" && mv "${QUEUE}.tmp" "$QUEUE"
+        msg "$BLUE" "Remaining: $(count_queue) items"
+      else
+        msg "$BLUE" "Kept in queue ($(count_queue) items)"
+      fi
+
       return 0
     fi
   else
     # If inside tmux but no claude found in current window
     if [[ -n "${TMUX:-}" ]]; then
-      msg "$YELLOW" "⚠️  No Claude pane found in current window"
+      msg "$YELLOW" "Warning: No Claude pane found in current window"
       msg "$BLUE" "Hint: Open Claude in this window, or set target pane:"
       msg "$BLUE" "  promptq config set-pane <pane_id>"
     fi
@@ -1002,18 +1087,24 @@ send_prompt() {
 
   # Try clipboard
   if send_via_clipboard "$text"; then
-    msg "$YELLOW" "📋 Copied to clipboard (paste manually)"
+    msg "$YELLOW" "Copied to clipboard (paste manually)"
 
-    # Move to sent log and remove from queue
+    # Add to sent log
     echo "$entry" >> "$SENT"
-    tail -n +2 "$QUEUE" > "${QUEUE}.tmp" && mv "${QUEUE}.tmp" "$QUEUE"
 
-    msg "$BLUE" "📋 Remaining: $(count_queue) items"
+    # Remove from queue unless --keep flag is set
+    if [[ "$KEEP_QUEUE" == "0" ]]; then
+      tail -n +2 "$QUEUE" > "${QUEUE}.tmp" && mv "${QUEUE}.tmp" "$QUEUE"
+      msg "$BLUE" "Remaining: $(count_queue) items"
+    else
+      msg "$BLUE" "Kept in queue ($(count_queue) items)"
+    fi
+
     return 0
   fi
 
   # Fallback: print to stdout
-  msg "$RED" "⚠️  Could not send automatically"
+  msg "$RED" "Warning: Could not send automatically"
   msg "$YELLOW" "Please copy manually:"
   echo ""
   echo "$text"
@@ -1029,7 +1120,7 @@ select_and_send() {
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
-    msg "$YELLOW" "📭 Queue is empty"
+    msg "$YELLOW" "Queue is empty"
     return 0
   fi
 
@@ -1058,7 +1149,7 @@ select_and_send() {
     tr -d '.')
 
   if [[ -z "$selected_idx" ]]; then
-    msg "$YELLOW" "❌ Cancelled"
+    msg "$YELLOW" "Cancelled"
     return 0
   fi
 
@@ -1068,25 +1159,31 @@ select_and_send() {
   local text
   text=$(echo "$entry" | jq -r '.text')
 
-  msg "$CYAN" "📤 Sending: ${text:0:60}..."
+  msg "$CYAN" "Sending: ${text:0:60}..."
 
   # Try tmux first
   local pane_id
   if pane_id=$(detect_claude_pane); then
     if send_via_tmux "$text" "$pane_id"; then
-      msg "$GREEN" "✅ Sent via tmux (pane: $pane_id)"
+      msg "$GREEN" "Sent via tmux (pane: $pane_id)"
 
-      # Move to sent log and remove from queue
+      # Add to sent log
       echo "$entry" >> "$SENT"
-      sed -i '' "${selected_idx}d" "$QUEUE"
 
-      msg "$BLUE" "📋 Remaining: $(count_queue) items"
+      # Remove from queue unless --keep flag is set
+      if [[ "$KEEP_QUEUE" == "0" ]]; then
+        sed -i '' "${selected_idx}d" "$QUEUE"
+        msg "$BLUE" "Remaining: $(count_queue) items"
+      else
+        msg "$BLUE" "Kept in queue ($(count_queue) items)"
+      fi
+
       return 0
     fi
   else
     # If inside tmux but no claude found in current window
     if [[ -n "${TMUX:-}" ]]; then
-      msg "$YELLOW" "⚠️  No Claude pane found in current window"
+      msg "$YELLOW" "Warning: No Claude pane found in current window"
       msg "$BLUE" "Hint: Open Claude in this window, or set target pane:"
       msg "$BLUE" "  promptq config set-pane <pane_id>"
     fi
@@ -1094,18 +1191,24 @@ select_and_send() {
 
   # Try clipboard
   if send_via_clipboard "$text"; then
-    msg "$YELLOW" "📋 Copied to clipboard (paste manually)"
+    msg "$YELLOW" "Copied to clipboard (paste manually)"
 
-    # Move to sent log and remove from queue
+    # Add to sent log
     echo "$entry" >> "$SENT"
-    sed -i '' "${selected_idx}d" "$QUEUE"
 
-    msg "$BLUE" "📋 Remaining: $(count_queue) items"
+    # Remove from queue unless --keep flag is set
+    if [[ "$KEEP_QUEUE" == "0" ]]; then
+      sed -i '' "${selected_idx}d" "$QUEUE"
+      msg "$BLUE" "Remaining: $(count_queue) items"
+    else
+      msg "$BLUE" "Kept in queue ($(count_queue) items)"
+    fi
+
     return 0
   fi
 
   # Fallback: print to stdout
-  msg "$RED" "⚠️  Could not send automatically"
+  msg "$RED" "Warning: Could not send automatically"
   msg "$YELLOW" "Please copy manually:"
   echo ""
   echo "$text"
@@ -1131,13 +1234,17 @@ show_help() {
       --margin "1 0" \
       --padding "1 2" \
       --bold \
-      "📋 promptq" \
+      "promptq" \
       "Prompt Queue Manager for Claude Code"
 
     echo ""
     # Use printf with ANSI codes instead of gum for simple headers
     printf "\033[1m\033[38;5;99mUSAGE\033[0m\n"
-    echo "  promptq [--plain] <command> [arguments]"
+    echo "  promptq [--plain] [--keep] <command> [arguments]"
+    echo ""
+    printf "\033[1m\033[38;5;99mGLOBAL FLAGS\033[0m\n"
+    echo "  --plain, -p    Disable styling (script-friendly output)"
+    echo "  --keep, -k     Keep items in queue after sending (reusable prompts)"
     echo ""
 
     printf "\033[1m\033[38;5;99mCOMMANDS\033[0m\n"
@@ -1172,24 +1279,24 @@ show_help() {
     echo ""
 
     # Consolidated examples using printf with ANSI codes (faster than multiple gum calls)
-    printf "\033[1m\033[38;5;99m📝 Adding prompts:\033[0m\n"
+    printf "\033[1m\033[38;5;99mAdding prompts:\033[0m\n"
     printf "\033[38;5;240m  \$ promptq add \"Explain async/await in JavaScript\"\033[0m\n"
     printf "\033[38;5;240m  \$ promptq add \"Review this PR\" #review #urgent\033[0m\n"
     echo ""
-    printf "\033[1m\033[38;5;99m✏️  Editing content:\033[0m\n"
+    printf "\033[1m\033[38;5;99mEditing content:\033[0m\n"
     printf "\033[38;5;240m  \$ promptq edit 1                    # Edit queue item\033[0m\n"
     printf "\033[38;5;240m  \$ promptq template edit code-review  # Edit template\033[0m\n"
     printf "\033[38;5;240m  \$ promptq snippet edit daily-standup # Edit snippet\033[0m\n"
     echo ""
-    printf "\033[1m\033[38;5;99m📤 Sending prompts:\033[0m\n"
+    printf "\033[1m\033[38;5;99mSending prompts:\033[0m\n"
     printf "\033[38;5;240m  \$ promptq send\033[0m\n"
     printf "\033[38;5;240m  \$ promptq select-send\033[0m\n"
     echo ""
-    printf "\033[1m\033[38;5;99m🔍 Filtering and tags:\033[0m\n"
+    printf "\033[1m\033[38;5;99mFiltering and tags:\033[0m\n"
     printf "\033[38;5;240m  \$ promptq filter #rust\033[0m\n"
     printf "\033[38;5;240m  \$ promptq tags\033[0m\n"
     echo ""
-    printf "\033[1m\033[38;5;99m📋 Templates and snippets:\033[0m\n"
+    printf "\033[1m\033[38;5;99mTemplates and snippets:\033[0m\n"
     printf "\033[38;5;240m  \$ promptq template list\033[0m\n"
     printf "\033[38;5;240m  \$ promptq template add explain-concept CONCEPT=\"async/await\" LANGUAGE=\"rust\"\033[0m\n"
     printf "\033[38;5;240m  \$ promptq snippet add daily-standup\033[0m\n"
@@ -1204,7 +1311,7 @@ show_help() {
 
     echo ""
     # Tip (1 gum call)
-    gum style --foreground 240 --italic "💡 Tip: Use --plain flag for script-friendly output"
+    gum style --foreground 240 --italic "Tip: Use --plain flag for script-friendly output"
   else
     # Fallback: simple text
     cat << 'EOF'
@@ -1268,6 +1375,10 @@ main() {
         PLAIN_OUTPUT=1
         shift
         ;;
+      --keep|-k)
+        KEEP_QUEUE=1
+        shift
+        ;;
       -*)
         msg "$RED" "Unknown flag: $1"
         echo ""
@@ -1326,10 +1437,8 @@ main() {
 
     edit|e)
       shift
-      if [[ $# -eq 0 ]]; then
-        die "Usage: promptq edit <number>"
-      fi
-      edit_queue_item "$1"
+      # Allow edit without number (fzf selection)
+      edit_queue_item "${1:-}"
       ;;
 
     template|tmpl)
@@ -1354,10 +1463,8 @@ main() {
           add_from_template "$@"
           ;;
         edit|e)
-          if [[ $# -eq 0 ]]; then
-            die "Usage: promptq template edit <name>"
-          fi
-          edit_template "$1"
+          # Allow edit without name (fzf selection)
+          edit_template "${1:-}"
           ;;
         *)
           msg "$RED" "Unknown template command: $subcmd"
@@ -1389,10 +1496,8 @@ main() {
           add_from_snippet "$1"
           ;;
         edit|e)
-          if [[ $# -eq 0 ]]; then
-            die "Usage: promptq snippet edit <name>"
-          fi
-          edit_snippet "$1"
+          # Allow edit without name (fzf selection)
+          edit_snippet "${1:-}"
           ;;
         *)
           msg "$RED" "Unknown snippet command: $subcmd"
@@ -1414,14 +1519,14 @@ main() {
           fi
           ensure_config
           echo "target_pane=$1" > "$CONFIG"
-          msg "$GREEN" "✅ Target pane set to: $1"
+          msg "$GREEN" "Target pane set to: $1"
           msg "$BLUE" "Verify with: promptq config show-pane"
           ;;
         show-pane|gp)
           if detect_claude_pane > /dev/null; then
             local pane
             pane=$(detect_claude_pane)
-            msg "$CYAN" "🎯 Target pane: $pane"
+            msg "$CYAN" "Target pane: $pane"
 
             # Show pane details
             local pane_info
@@ -1430,7 +1535,7 @@ main() {
               msg "$BLUE" "   $pane_info"
             fi
           else
-            msg "$RED" "❌ No Claude Code pane detected"
+            msg "$RED" "No Claude Code pane detected"
             msg "$YELLOW" "Set manually with: promptq config set-pane <pane_id>"
             msg "$YELLOW" "List panes: tmux list-panes -a"
           fi
