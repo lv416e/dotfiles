@@ -608,38 +608,104 @@ list_templates() {
 
   if [[ ! -d "$TEMPLATES" ]] || [[ -z "$(ls -A "$TEMPLATES" 2>/dev/null)" ]]; then
     msg "$YELLOW" "No templates found in $TEMPLATES"
-    msg "$BLUE" "Create templates with .tmpl extension and use ${VARIABLE} for substitution"
+    msg "$BLUE" "Create templates with .tmpl extension and use \${VARIABLE} for substitution"
     return 0
   fi
 
-  msg "$CYAN" "Available templates:"
-  echo ""
-
+  local count=0
   for template in "$TEMPLATES"/*.tmpl; do
     if [[ -f "$template" ]]; then
-      local name
-      name=$(basename "$template" .tmpl)
-
-      # Extract variables from template
-      local vars
-      vars=$(grep -oE '\$\{[A-Z_]+\}' "$template" 2>/dev/null | sort -u | sed 's/\${\(.*\)}/\1/' | tr '\n' ' ' || echo "")
-
-      printf "${GREEN}%-20s${RESET} " "$name"
-      if [[ -n "$vars" ]]; then
-        printf "${BLUE}Variables: ${YELLOW}%s${RESET}\n" "$vars"
-      else
-        echo ""
-      fi
+      ((count++))
     fi
   done
+
+  if has_gum; then
+    # Modern table display with gum
+    {
+      echo "Name|Variables|Preview"
+      for template in "$TEMPLATES"/*.tmpl; do
+        if [[ -f "$template" ]]; then
+          local name
+          name=$(basename "$template" .tmpl)
+
+          # Extract variables from template
+          local vars
+          vars=$(grep -oE '\$\{[A-Z_]+\}' "$template" 2>/dev/null | sort -u | sed 's/\${\(.*\)}/\1/' | tr '\n' ' ' || echo "-")
+          vars=$(echo "$vars" | sed 's/ *$//')
+          if [[ -z "$vars" ]]; then
+            vars="-"
+          fi
+
+          # Get first line as preview
+          local preview
+          preview=$(head -1 "$template" | cut -c1-40)
+          if [[ ${#preview} -ge 40 ]]; then
+            preview="${preview}..."
+          fi
+
+          echo "$name|$vars|$preview"
+        fi
+      done
+    } | gum table --separator "|" --border rounded --border.foreground 99 --print --widths "20,30,40"
+  else
+    # Fallback: simple text display
+    msg "$CYAN" "Available templates ($count):"
+    echo ""
+
+    for template in "$TEMPLATES"/*.tmpl; do
+      if [[ -f "$template" ]]; then
+        local name
+        name=$(basename "$template" .tmpl)
+
+        # Extract variables from template
+        local vars
+        vars=$(grep -oE '\$\{[A-Z_]+\}' "$template" 2>/dev/null | sort -u | sed 's/\${\(.*\)}/\1/' | tr '\n' ' ' || echo "")
+
+        printf "${GREEN}%-20s${RESET} " "$name"
+        if [[ -n "$vars" ]]; then
+          printf "${BLUE}Variables: ${YELLOW}%s${RESET}\n" "$vars"
+        else
+          echo ""
+        fi
+      fi
+    done
+  fi
 }
 
-# Show template content
+# Show template content (or select with fzf if no name provided)
+# Usage: show_template [name]
 show_template() {
   local name="$1"
 
+  # If no name provided, use fzf to select
   if [[ -z "$name" ]]; then
-    die "Usage: promptq template show <name>"
+    mkdir -p "$TEMPLATES"
+
+    if [[ ! -d "$TEMPLATES" ]] || [[ -z "$(ls -A "$TEMPLATES" 2>/dev/null)" ]]; then
+      msg "$YELLOW" "No templates found in $TEMPLATES"
+      return 1
+    fi
+
+    if ! command -v fzf &>/dev/null; then
+      die "fzf is not installed. Please provide template name: promptq template show <name>"
+    fi
+
+    msg "$CYAN" "Select template to show:"
+    echo ""
+
+    local selection
+    if command -v bat &>/dev/null; then
+      selection=$(cd "$TEMPLATES" && ls -1 *.tmpl 2>/dev/null | sed 's/\.tmpl$//' | fzf --height=40% --reverse --prompt="Template> " --preview "bat --color=always --style=numbers '$TEMPLATES/{}.tmpl'" --preview-window=right:60%:wrap)
+    else
+      selection=$(cd "$TEMPLATES" && ls -1 *.tmpl 2>/dev/null | sed 's/\.tmpl$//' | fzf --height=40% --reverse --prompt="Template> " --preview "cat '$TEMPLATES/{}.tmpl'" --preview-window=right:60%:wrap)
+    fi
+
+    if [[ -z "$selection" ]]; then
+      msg "$YELLOW" "No template selected."
+      return 1
+    fi
+
+    name="$selection"
   fi
 
   local template_file="${TEMPLATES}/${name}.tmpl"
@@ -722,32 +788,90 @@ list_snippets() {
     return 0
   fi
 
-  msg "$CYAN" "Available snippets:"
-  echo ""
-
+  local count=0
   for snippet in "$SNIPPETS"/*.txt; do
     if [[ -f "$snippet" ]]; then
-      local name
-      name=$(basename "$snippet" .txt)
-
-      # Show first line as preview (up to 60 chars)
-      local preview
-      preview=$(head -1 "$snippet" | cut -c1-60)
-      if [[ ${#preview} -eq 60 ]]; then
-        preview="${preview}..."
-      fi
-
-      printf "${GREEN}%-20s${RESET} ${BLUE}%s${RESET}\n" "$name" "$preview"
+      ((count++))
     fi
   done
+
+  if has_gum; then
+    # Modern table display with gum
+    {
+      echo "Name|Preview"
+      for snippet in "$SNIPPETS"/*.txt; do
+        if [[ -f "$snippet" ]]; then
+          local name
+          name=$(basename "$snippet" .txt)
+
+          # Show first line as preview
+          local preview
+          preview=$(head -1 "$snippet" | cut -c1-60)
+          if [[ ${#preview} -ge 60 ]]; then
+            preview="${preview}..."
+          fi
+
+          echo "$name|$preview"
+        fi
+      done
+    } | gum table --separator "|" --border rounded --border.foreground 99 --print --widths "25,65"
+  else
+    # Fallback: simple text display
+    msg "$CYAN" "Available snippets ($count):"
+    echo ""
+
+    for snippet in "$SNIPPETS"/*.txt; do
+      if [[ -f "$snippet" ]]; then
+        local name
+        name=$(basename "$snippet" .txt)
+
+        # Show first line as preview (up to 60 chars)
+        local preview
+        preview=$(head -1 "$snippet" | cut -c1-60)
+        if [[ ${#preview} -eq 60 ]]; then
+          preview="${preview}..."
+        fi
+
+        printf "${GREEN}%-20s${RESET} ${BLUE}%s${RESET}\n" "$name" "$preview"
+      fi
+    done
+  fi
 }
 
-# Show snippet content
+# Show snippet content (or select with fzf if no name provided)
+# Usage: show_snippet [name]
 show_snippet() {
   local name="$1"
 
+  # If no name provided, use fzf to select
   if [[ -z "$name" ]]; then
-    die "Usage: promptq snippet show <name>"
+    mkdir -p "$SNIPPETS"
+
+    if [[ ! -d "$SNIPPETS" ]] || [[ -z "$(ls -A "$SNIPPETS" 2>/dev/null)" ]]; then
+      msg "$YELLOW" "No snippets found in $SNIPPETS"
+      return 1
+    fi
+
+    if ! command -v fzf &>/dev/null; then
+      die "fzf is not installed. Please provide snippet name: promptq snippet show <name>"
+    fi
+
+    msg "$CYAN" "Select snippet to show:"
+    echo ""
+
+    local selection
+    if command -v bat &>/dev/null; then
+      selection=$(cd "$SNIPPETS" && ls -1 *.txt 2>/dev/null | sed 's/\.txt$//' | fzf --height=40% --reverse --prompt="Snippet> " --preview "bat --color=always --style=numbers '$SNIPPETS/{}.txt'" --preview-window=right:60%:wrap)
+    else
+      selection=$(cd "$SNIPPETS" && ls -1 *.txt 2>/dev/null | sed 's/\.txt$//' | fzf --height=40% --reverse --prompt="Snippet> " --preview "cat '$SNIPPETS/{}.txt'" --preview-window=right:60%:wrap)
+    fi
+
+    if [[ -z "$selection" ]]; then
+      msg "$YELLOW" "No snippet selected."
+      return 1
+    fi
+
+    name="$selection"
   fi
 
   local snippet_file="${SNIPPETS}/${name}.txt"
@@ -817,7 +941,11 @@ edit_template() {
     echo ""
 
     local selection
-    selection=$(cd "$TEMPLATES" && ls -1 *.tmpl 2>/dev/null | sed 's/\.tmpl$//' | fzf --height=40% --reverse --prompt="Template> ")
+    if command -v bat &>/dev/null; then
+      selection=$(cd "$TEMPLATES" && ls -1 *.tmpl 2>/dev/null | sed 's/\.tmpl$//' | fzf --height=40% --reverse --prompt="Template> " --preview "bat --color=always --style=numbers '$TEMPLATES/{}.tmpl'" --preview-window=right:60%:wrap)
+    else
+      selection=$(cd "$TEMPLATES" && ls -1 *.tmpl 2>/dev/null | sed 's/\.tmpl$//' | fzf --height=40% --reverse --prompt="Template> " --preview "cat '$TEMPLATES/{}.tmpl'" --preview-window=right:60%:wrap)
+    fi
 
     if [[ -z "$selection" ]]; then
       msg "$YELLOW" "No template selected."
@@ -883,7 +1011,11 @@ edit_snippet() {
     echo ""
 
     local selection
-    selection=$(cd "$SNIPPETS" && ls -1 *.txt 2>/dev/null | sed 's/\.txt$//' | fzf --height=40% --reverse --prompt="Snippet> ")
+    if command -v bat &>/dev/null; then
+      selection=$(cd "$SNIPPETS" && ls -1 *.txt 2>/dev/null | sed 's/\.txt$//' | fzf --height=40% --reverse --prompt="Snippet> " --preview "bat --color=always --style=numbers '$SNIPPETS/{}.txt'" --preview-window=right:60%:wrap)
+    else
+      selection=$(cd "$SNIPPETS" && ls -1 *.txt 2>/dev/null | sed 's/\.txt$//' | fzf --height=40% --reverse --prompt="Snippet> " --preview "cat '$SNIPPETS/{}.txt'" --preview-window=right:60%:wrap)
+    fi
 
     if [[ -z "$selection" ]]; then
       msg "$YELLOW" "No snippet selected."
@@ -1253,20 +1385,20 @@ show_help() {
       echo "Command|Arguments|Description"
       echo "add|<text> [#tags]|Add prompt to queue with optional tags"
       echo "list|─|List all queued prompts"
-      echo "edit|<number>|Edit a queue item"
+      echo "edit|[number]|Edit a queue item (fzf if no number)"
       echo "count|─|Show queue size"
       echo "send|─|Send first prompt (FIFO)"
       echo "select-send|─|Interactive send with fzf"
       echo "filter|<#tag>|Filter prompts by tag"
       echo "tags|─|List all tags with counts"
       echo "template list|─|List available templates"
-      echo "template show|<name>|Show template content"
+      echo "template show|[name]|Show template content (fzf if no name)"
       echo "template add|<name> ...|Add from template with vars"
-      echo "template edit|<name>|Edit a template"
+      echo "template edit|[name]|Edit a template (fzf if no name)"
       echo "snippet list|─|List available snippets"
-      echo "snippet show|<name>|Show snippet content"
+      echo "snippet show|[name]|Show snippet content (fzf if no name)"
       echo "snippet add|<name>|Add from snippet"
-      echo "snippet edit|<name>|Edit a snippet"
+      echo "snippet edit|[name]|Edit a snippet (fzf if no name)"
       echo "config set-pane|<pane>|Set target tmux pane"
       echo "config show-pane|─|Show current target pane"
       echo "clear|─|Clear all queued prompts"
@@ -1279,27 +1411,27 @@ show_help() {
     echo ""
 
     # Consolidated examples using printf with ANSI codes (faster than multiple gum calls)
-    printf "\033[1m\033[38;5;99mAdding prompts:\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq add \"Explain async/await in JavaScript\"\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq add \"Review this PR\" #review #urgent\033[0m\n"
+    printf "  \033[1m\033[38;5;99mAdding prompts:\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq add \"Explain async/await in JavaScript\"\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq add \"Review this PR\" #review #urgent\033[0m\n"
     echo ""
-    printf "\033[1m\033[38;5;99mEditing content:\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq edit 1                    # Edit queue item\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq template edit code-review  # Edit template\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq snippet edit daily-standup # Edit snippet\033[0m\n"
+    printf "  \033[1m\033[38;5;99mEditing content:\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq edit 1                    # Edit queue item\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq template edit code-review  # Edit template\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq snippet edit daily-standup # Edit snippet\033[0m\n"
     echo ""
-    printf "\033[1m\033[38;5;99mSending prompts:\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq send\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq select-send\033[0m\n"
+    printf "  \033[1m\033[38;5;99mSending prompts:\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq send\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq select-send\033[0m\n"
     echo ""
-    printf "\033[1m\033[38;5;99mFiltering and tags:\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq filter #rust\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq tags\033[0m\n"
+    printf "  \033[1m\033[38;5;99mFiltering and tags:\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq filter #rust\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq tags\033[0m\n"
     echo ""
-    printf "\033[1m\033[38;5;99mTemplates and snippets:\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq template list\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq template add explain-concept CONCEPT=\"async/await\" LANGUAGE=\"rust\"\033[0m\n"
-    printf "\033[38;5;240m  \$ promptq snippet add daily-standup\033[0m\n"
+    printf "  \033[1m\033[38;5;99mTemplates and snippets:\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq template list\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq template add explain-concept CONCEPT=\"async/await\" LANGUAGE=\"rust\"\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq snippet add daily-standup\033[0m\n"
 
     echo ""
     printf "\033[1m\033[38;5;99mLOCATIONS\033[0m\n"
@@ -1318,25 +1450,25 @@ show_help() {
 promptq - Prompt Queue Manager for Claude Code
 
 Usage:
-  promptq [--plain] <command> [arguments]
+  promptq [--plain] [--keep] <command> [arguments]
 
 Commands:
   add <text> [#tags]        Add prompt to queue
   list                      List all queued prompts
-  edit <number>             Edit a queue item
+  edit [number]             Edit a queue item (fzf if no number)
   count                     Show queue size
   send                      Send first prompt (FIFO)
   select-send               Interactive send with fzf
   filter <#tag>             Filter prompts by tag
   tags                      List all tags with counts
   template list             List available templates
-  template show <name>      Show template content
+  template show [name]      Show template content (fzf if no name)
   template add <name> ...   Add prompt from template
-  template edit <name>      Edit a template
+  template edit [name]      Edit a template (fzf if no name)
   snippet list              List available snippets
-  snippet show <name>       Show snippet content
+  snippet show [name]       Show snippet content (fzf if no name)
   snippet add <name>        Add prompt from snippet
-  snippet edit <name>       Edit a snippet
+  snippet edit [name]       Edit a snippet (fzf if no name)
   config set-pane <pane>    Set target tmux pane
   config show-pane          Show current target pane
   clear                     Clear all queued prompts
@@ -1451,10 +1583,8 @@ main() {
           list_templates
           ;;
         show|s)
-          if [[ $# -eq 0 ]]; then
-            die "Usage: promptq template show <name>"
-          fi
-          show_template "$1"
+          # Allow show without name (fzf selection)
+          show_template "${1:-}"
           ;;
         add|a)
           if [[ $# -eq 0 ]]; then
@@ -1484,10 +1614,8 @@ main() {
           list_snippets
           ;;
         show|s)
-          if [[ $# -eq 0 ]]; then
-            die "Usage: promptq snippet show <name>"
-          fi
-          show_snippet "$1"
+          # Allow show without name (fzf selection)
+          show_snippet "${1:-}"
           ;;
         add|a)
           if [[ $# -eq 0 ]]; then
