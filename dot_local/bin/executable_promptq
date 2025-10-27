@@ -905,27 +905,27 @@ show_help() {
 
     echo ""
     gum style --foreground 99 --bold "EXAMPLES"
-    gum format << 'EOF'
-```bash
-# Add simple prompt
-promptq add "Explain async/await in JavaScript"
+    echo ""
 
-# Add with tags
-promptq add "Review this PR" #review #urgent
+    gum style --foreground 99 --bold "📝 Adding prompts:"
+    gum style --foreground 240 "  \$ promptq add \"Explain async/await in JavaScript\""
+    gum style --foreground 240 "  \$ promptq add \"Review this PR\" #review #urgent"
+    echo ""
 
-# Send first prompt
-promptq send
+    gum style --foreground 99 --bold "📤 Sending prompts:"
+    gum style --foreground 240 "  \$ promptq send"
+    gum style --foreground 240 "  \$ promptq select-send"
+    echo ""
 
-# Interactive selection
-promptq select-send
+    gum style --foreground 99 --bold "🔍 Filtering and tags:"
+    gum style --foreground 240 "  \$ promptq filter #rust"
+    gum style --foreground 240 "  \$ promptq tags"
+    echo ""
 
-# Filter by tag
-promptq filter #rust
-
-# Use templates
-promptq template add explain-concept CONCEPT="async/await" LANGUAGE="rust"
-```
-EOF
+    gum style --foreground 99 --bold "📋 Templates and snippets:"
+    gum style --foreground 240 "  \$ promptq template list"
+    gum style --foreground 240 "  \$ promptq template add explain-concept CONCEPT=\"async/await\" LANGUAGE=\"rust\""
+    gum style --foreground 240 "  \$ promptq snippet add daily-standup"
 
     echo ""
     gum style --foreground 99 --bold "LOCATIONS"
