@@ -34,6 +34,7 @@ brew "jj"              # Jujutsu VCS - modern Git alternative with undo and bran
 brew "git-lfs"
 brew "glow"
 brew "go"
+brew "gum"             # Modern CLI styling for promptq (charmbracelet/gum)
 brew "gping"           # Modern ping visualization with graphs
 brew "grex"            # Generate regex from examples
 brew "gron"

@@ -44,6 +44,146 @@ readonly CYAN='\033[0;36m'
 readonly RESET='\033[0m'
 
 # =============================================================================
+# Modern Rendering System
+# =============================================================================
+
+# Global flag for plain output (no styling)
+PLAIN_OUTPUT="${PLAIN_OUTPUT:-0}"
+
+# Check if gum is available (respects PLAIN_OUTPUT flag)
+has_gum() {
+  [[ "$PLAIN_OUTPUT" == "0" ]] && command -v gum >/dev/null 2>&1
+}
+
+# Render bordered header
+# Usage: render_header "text" ["icon"]
+render_header() {
+  local text="$1"
+  local icon="${2:-📋}"
+  local display="$icon $text"
+
+  if has_gum; then
+    gum style \
+      --foreground 57 \
+      --border-foreground 57 \
+      --border rounded \
+      --padding "0 2" \
+      --bold \
+      "$display"
+  else
+    # Fallback: Unicode box drawing
+    local len=${#display}
+    local border_len=$((len + 4))
+
+    printf "╭"
+    printf '─%.0s' $(seq 1 $border_len)
+    printf "╮\n"
+
+    printf "│  %s  │\n" "$display"
+
+    printf "╰"
+    printf '─%.0s' $(seq 1 $border_len)
+    printf "╯\n"
+  fi
+  echo ""  # Empty line after header
+}
+
+# Render table from pipe-delimited data
+# Usage: echo "header|data" | render_table
+render_table() {
+  if has_gum; then
+    gum table \
+      --separator "|" \
+      --border rounded \
+      --border.foreground 240 \
+      --print
+  else
+    # Fallback: column command with simpler formatting
+    local lines=()
+    while IFS= read -r line; do
+      lines+=("$line")
+    done
+
+    # Format all lines with column first
+    local formatted
+    formatted=$(printf '%s\n' "${lines[@]}" | column -t -s "|")
+
+    # Print with separator after header
+    local idx=0
+    while IFS= read -r line; do
+      if [[ $idx -eq 0 ]]; then
+        # Header line
+        echo " $line"
+        # Generate separator line (simple dashes)
+        local len=${#line}
+        printf " "
+        printf '─%.0s' $(seq 1 $len)
+        echo ""
+      else
+        # Data lines
+        echo " $line"
+      fi
+      ((idx++))
+    done <<< "$formatted"
+  fi
+}
+
+# Format timestamp as relative time
+# Usage: relative_time "2025-10-27T10:30:00+0900"
+relative_time() {
+  local ts="$1"
+  local now=$(date +%s)
+
+  # Try to parse timestamp (macOS date format)
+  local then
+  then=$(date -j -f "%Y-%m-%dT%H:%M:%S%z" "$ts" +%s 2>/dev/null || echo "$now")
+
+  local diff=$((now - then))
+
+  if [ $diff -lt 0 ]; then
+    echo "Just now"
+  elif [ $diff -lt 60 ]; then
+    echo "Just now"
+  elif [ $diff -lt 3600 ]; then
+    local mins=$((diff / 60))
+    echo "${mins}m ago"
+  elif [ $diff -lt 86400 ]; then
+    local hours=$((diff / 3600))
+    echo "${hours}h ago"
+  elif [ $diff -lt 604800 ]; then
+    local days=$((diff / 86400))
+    if [ $days -eq 1 ]; then
+      echo "Yesterday"
+    else
+      echo "${days}d ago"
+    fi
+  else
+    # More than a week: show date
+    date -j -f "%Y-%m-%dT%H:%M:%S%z" "$ts" "+%Y-%m-%d" 2>/dev/null || echo "$ts"
+  fi
+}
+
+# Style text with color
+# Usage: style_text "212" "text"
+style_text() {
+  local color="$1"
+  local text="$2"
+
+  if has_gum; then
+    gum style --foreground "$color" "$text"
+  else
+    # Fallback: Use existing color codes
+    case "$color" in
+      212|magenta) echo -e "${MAGENTA}${text}${RESET}" ;;
+      57|blue) echo -e "${BLUE}${text}${RESET}" ;;
+      99|cyan) echo -e "${CYAN}${text}${RESET}" ;;
+      240|gray) echo -e "${text}" ;;  # No gray in basic ANSI
+      *) echo "$text" ;;
+    esac
+  fi
+}
+
+# =============================================================================
 # Utility Functions
 # =============================================================================
 
@@ -114,36 +254,43 @@ list_queue() {
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
-    msg "$YELLOW" "📭 Queue is empty"
+    render_header "Queue is empty" "📭"
     return 0
   fi
 
-  msg "$CYAN" "📋 Queue ($count items):"
-  echo ""
+  render_header "Prompt Queue • $count items" "📋"
 
-  # Format and display with numbering
-  local idx=1
-  while IFS= read -r line; do
-    local text tags
-    text=$(echo "$line" | jq -r '.text')
-    tags=$(echo "$line" | jq -r '.tags | join(" #")' | sed 's/^/#/')
+  # Build table data
+  {
+    echo "#|Prompt|Tags|Added"
 
-    # Replace newlines with spaces for single-line display
-    text=$(echo "$text" | tr '\n' ' ' | tr -s ' ')
+    local idx=1
+    while IFS= read -r line; do
+      local text tags ts rel_time
+      text=$(echo "$line" | jq -r '.text')
+      tags=$(echo "$line" | jq -r '.tags | join(" #")' | sed 's/^/#/')
+      ts=$(echo "$line" | jq -r '.ts')
 
-    # Truncate long text
-    if [[ ${#text} -gt 80 ]]; then
-      text="${text:0:77}..."
-    fi
+      # Replace newlines with spaces for single-line display
+      text=$(echo "$text" | tr '\n' ' ' | tr -s ' ')
 
-    if [[ "$tags" == "#" ]]; then
-      printf "${BLUE}%2d${RESET}. %s\n" "$idx" "$text"
-    else
-      printf "${BLUE}%2d${RESET}. %s ${MAGENTA}%s${RESET}\n" "$idx" "$text" "$tags"
-    fi
+      # Truncate long text for table
+      if [[ ${#text} -gt 35 ]]; then
+        text="${text:0:32}..."
+      fi
 
-    ((idx++))
-  done < "$QUEUE"
+      # Clean up tags display
+      if [[ "$tags" == "#" ]]; then
+        tags=""
+      fi
+
+      # Get relative time
+      rel_time=$(relative_time "$ts")
+
+      echo "$idx|$text|$tags|$rel_time"
+      ((idx++))
+    done < "$QUEUE"
+  } | render_table
 }
 
 # Count queued prompts
@@ -229,17 +376,21 @@ list_tags() {
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
-    msg "$YELLOW" "📭 Queue is empty"
+    render_header "No tags yet" "🏷️"
     return 0
   fi
 
-  msg "$CYAN" "🏷️  Tags in queue:"
-  echo ""
+  render_header "Tags in Queue" "🏷️"
 
-  # Extract all tags, sort, and count occurrences
-  jq -r '.tags[]' "$QUEUE" 2>/dev/null | sort | uniq -c | sort -rn | while read -r count tag; do
-    printf "${MAGENTA}#%-20s${RESET} ${BLUE}(%d)${RESET}\n" "$tag" "$count"
-  done
+  # Build table data
+  {
+    echo "Tag|Count"
+
+    # Extract all tags, sort, and count occurrences
+    jq -r '.tags[]' "$QUEUE" 2>/dev/null | sort | uniq -c | sort -rn | while read -r cnt tag; do
+      echo "#$tag|$cnt"
+    done
+  } | render_table
 }
 
 # =============================================================================
@@ -710,75 +861,150 @@ select_and_send() {
 # =============================================================================
 
 show_help() {
-  cat << 'EOF'
+  if has_gum; then
+    # Rich help with gum
+    gum style \
+      --foreground 212 \
+      --border double \
+      --border-foreground 212 \
+      --align center \
+      --width 70 \
+      --margin "1 0" \
+      --padding "1 2" \
+      --bold \
+      "📋 promptq" \
+      "Prompt Queue Manager for Claude Code"
+
+    echo ""
+    gum style --foreground 99 --bold "USAGE"
+    echo "  promptq [--plain] <command> [arguments]"
+    echo ""
+
+    gum style --foreground 99 --bold "COMMANDS"
+    {
+      echo "Command|Arguments|Description"
+      echo "add|<text> [#tags]|Add prompt to queue with optional tags"
+      echo "list|─|List all queued prompts"
+      echo "count|─|Show queue size"
+      echo "send|─|Send first prompt (FIFO)"
+      echo "select-send|─|Interactive send with fzf"
+      echo "filter|<#tag>|Filter prompts by tag"
+      echo "tags|─|List all tags with counts"
+      echo "template list|─|List available templates"
+      echo "template show|<name>|Show template content"
+      echo "template add|<name> ...|Add from template with vars"
+      echo "snippet list|─|List available snippets"
+      echo "snippet show|<name>|Show snippet content"
+      echo "snippet add|<name>|Add from snippet"
+      echo "config set-pane|<pane>|Set target tmux pane"
+      echo "config show-pane|─|Show current target pane"
+      echo "clear|─|Clear all queued prompts"
+      echo "help|─|Show this help"
+      echo "version|─|Show version"
+    } | gum table --separator "|" --border rounded --border.foreground 240 --print --widths "20,15,40"
+
+    echo ""
+    gum style --foreground 99 --bold "EXAMPLES"
+    gum format << 'EOF'
+```bash
+# Add simple prompt
+promptq add "Explain async/await in JavaScript"
+
+# Add with tags
+promptq add "Review this PR" #review #urgent
+
+# Send first prompt
+promptq send
+
+# Interactive selection
+promptq select-send
+
+# Filter by tag
+promptq filter #rust
+
+# Use templates
+promptq template add explain-concept CONCEPT="async/await" LANGUAGE="rust"
+```
+EOF
+
+    echo ""
+    gum style --foreground 99 --bold "LOCATIONS"
+    gum style --border rounded --border-foreground 57 --padding "0 2" \
+      "Queue:     ~/.config/promptq/queue.jsonl" \
+      "Templates: ~/.config/promptq/templates/" \
+      "Snippets:  ~/.config/promptq/snippets/"
+
+    echo ""
+    gum style --foreground 240 --italic "💡 Tip: Use --plain flag for script-friendly output"
+  else
+    # Fallback: simple text
+    cat << 'EOF'
 promptq - Prompt Queue Manager for Claude Code
 
 Usage:
-  promptq add <text> [#tags]        Add prompt to queue
-  promptq list                      List all queued prompts
-  promptq count                     Show queue size
-  promptq send                      Send first prompt (FIFO)
-  promptq select-send               Interactive send with fzf
-  promptq filter <#tag>             Filter prompts by tag
-  promptq tags                      List all tags with counts
-  promptq template list             List available templates
-  promptq template show <name>      Show template content
-  promptq template add <name> ...   Add prompt from template
-  promptq snippet list              List available snippets
-  promptq snippet show <name>       Show snippet content
-  promptq snippet add <name>        Add prompt from snippet
-  promptq config set-pane <pane>    Set target tmux pane
-  promptq config show-pane          Show current target pane
-  promptq clear                     Clear all queued prompts
-  promptq help                      Show this help
-  promptq version                   Show version
+  promptq [--plain] <command> [arguments]
+
+Commands:
+  add <text> [#tags]        Add prompt to queue
+  list                      List all queued prompts
+  count                     Show queue size
+  send                      Send first prompt (FIFO)
+  select-send               Interactive send with fzf
+  filter <#tag>             Filter prompts by tag
+  tags                      List all tags with counts
+  template list             List available templates
+  template show <name>      Show template content
+  template add <name> ...   Add prompt from template
+  snippet list              List available snippets
+  snippet show <name>       Show snippet content
+  snippet add <name>        Add prompt from snippet
+  config set-pane <pane>    Set target tmux pane
+  config show-pane          Show current target pane
+  clear                     Clear all queued prompts
+  help                      Show this help
+  version                   Show version
 
 Examples:
-  # Add simple prompt
   promptq add "Explain async/await in JavaScript"
-
-  # Add with tags
   promptq add "Review this PR" #review #urgent
-
-  # Send first prompt automatically
   promptq send
-
-  # Interactive selection
   promptq select-send
-
-  # Filter by tag
   promptq filter #rust
-
-  # List all tags
-  promptq tags
-
-  # Use templates
-  promptq template list
-  promptq template show code-review
   promptq template add explain-concept CONCEPT="async/await" LANGUAGE="rust"
 
-  # Use snippets (reusable prompts)
-  promptq snippet list
-  promptq snippet show daily-standup
-  promptq snippet add daily-standup
-
-Queue Location:
-  ~/.config/promptq/queue.jsonl
-
-Templates Location:
-  ~/.config/promptq/templates/
-
-Snippets Location:
-  ~/.config/promptq/snippets/
+Locations:
+  Queue:     ~/.config/promptq/queue.jsonl
+  Templates: ~/.config/promptq/templates/
+  Snippets:  ~/.config/promptq/snippets/
 
 Send Priority:
   1. tmux send-keys (auto-detected Claude pane)
   2. Clipboard copy (pbcopy)
   3. Manual output to terminal
 EOF
+  fi
 }
 
 main() {
+  # Parse global flags before command
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --plain|-p)
+        PLAIN_OUTPUT=1
+        shift
+        ;;
+      -*)
+        msg "$RED" "Unknown flag: $1"
+        echo ""
+        show_help
+        exit 1
+        ;;
+      *)
+        break  # Not a flag, proceed to command
+        ;;
+    esac
+  done
+
   local cmd="${1:-help}"
 
   case "$cmd" in
