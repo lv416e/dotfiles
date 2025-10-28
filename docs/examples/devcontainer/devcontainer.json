@@ -1,0 +1,146 @@
+{
+  // =============================================================================
+  // Example DevContainer Configuration with Chezmoi Dotfiles Integration
+  // =============================================================================
+  // This is an example configuration showing how to integrate your chezmoi
+  // dotfiles with VS Code DevContainers and GitHub Codespaces.
+  //
+  // Usage:
+  //   1. Copy this file to your project's .devcontainer/ directory
+  //   2. Customize the image, features, and extensions as needed
+  //   3. VS Code will automatically apply your dotfiles on container creation
+  //
+  // References:
+  //   - https://containers.dev/
+  //   - https://www.chezmoi.io/user-guide/machines/containers-and-vms/
+  // =============================================================================
+
+  "name": "Development Container with Dotfiles",
+
+  // --- Base Image ---
+  // Use an official image or customize as needed
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  // --- Features ---
+  // Install common development tools using Dev Container Features
+  // https://containers.dev/features
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": false,
+      "upgradePackages": true,
+      "username": "vscode",
+      "uid": "automatic",
+      "gid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.13"
+    },
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "latest"
+    }
+  },
+
+  // --- Dotfiles Integration ---
+  // VS Code will automatically clone your dotfiles repository
+  // and run the install.sh script
+  "dotfiles": {
+    "repository": "https://github.com/YOUR_USERNAME/dotfiles",
+    "installCommand": "~/dotfiles/install.sh",
+    "targetPath": "~/dotfiles"
+  },
+
+  // --- Lifecycle Hooks ---
+  // Run commands at different stages of container creation
+  "postCreateCommand": "echo '✅ DevContainer created. Dotfiles applied.'",
+  "postStartCommand": "echo '🚀 Container started. Ready for development.'",
+
+  // --- VS Code Extensions ---
+  // Automatically install these extensions in the container
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Core editing
+        "editorconfig.editorconfig",
+        "github.copilot",
+        "github.copilot-chat",
+
+        // Git
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+
+        // Language Support
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "golang.go",
+        "rust-lang.rust-analyzer",
+        "ms-vscode.cpptools",
+
+        // Markdown & Documentation
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+
+        // DevOps & Config
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker",
+
+        // Utilities
+        "esbenp.prettier-vscode",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        }
+      }
+    }
+  },
+
+  // --- Container Configuration ---
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "TERM": "xterm-256color"
+  },
+
+  // --- Port Forwarding ---
+  // Automatically forward these ports from container to host
+  "forwardPorts": [3000, 8000, 8080],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend",
+      "onAutoForward": "notify"
+    },
+    "8000": {
+      "label": "Backend",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // --- Mount Permissions ---
+  // Fix for potential permission issues with mounted volumes
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
+
+  // --- Security ---
+  "runArgs": [
+    "--security-opt", "seccomp=unconfined"
+  ]
+}

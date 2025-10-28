@@ -1,0 +1,91 @@
+{
+  // =============================================================================
+  // VSCode Settings - Managed by Chezmoi
+  // =============================================================================
+  // This file is a template that will be processed by chezmoi.
+  // Edit in: ~/.local/share/chezmoi/dot_config/Code/User/settings.json.tmpl
+  // =============================================================================
+
+  // --- DevContainer Dotfiles Integration ---
+  // Automatically clone and apply dotfiles in DevContainers and Codespaces
+  "dotfiles.repository": "{{ .chezmoi.username }}/dotfiles",
+  "dotfiles.targetPath": "~/dotfiles",
+  "dotfiles.installCommand": "~/dotfiles/install.sh",
+
+  // --- Editor Settings ---
+  "editor.fontSize": 14,
+  "editor.fontFamily": "'HackGen Console NF', 'Menlo', 'Monaco', 'Courier New', monospace",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.formatOnSave": true,
+  "editor.rulers": [80, 120],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.minimap.enabled": false,
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": "on",
+
+  // --- Terminal Settings ---
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.fontFamily": "'HackGen Console NF', monospace",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.env.osx": {
+    "TERM": "xterm-256color"
+  },
+
+  // --- Git Settings ---
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.autofetch": true,
+
+  // --- File Settings ---
+  "files.autoSave": "onFocusChange",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true
+  },
+
+  // --- Language-Specific Settings ---
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "on"
+  },
+
+  // --- Extension Settings ---
+  // GitHub Copilot (if installed)
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": true,
+    "plaintext": false,
+    "markdown": true
+  },
+
+  // --- Workbench Settings ---
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.iconTheme": "vs-seti",
+  "workbench.startupEditor": "none",
+
+  // --- Security ---
+  "security.workspace.trust.untrustedFiles": "prompt"
+}
