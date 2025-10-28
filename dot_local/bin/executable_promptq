@@ -588,23 +588,72 @@ delete_queue_item() {
 }
 
 # Add tags to a queue item
-# Usage: tag_add_to_item <item_number> <tag1> [tag2...]
+# Usage: tag_add_to_item [item_number] [tag1 tag2...]
 tag_add_to_item() {
   ensure_config
-
-  if [[ $# -lt 2 ]]; then
-    die "Usage: promptq tag-add <item_number> <tag1> [tag2...]"
-  fi
-
-  local item_num="$1"
-  shift
-  local new_tags=("$@")
 
   local count
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
     die "Queue is empty"
+  fi
+
+  local item_num=""
+  local new_tags=()
+
+  # Parse arguments
+  if [[ $# -eq 0 ]]; then
+    # No arguments: use fzf to select item, then prompt for tags
+    if ! command -v fzf &>/dev/null; then
+      die "fzf is not installed. Please provide arguments: promptq tag-add <item_number> <tag1> [tag2...]"
+    fi
+
+    msg "$CYAN" "Select item to add tags:"
+    echo ""
+
+    local selection
+    selection=$(awk 'BEGIN{idx=1} {
+      text=$0;
+      gsub(/.*"text":"/, "", text);
+      gsub(/","tags.*/, "", text);
+      if (length(text) > 60) text = substr(text, 1, 57) "...";
+      printf "%d. %s\n", idx++, text;
+    }' "$QUEUE" | fzf --height=40% --reverse --prompt="Add tags> " --preview-window=hidden)
+
+    if [[ -z "$selection" ]]; then
+      msg "$YELLOW" "No item selected."
+      return 0
+    fi
+
+    item_num=$(echo "$selection" | awk '{print $1}' | tr -d '.')
+
+    # Prompt for tags
+    msg "$CYAN" "Enter tags (space-separated, # prefix optional):"
+    read -r tags_input
+    if [[ -z "$tags_input" ]]; then
+      msg "$YELLOW" "No tags provided."
+      return 0
+    fi
+    read -ra new_tags <<< "$tags_input"
+
+  elif [[ $# -eq 1 ]]; then
+    # One argument: treat as item_number, prompt for tags
+    item_num="$1"
+
+    msg "$CYAN" "Enter tags (space-separated, # prefix optional):"
+    read -r tags_input
+    if [[ -z "$tags_input" ]]; then
+      msg "$YELLOW" "No tags provided."
+      return 0
+    fi
+    read -ra new_tags <<< "$tags_input"
+
+  else
+    # Two or more arguments: item_number + tags
+    item_num="$1"
+    shift
+    new_tags=("$@")
   fi
 
   # Validate item number
@@ -679,17 +728,9 @@ tag_add_to_item() {
 }
 
 # Remove tags from a queue item
-# Usage: tag_remove_from_item <item_number> <tag1> [tag2...]
+# Usage: tag_remove_from_item [item_number] [tag1 tag2...]
 tag_remove_from_item() {
   ensure_config
-
-  if [[ $# -lt 2 ]]; then
-    die "Usage: promptq tag-remove <item_number> <tag1> [tag2...]"
-  fi
-
-  local item_num="$1"
-  shift
-  local remove_tags=("$@")
 
   local count
   count=$(count_queue)
@@ -698,9 +739,94 @@ tag_remove_from_item() {
     die "Queue is empty"
   fi
 
+  local item_num=""
+  local remove_tags=()
+
+  # Parse arguments
+  if [[ $# -eq 0 ]]; then
+    # No arguments: use fzf to select item, then select tags with fzf
+    if ! command -v fzf &>/dev/null; then
+      die "fzf is not installed. Please provide arguments: promptq tag-remove <item_number> <tag1> [tag2...]"
+    fi
+
+    msg "$CYAN" "Select item to remove tags from:"
+    echo ""
+
+    local selection
+    selection=$(awk 'BEGIN{idx=1} {
+      text=$0;
+      gsub(/.*"text":"/, "", text);
+      gsub(/","tags.*/, "", text);
+      if (length(text) > 60) text = substr(text, 1, 57) "...";
+      printf "%d. %s\n", idx++, text;
+    }' "$QUEUE" | fzf --height=40% --reverse --prompt="Remove tags> " --preview-window=hidden)
+
+    if [[ -z "$selection" ]]; then
+      msg "$YELLOW" "No item selected."
+      return 0
+    fi
+
+    item_num=$(echo "$selection" | awk '{print $1}' | tr -d '.')
+
+  elif [[ $# -eq 1 ]]; then
+    # One argument: treat as item_number
+    item_num="$1"
+
+  else
+    # Two or more arguments: item_number + tags
+    item_num="$1"
+    shift
+    remove_tags=("$@")
+  fi
+
   # Validate item number
   if ! [[ "$item_num" =~ ^[0-9]+$ ]] || [[ $item_num -lt 1 ]] || [[ $item_num -gt $count ]]; then
     die "Invalid item number. Please provide a number between 1 and $count."
+  fi
+
+  # Get the line to check existing tags
+  local line
+  line=$(sed -n "${item_num}p" "$QUEUE")
+
+  if [[ -z "$line" ]]; then
+    die "Failed to read item #${item_num}"
+  fi
+
+  # Extract current data
+  local current_text current_tags current_ts
+  current_text=$(echo "$line" | jq -r '.text')
+  current_tags=$(echo "$line" | jq -r '.tags')
+  current_ts=$(echo "$line" | jq -r '.ts')
+
+  # If no tags specified yet, use fzf to select from existing tags
+  if [[ ${#remove_tags[@]} -eq 0 ]]; then
+    local existing_tags
+    existing_tags=$(echo "$current_tags" | jq -r '.[]' 2>/dev/null)
+
+    if [[ -z "$existing_tags" ]]; then
+      msg "$YELLOW" "Item #${item_num} has no tags to remove."
+      return 0
+    fi
+
+    if ! command -v fzf &>/dev/null; then
+      die "fzf is not installed. Please provide tags: promptq tag-remove ${item_num} <tag1> [tag2...]"
+    fi
+
+    msg "$CYAN" "Select tags to remove (TAB for multi-select, ESC to cancel):"
+    echo ""
+
+    local selected_tags
+    selected_tags=$(echo "$existing_tags" | fzf --multi --height=40% --reverse --prompt="Remove> " \
+      --header="TAB to select multiple, ENTER to confirm" --preview-window=hidden)
+
+    if [[ -z "$selected_tags" ]]; then
+      msg "$YELLOW" "No tags selected."
+      return 0
+    fi
+
+    while IFS= read -r tag; do
+      remove_tags+=("$tag")
+    done <<< "$selected_tags"
   fi
 
   # Clean tags (remove # prefix if present)
@@ -710,21 +836,6 @@ tag_remove_from_item() {
   done
 
   acquire_lock
-
-  # Get the line
-  local line
-  line=$(sed -n "${item_num}p" "$QUEUE")
-
-  if [[ -z "$line" ]]; then
-    release_lock
-    die "Failed to read item #${item_num}"
-  fi
-
-  # Extract current data
-  local current_text current_tags current_ts
-  current_text=$(echo "$line" | jq -r '.text')
-  current_tags=$(echo "$line" | jq -r '.tags')
-  current_ts=$(echo "$line" | jq -r '.ts')
 
   # Remove specified tags
   local filtered_tags
@@ -1742,8 +1853,8 @@ show_help() {
       echo "list|─|List all queued prompts"
       echo "edit|[number]|Edit a queue item (fzf if no number)"
       echo "delete|[numbers...]|Delete items (fzf multi-select if no args)"
-      echo "tag-add|<num> <tags...>|Add tags to item"
-      echo "tag-remove|<num> <tags...>|Remove tags from item"
+      echo "tag-add|[num] [tags...]|Add tags (fzf if no args)"
+      echo "tag-remove|[num] [tags...]|Remove tags (fzf if no args)"
       echo "count|─|Show queue size"
       echo "send|─|Send first prompt (FIFO, keeps #reusable)"
       echo "select-send|─|Interactive send with fzf (keeps #reusable)"
@@ -1786,8 +1897,10 @@ show_help() {
     printf "\033[38;5;240m    \$ promptq select-send                # Interactive send\033[0m\n"
     echo ""
     printf "  \033[1m\033[38;5;99mTag management:\033[0m\n"
-    printf "\033[38;5;240m    \$ promptq tag-add 1 reusable urgent  # Add tags to item\033[0m\n"
-    printf "\033[38;5;240m    \$ promptq tag-remove 1 urgent        # Remove tags from item\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq tag-add                   # Interactive: select item, input tags\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq tag-add 1 reusable urgent # Direct: add tags to item\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq tag-remove                # Interactive: select item, select tags\033[0m\n"
+    printf "\033[38;5;240m    \$ promptq tag-remove 1 urgent       # Direct: remove tags from item\033[0m\n"
     printf "\033[38;5;240m    \$ promptq filter #rust\033[0m\n"
     printf "\033[38;5;240m    \$ promptq tags\033[0m\n"
     echo ""
