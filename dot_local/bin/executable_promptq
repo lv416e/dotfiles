@@ -266,6 +266,65 @@ validate_jsonl() {
 }
 
 # =============================================================================
+# File Locking Functions (mkdir-based, no external dependencies)
+# =============================================================================
+
+# Lock directory path
+readonly LOCK_DIR="${Q_DIR}/.lock"
+
+# Acquire lock with timeout and stale lock detection
+# Usage: acquire_lock [timeout_seconds]
+acquire_lock() {
+  local timeout="${1:-10}"  # Default 10 seconds
+  local waited=0
+
+  while ! mkdir "$LOCK_DIR" 2>/dev/null; do
+    sleep 0.1
+    waited=$((waited + 1))
+
+    if [ $waited -gt $((timeout * 10)) ]; then
+      # Check for stale lock (process no longer running)
+      if is_stale_lock; then
+        msg "$YELLOW" "Removing stale lock..."
+        release_lock
+        continue  # Retry
+      fi
+
+      die "Failed to acquire lock (timeout after ${timeout}s). Another promptq process may be running."
+    fi
+  done
+
+  # Store PID for stale lock detection
+  echo $$ > "${LOCK_DIR}/pid"
+
+  # Ensure cleanup on exit/interruption
+  trap "release_lock" EXIT INT TERM HUP
+}
+
+# Release lock
+release_lock() {
+  rm -f "${LOCK_DIR}/pid" 2>/dev/null
+  rmdir "$LOCK_DIR" 2>/dev/null || true
+}
+
+# Check if lock is stale (process no longer running)
+is_stale_lock() {
+  if [[ ! -f "${LOCK_DIR}/pid" ]]; then
+    return 0  # No PID file, consider stale
+  fi
+
+  local lock_pid
+  lock_pid=$(cat "${LOCK_DIR}/pid" 2>/dev/null)
+
+  # Check if process is still running
+  if [[ -n "$lock_pid" ]] && ! ps -p "$lock_pid" >/dev/null 2>&1; then
+    return 0  # Process not running, lock is stale
+  fi
+
+  return 1  # Lock is valid
+}
+
+# =============================================================================
 # Queue Management Functions
 # =============================================================================
 
@@ -273,6 +332,7 @@ validate_jsonl() {
 # Usage: add_prompt "text" ["#tag1 #tag2"]
 add_prompt() {
   ensure_config
+  acquire_lock
 
   local text="$1"
   local tags="${2:-}"
@@ -298,6 +358,8 @@ add_prompt() {
 
   echo "$entry" >> "$QUEUE"
   msg "$GREEN" "Added to queue ($(count_queue) items)"
+
+  release_lock
 }
 
 # List all queued prompts
@@ -356,12 +418,14 @@ count_queue() {
 # Clear all queued prompts
 clear_queue() {
   ensure_config
+  acquire_lock
 
   local count
   count=$(count_queue)
 
   if [[ $count -eq 0 ]]; then
     msg "$YELLOW" "Queue is already empty"
+    release_lock
     return 0
   fi
 
@@ -372,6 +436,8 @@ clear_queue() {
 
   > "$QUEUE"
   msg "$GREEN" "Cleared $count items from queue"
+
+  release_lock
 }
 
 # Filter queue by tag
@@ -542,6 +608,9 @@ edit_queue_item() {
     die "Prompt text cannot be empty"
   fi
 
+  # Acquire lock before modifying queue
+  acquire_lock
+
   # Backup queue before modifying
   backup_queue
 
@@ -580,6 +649,8 @@ edit_queue_item() {
 
   # Clean up backup
   rm -f "${QUEUE}.bak"
+
+  release_lock
 
   # Success message
   msg "$GREEN" "Updated item #${item_num}"
@@ -1181,6 +1252,9 @@ send_prompt() {
     return 0
   fi
 
+  # Acquire lock before reading and modifying queue
+  acquire_lock
+
   # Get first line
   local entry
   entry=$(head -1 "$QUEUE")
@@ -1206,6 +1280,7 @@ send_prompt() {
         msg "$BLUE" "Kept in queue ($(count_queue) items)"
       fi
 
+      release_lock
       return 0
     fi
   else
@@ -1232,6 +1307,7 @@ send_prompt() {
       msg "$BLUE" "Kept in queue ($(count_queue) items)"
     fi
 
+    release_lock
     return 0
   fi
 
@@ -1241,6 +1317,7 @@ send_prompt() {
   echo ""
   echo "$text"
 
+  release_lock
   return 1
 }
 
@@ -1285,6 +1362,9 @@ select_and_send() {
     return 0
   fi
 
+  # Acquire lock before reading and modifying queue
+  acquire_lock
+
   # Get selected entry
   local entry
   entry=$(sed -n "${selected_idx}p" "$QUEUE")
@@ -1310,6 +1390,7 @@ select_and_send() {
         msg "$BLUE" "Kept in queue ($(count_queue) items)"
       fi
 
+      release_lock
       return 0
     fi
   else
@@ -1336,6 +1417,7 @@ select_and_send() {
       msg "$BLUE" "Kept in queue ($(count_queue) items)"
     fi
 
+    release_lock
     return 0
   fi
 
@@ -1345,6 +1427,7 @@ select_and_send() {
   echo ""
   echo "$text"
 
+  release_lock
   return 1
 }
 
