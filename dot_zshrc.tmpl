@@ -468,6 +468,15 @@ _register_repo_completion() {
 zsh-defer _register_repo_completion
 
 # ============================================================================
+# GitHub Integration (1Password)
+# ============================================================================
+# Fallback pattern: env variable → 1Password → empty
+# GITHUB_TOKEN is used by: gh CLI, git, chezmoi GitHub functions
+{{- if or (env "GITHUB_TOKEN") (onepasswordRead "op://Personal/GitHub-Personal-Token/credential") }}
+export GITHUB_TOKEN="{{ or (env "GITHUB_TOKEN") (onepasswordRead "op://Personal/GitHub-Personal-Token/credential") }}"
+{{- end }}
+
+# ============================================================================
 # Performance Profiling (uncomment when benchmarking)
 # ============================================================================
 # zprof | head -40

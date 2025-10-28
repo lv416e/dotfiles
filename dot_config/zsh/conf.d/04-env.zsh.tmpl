@@ -265,3 +265,12 @@ switch-multiplexer() {
   echo "💡 Restart your terminal emulator to use $mux"
   echo "   Or run: exec zsh"
 }
+
+# ============================================================================
+# GitHub Integration (1Password)
+# ============================================================================
+# Fallback pattern: env variable → 1Password → empty
+# GITHUB_TOKEN is used by: gh CLI, git, chezmoi GitHub functions
+{{- if or (env "GITHUB_TOKEN") (onepasswordRead "op://Personal/GitHub-Personal-Token/credential") }}
+export GITHUB_TOKEN="{{ or (env "GITHUB_TOKEN") (onepasswordRead "op://Personal/GitHub-Personal-Token/credential") }}"
+{{- end }}
