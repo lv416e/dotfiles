@@ -16,6 +16,7 @@ rust = "stable"        # Rust stable (managed by mise instead of rustup)
 "npm:@anthropic-ai/claude-code" = "latest"  # Claude Code CLI
 "npm:@google/gemini-cli" = "latest"         # Gemini CLI
 "npm:@openai/codex" = "latest"              # OpenAI Codex CLI
+"npm:@github/copilot" = "latest"            # GitHub Copilot CLI (2025 official version)
 "npm:@slidev/cli" = "latest"                # Slidev presentation tool
 "npm:git-open" = "latest"                   # Open GitHub repo from terminal
 "npm:ccusage" = "latest"                    # Claude Code usage tracker
