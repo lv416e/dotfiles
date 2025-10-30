@@ -2,106 +2,170 @@
 
 This guide explains how to set up a new macOS machine with this dotfiles repository.
 
+## Quick Start (Recommended)
+
+For most users, the **interactive setup** is the easiest way to get started:
+
+```bash
+# 1. Install prerequisites
+brew install chezmoi age 1password-cli
+
+# 2. Configure git
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+
+# 3. Initialize (you'll be prompted for configuration)
+chezmoi init YOUR_USERNAME/dotfiles
+
+# 4. Apply dotfiles
+chezmoi apply -v
+
+# 5. Install packages
+cd ~/.local/share/chezmoi
+brew bundle install
+mise install
+mise trust
+
+# 6. Verify setup
+mise secrets-verify
+```
+
+During step 3, you'll answer questions about your preferences. **No manual file editing required!**
+
+See [Fork Guide](../../FORK.md) for detailed walkthrough.
+
 ## Prerequisites
 
-1. **Install Homebrew** (if not already installed):
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-
-2. **Configure Git identity**:
-   ```bash
-   git config --global user.name "Your Name"
-   git config --global user.email "your.email@example.com"
-   ```
-
-## Installation
-
-### 1. Install chezmoi and initialize dotfiles
+### 1. Install Homebrew
 
 ```bash
-# Install chezmoi
-brew install chezmoi
-
-# Initialize with your dotfiles repository (DO NOT use --apply yet)
-chezmoi init https://github.com/YOUR_USERNAME/dotfiles.git
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-**Important**: Do NOT use `--apply` flag yet if you have encrypted files or 1Password secrets. We need to set up encryption first.
+**Note**: The Homebrew installation script automatically installs Xcode Command Line Tools if not already present. You don't need to run `xcode-select --install` separately.
 
-### 2. Set up secrets management (CRITICAL)
-
-This repository uses **two methods** for secrets management:
-- **age encryption** for encrypted files (e.g., SSH keys, AWS credentials)
-- **1Password CLI** for API tokens in templates (e.g., `.zshenv.tmpl`)
-
-You MUST complete this section before applying dotfiles, otherwise `chezmoi apply` will fail.
-
-#### Option A: Restore age private key from existing machine (Recommended)
-
-If you have the age private key from your old machine:
+### 2. Configure Git Identity
 
 ```bash
-# 1. Install age
-brew install age
-
-# 2. Copy the private key from your old machine
-# OLD MACHINE:
-scp ~/.config/chezmoi/key.txt username@new-machine:~/key.txt.backup
-
-# NEW MACHINE:
-mkdir -p ~/.config/chezmoi
-mv ~/key.txt.backup ~/.config/chezmoi/key.txt
-chmod 600 ~/.config/chezmoi/key.txt
-
-# 3. Verify the key
-grep "AGE-SECRET-KEY" ~/.config/chezmoi/key.txt
-# Should output: AGE-SECRET-KEY-1...
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
 ```
 
-#### Option B: Generate new age key (Fresh start)
+## Interactive Setup
 
-If you don't have the old key (or this is your first setup):
+### What You'll Be Asked
+
+When you run `chezmoi init`, you'll be prompted for:
+
+| Prompt | Description | Default | Required |
+|--------|-------------|---------|----------|
+| Email address | Your email | From git config | Yes |
+| GitHub username | For repository refs | (empty) | No |
+| 1Password vault | Vault for secrets | "Personal" | No |
+| Use GitHub token? | Fetch from 1Password | No | No |
+| GitHub token item | 1Password item name | "GitHub Classic PAT" | If above is Yes |
+| Enable age encryption? | For encrypted files | No | No |
+| Age public key | Your recipient key | (empty) | If above is Yes |
+| Zsh config style | monolithic/modular | monolithic | No |
+| Terminal multiplexer | tmux/zellij | tmux | No |
+| Enable difftastic? | Git diff tool | Yes | No |
+
+### Your Answers Are Saved
+
+Answers are stored in `~/.config/chezmoi/chezmoi.toml`. You won't be prompted again unless you delete this file.
+
+To change answers later:
 
 ```bash
-# 1. Install age
-brew install age
+$EDITOR ~/.config/chezmoi/chezmoi.toml
+chezmoi apply
+```
 
-# 2. Generate new age key
+## Optional: Advanced Secrets Setup
+
+The interactive setup handles basic configuration. If you need advanced secrets management:
+
+### Age Encryption (Optional)
+
+Only needed if you answered "Yes" to age encryption:
+
+```bash
+# Generate age key
 chezmoi age-keygen --output ~/.config/chezmoi/key.txt
 
-# 3. Save the public key that was printed
-# Example output:
-# Public key: age14t9x0zwv2adeujgjryk33s4f7wcxmsn7y7ws65hz7fs80fw9rfeqk8a4rg
+# Copy the public key from the output (starts with age1...)
+# You'll paste this when prompted during chezmoi init
 
-# 4. Update .chezmoi.toml.tmpl with the new public key
-# Edit: ~/.local/share/chezmoi/.chezmoi.toml.tmpl
-# Replace the recipient line with your new public key
+# Backup your key (highly recommended!)
+mise secrets-age-key-backup
 ```
 
-**Warning**: If you generate a new key, you won't be able to decrypt files encrypted with the old key. You'll need to re-encrypt all secret files.
-
-#### Set up 1Password CLI
-
-If your dotfiles use `onepasswordRead` template function:
+**Restoring existing key:**
 
 ```bash
-# 1. Install 1Password CLI
-brew install --cask 1password-cli
+# From 1Password
+mise secrets-age-key-restore
 
-# 2. Sign in to 1Password
+# Or from backup
+scp old-machine:~/.config/chezmoi/key.txt ~/.config/chezmoi/
+chmod 600 ~/.config/chezmoi/key.txt
+```
+
+### 1Password Integration (Optional)
+
+Only needed if you answered "Yes" to using GitHub token from 1Password:
+
+```bash
+# Sign in to 1Password
 op signin
 
-# 3. Verify authentication
-op whoami
-# Should show your 1Password account email
+# Create the GitHub token item
+op item create \
+  --category="API Credential" \
+  --title="GitHub Classic PAT" \
+  --vault=Personal \
+  credential="ghp_YOUR_TOKEN_HERE"
 
-# 4. List vaults to confirm access
-op vault list
-# Should show at least "Personal" vault
+# Verify
+mise op-status
+```
 
-# 5. Test secret retrieval (optional)
-op item list --vault Personal
+## Verification (Important!)
+
+After setup, verify everything is configured correctly:
+
+```bash
+# Run comprehensive verification
+mise secrets-verify
+```
+
+> [!TIP]
+> Expected output from `mise secrets-verify`:
+> - Age Key Status: Age key exists at `~/.config/chezmoi/key.txt`
+> - 1Password Status: Signed in to 1Password
+> - Chezmoi Encryption Config: `encryption = "age"`
+>
+> If all checks pass, your setup is complete!
+
+### Additional Verification
+
+```bash
+# Test shell configuration
+exec zsh
+# Should load without errors
+
+# Verify mise tasks
+mise tasks
+# Should list 24 available tasks
+
+# Check tmux status bar
+tmux
+# Status bar should display: Claude usage, CPU, RAM, battery
+
+# Test chezmoi
+chezmoi status
+# Should show no differences if all applied correctly
+```
 ```
 
 **Important**: You must complete `op signin` and authenticate via browser before running `chezmoi apply`, otherwise templates with `onepasswordRead` will fail.
@@ -309,10 +373,10 @@ brew bundle install
 # Then run secrets verification
 mise secrets-verify
 
-# Should show:
-# ✅ Age key exists
-# ✅ Signed in to 1Password
-# ✅ Age encryption configured in chezmoi
+# Expected output:
+# - Age key exists
+# - Signed in to 1Password
+# - Age encryption configured in chezmoi
 ```
 
 ### ccusage not found
