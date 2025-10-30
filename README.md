@@ -85,64 +85,80 @@ See [New Machine Setup Guide](docs/getting-started/new-machine-setup.md) for det
 
 ## Usage
 
-### Edit files
+- Edit files
 
 ```sh
 chezmoi edit ~/.zshrc
 ```
 
-### Apply changes
+- Apply changes
 
 ```sh
 chezmoi apply
 ```
 
-### Commit and push
+- Commit and push
 
 ```sh
 chezmoi cd
 git add -A && git commit -m "Update config" && git push
 ```
 
-### Quick apply (alias)
+- Quick apply (alias)
 
 ```sh
 mise a
 ```
 
-### Full system sync
+- Full system sync
 
 ```sh
 mise sync
 ```
 
-### Verify secrets setup
+- Verify secrets setup
 
 ```sh
 mise secrets-verify
 ```
 
-### Sign in to 1Password
+- Sign in to 1Password
 
 ```sh
 mise ops
 ```
 
-### Add encrypted file (if age enabled)
+- Add encrypted file (if age enabled)
 
 ```sh
 chezmoi add --encrypt ~/.ssh/id_rsa
 ```
 
-## Features
+## Maintenance
 
-- **Multiplexer Abstraction**: Seamless tmux/zellij switching with `switch-multiplexer`
-- **Configuration Switching**: Switch between modular/monolithic zsh configs with `switch-zsh-config`
-- **Secrets Management**: Integrated 1Password CLI and age encryption
-- **Pre-Commit Hooks**: Automatic secret detection with lefthook and gitleaks
-- **Modern Tools**: jj, WezTerm, Zellij, and 90+ packages
-- **Automated Tasks**: 24 mise tasks for common workflows (`mise tasks`)
-- **CI/CD**: GitHub Actions validates configurations
+- Update mise tools:
+
+```sh
+mise sys-update
+```
+
+- Update Homebrew packages:
+
+```sh
+brew update && brew upgrade
+```
+
+- Clean caches:
+
+```sh
+mise sys-clean
+```
+
+- Health check:
+
+```sh
+mise sys-health
+```
 
 ## What's Included
 
@@ -188,32 +204,6 @@ chezmoi add --encrypt ~/.ssh/id_rsa
 - **lefthook** - Fast git hooks
 
 </details>
-
-## Maintenance
-
-Update mise tools:
-
-```sh
-mise sys-update
-```
-
-Update Homebrew packages:
-
-```sh
-brew update && brew upgrade
-```
-
-Clean caches:
-
-```sh
-mise sys-clean
-```
-
-Health check:
-
-```sh
-mise sys-health
-```
 
 ## Documentation
 
