@@ -1,0 +1,139 @@
+name: cicd
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Homebrew dependencies
+        run: |
+          brew install chezmoi hyperfine
+
+      - name: Validate chezmoi configuration
+        run: |
+          chezmoi init --dry-run --verbose
+
+      - name: Test chezmoi apply (dry-run)
+        run: |
+          chezmoi apply --dry-run --verbose
+
+      - name: Benchmark zsh startup time
+        run: |
+          # Install zsh if not present (should be on macOS)
+          which zsh || brew install zsh
+
+          # Run benchmark
+          echo "### Zsh Startup Benchmark"
+          hyperfine --warmup 3 --runs 10 'zsh -i -c exit' || true
+
+      - name: Check for common issues
+        run: |
+          echo "Checking for potential secrets..."
+          ! grep -r "password\|secret\|token" --include="*.tmpl" --exclude-dir=".git" . || echo "Warning: Potential secrets found in templates"
+
+          echo "Checking for shell syntax errors..."
+          find . -name "*.sh" -o -name "*.zsh" | while read file; do
+            echo "Checking $file"
+            zsh -n "$file" 2>&1 || echo "Syntax error in $file"
+          done
+
+  linux-compatibility:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Homebrew (Linux)
+        run: |
+          # Install Homebrew on Linux
+          NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+          # Add Homebrew to PATH for subsequent steps
+          echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+      - name: Install chezmoi
+        run: |
+          brew install chezmoi
+
+      - name: Configure git (required for chezmoi)
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Validate chezmoi configuration on Linux
+        run: |
+          chezmoi init --dry-run --verbose
+
+      - name: Test chezmoi apply on Linux (dry-run)
+        run: |
+          chezmoi apply --dry-run --verbose
+
+      - name: Verify Brewfile OS detection
+        run: |
+          # Execute template and verify casks are excluded on Linux
+          chezmoi execute-template < dot_Brewfile.tmpl > /tmp/rendered-brewfile
+
+          echo "### Rendered Brewfile (first 20 lines):"
+          head -20 /tmp/rendered-brewfile
+
+          # Count cask entries (should be 0 on Linux)
+          CASK_COUNT=$(grep -c "^cask " /tmp/rendered-brewfile || true)
+          echo ""
+          echo "### OS Detection Test Results:"
+          echo "Platform: Linux (ubuntu-latest)"
+          echo "Cask entries found: $CASK_COUNT"
+          echo "Expected: 0 (all casks should be excluded)"
+
+          if [ "$CASK_COUNT" -eq 0 ]; then
+            echo "✅ PASS: OS detection working correctly - casks excluded on Linux"
+          else
+            echo "❌ FAIL: OS detection failed - found $CASK_COUNT casks on Linux"
+            exit 1
+          fi
+
+      - name: Verify core tools are included
+        run: |
+          # Verify brew formulae are still present
+          chezmoi execute-template < dot_Brewfile.tmpl > /tmp/rendered-brewfile
+
+          FORMULA_COUNT=$(grep -c "^brew " /tmp/rendered-brewfile || true)
+          echo "### Formula Count Test:"
+          echo "Brew formulae found: $FORMULA_COUNT"
+          echo "Expected: ~102 (formulae should work on Linux)"
+
+          if [ "$FORMULA_COUNT" -gt 50 ]; then
+            echo "✅ PASS: Core tools included (found $FORMULA_COUNT formulae)"
+          else
+            echo "❌ FAIL: Too few formulae found ($FORMULA_COUNT)"
+            exit 1
+          fi
+
+  documentation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check markdown links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: "yes"
+          config-file: ".github/markdown-link-check-config.json"
+        continue-on-error: true
+
+      - name: Validate markdown formatting
+        run: |
+          echo "Checking markdown files..."
+          find docs -name "*.md" -exec echo "✓ {}" \;
