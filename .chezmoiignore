@@ -1,2 +1,8 @@
 # Local override files (not managed by chezmoi)
 .zshenv.local
+
+# Raycast - Exclude heavy/frequently-changing files
+# Only manage scripts/ directory; config is synced via Raycast Cloud
+.config/raycast/Raycast.rayconfig
+.config/raycast/Cache/
+.config/raycast/Extensions/

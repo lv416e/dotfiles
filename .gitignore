@@ -64,9 +64,6 @@ raycast-extensions/**/.vercel/
 raycast-extensions/**/.DS_Store
 raycast-extensions/**/.env*
 
-# Raycast settings and extensions (too large, contains tokens)
-dot_config/raycast/
-
 # Neovim - plugin caches and lazy-lock files
 dot_config/nvim-astronvim/lazy-lock.json
 dot_config/nvim-lazyvim/lazy-lock.json
