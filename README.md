@@ -85,80 +85,25 @@ See [New Machine Setup Guide](docs/getting-started/new-machine-setup.md) for det
 
 ## Usage
 
-- Edit files
-
-```sh
-chezmoi edit ~/.zshrc
-```
-
-- Apply changes
-
-```sh
-chezmoi apply
-```
-
-- Commit and push
-
-```sh
-chezmoi cd
-git add -A && git commit -m "Update config" && git push
-```
-
-- Quick apply (alias)
-
-```sh
-mise a
-```
-
-- Full system sync
-
-```sh
-mise sync
-```
-
-- Verify secrets setup
-
-```sh
-mise secrets-verify
-```
-
-- Sign in to 1Password
-
-```sh
-mise ops
-```
-
-- Add encrypted file (if age enabled)
-
-```sh
-chezmoi add --encrypt ~/.ssh/id_rsa
-```
+| Task | Command |
+|------|---------|
+| Edit files | `chezmoi edit ~/.zshrc` |
+| Apply changes | `chezmoi apply` |
+| Commit and push | `chezmoi cd && git add -A && git commit -m "Update config" && git push` |
+| Quick apply (alias) | `mise a` |
+| Full system sync | `mise sync` |
+| Verify secrets setup | `mise secrets-verify` |
+| Sign in to 1Password | `mise ops` |
+| Add encrypted file (if age enabled) | `chezmoi add --encrypt ~/.ssh/id_rsa` |
 
 ## Maintenance
 
-- Update mise tools:
-
-```sh
-mise sys-update
-```
-
-- Update Homebrew packages:
-
-```sh
-brew update && brew upgrade
-```
-
-- Clean caches:
-
-```sh
-mise sys-clean
-```
-
-- Health check:
-
-```sh
-mise sys-health
-```
+| Task | Command |
+|------|---------|
+| Update mise tools | `mise sys-update` |
+| Update Homebrew packages | `brew update && brew upgrade` |
+| Clean caches | `mise sys-clean` |
+| Health check | `mise sys-health` |
 
 ## What's Included
 
