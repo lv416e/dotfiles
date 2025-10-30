@@ -33,6 +33,7 @@ Example: `0001-adopt-jujutsu-alongside-git.md`
 | [0005](0005-configuration-variants-system.md) | Configuration variants system | Accepted | 2025-10-26 |
 | [0006](0006-rust-ecosystem-adoption.md) | Rust ecosystem adoption | Accepted | 2025-10-26 |
 | [0007](0007-difftastic-integration.md) | Difftastic integration | Accepted | 2025-10-26 |
+| [0008](0008-linux-best-effort-support.md) | Linux best-effort support strategy | Accepted | 2025-10-31 |
 
 ## Process
 
