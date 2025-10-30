@@ -207,15 +207,3 @@ mise sys-clean
 # Health check
 mise sys-health
 ```
-
-## License
-
-MIT License - See [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-Inspired by the excellent dotfiles of:
-
-- [mathiasbynens/dotfiles](https://github.com/mathiasbynens/dotfiles)
-- [thoughtbot/dotfiles](https://github.com/thoughtbot/dotfiles)
-- [holman/dotfiles](https://github.com/holman/dotfiles)
