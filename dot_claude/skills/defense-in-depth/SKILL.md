@@ -1,6 +1,6 @@
 ---
 name: defense-in-depth
-description: Use when invalid data causes failures deep in execution, requiring validation at multiple system layers - validates at every layer data passes through to make bugs structurally impossible
+description: "Use when invalid data causes failures deep in execution, requiring validation at multiple system layers - validates at every layer data passes through to make bugs structurally impossible | 無効なデータが実行の深い部分で障害を引き起こす場合、複数のシステム層での検証が必要な際に使用 - データが通過するすべての層で検証し、バグを構造的に不可能にする"
 ---
 
 # Defense-in-Depth Validation

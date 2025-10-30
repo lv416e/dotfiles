@@ -1,6 +1,6 @@
 ---
 name: systematic-debugging
-description: Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes - four-phase framework (root cause investigation, pattern analysis, hypothesis testing, implementation) that ensures understanding before attempting solutions
+description: "Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes - four-phase framework (root cause investigation, pattern analysis, hypothesis testing, implementation) that ensures understanding before attempting solutions | バグ、テスト失敗、予期しない動作に遭遇した際、修正を提案する前に使用 - 4フェーズフレームワーク（根本原因調査、パターン分析、仮説検証、実装）により、解決策を試す前に理解を確保"
 ---
 
 # Systematic Debugging

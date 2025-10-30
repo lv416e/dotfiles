@@ -1,6 +1,6 @@
 ---
 name: requesting-code-review
-description: Use when completing tasks, implementing major features, or before merging to verify work meets requirements - dispatches superpowers:code-reviewer subagent to review implementation against plan or requirements before proceeding
+description: "Use when completing tasks, implementing major features, or before merging to verify work meets requirements - dispatches superpowers:code-reviewer subagent to review implementation against plan or requirements before proceeding | タスク完了時、主要機能の実装時、またはマージ前に作業が要件を満たしているか検証する際に使用 - superpowers:code-reviewerサブエージェントをディスパッチし、計画や要件に対して実装をレビュー"
 ---
 
 # Requesting Code Review

@@ -470,10 +470,10 @@ zsh-defer _register_repo_completion
 # ============================================================================
 # GitHub Integration (1Password)
 # ============================================================================
-# Fallback pattern: env variable → 1Password → empty
+# Fallback pattern: env variable → chezmoi data → 1Password
 # GITHUB_TOKEN is used by: gh CLI, git, chezmoi GitHub functions, GitHub Copilot CLI
-{{- if or (env "GITHUB_TOKEN") (onepasswordRead "op://Personal/GitHub Classic PAT/credential") }}
-export GITHUB_TOKEN="{{ or (env "GITHUB_TOKEN") (onepasswordRead "op://Personal/GitHub Classic PAT/credential") }}"
+{{- if or (env "GITHUB_TOKEN") .github_token }}
+export GITHUB_TOKEN="{{ or (env "GITHUB_TOKEN") .github_token }}"
 {{- end }}
 
 # ============================================================================

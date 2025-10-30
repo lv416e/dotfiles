@@ -1,6 +1,6 @@
 ---
 name: deep-research
-description: Conduct comprehensive, multi-source research on any topic using web search, documentation lookup, and critical analysis. This skill should be used when users request thorough investigation, deep research, or comprehensive analysis of topics including but not limited to AI systems, technology trends, academic subjects, business strategies, or current events.
+description: "Conduct comprehensive, multi-source research on any topic using web search, documentation lookup, and critical analysis. This skill should be used when users request thorough investigation, deep research, or comprehensive analysis of topics including but not limited to AI systems, technology trends, academic subjects, business strategies, or current events. | 任意のトピックに対して、Web検索、ドキュメント参照、批判的分析を用いた包括的な調査を実施。徹底的な調査、詳細なリサーチ、包括的な分析が必要な場合や、AIシステム、技術トレンド、学術的テーマ、ビジネス戦略、時事問題などについて深く知りたい場合に使用。"
 ---
 
 # Deep Research Skill

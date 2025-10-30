@@ -6,6 +6,7 @@ encryption = "age"
 [data]
     name = "{{ output "git" "config" "user.name" | trim }}"
     email = "{{ output "git" "config" "user.email" | trim }}"
+    github_token = "{{ onepasswordRead "op://Personal/GitHub Classic PAT/credential" }}"
 
 # Zsh configuration variant
 # Supported values: "modular" (default, optimized multi-file config) or "monolithic" (single-file config)

@@ -1,6 +1,6 @@
 ---
 name: repository-analyzer
-description: Comprehensive repository analysis using Explore agents, web search, and Context7 to investigate codebase structure, technology stack, configuration, documentation quality, and provide actionable insights. Use this skill when asked to analyze, audit, investigate, or report on a repository or codebase.
+description: "Comprehensive repository analysis using Explore agents, web search, and Context7 to investigate codebase structure, technology stack, configuration, documentation quality, and provide actionable insights. Use this skill when asked to analyze, audit, investigate, or report on a repository or codebase. | Exploreエージェント、Web検索、Context7を用いた包括的なリポジトリ分析。コードベース構造、技術スタック、設定、ドキュメント品質を調査し、実用的な洞察を提供。リポジトリやコードベースの分析、監査、調査、レポート作成を依頼された場合に使用。"
 ---
 
 # Repository Analyzer Skill

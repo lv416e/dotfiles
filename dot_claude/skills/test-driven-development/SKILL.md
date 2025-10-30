@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: Use when implementing any feature or bugfix, before writing implementation code - write the test first, watch it fail, write minimal code to pass; ensures tests actually verify behavior by requiring failure first
+description: "Use when implementing any feature or bugfix, before writing implementation code - write the test first, watch it fail, write minimal code to pass; ensures tests actually verify behavior by requiring failure first | 機能やバグ修正を実装する際、実装コードを書く前に使用 - まずテストを書き、失敗を確認し、最小限のコードで通す。最初に失敗を求めることで、テストが実際に動作を検証することを保証"
 ---
 
 # Test-Driven Development (TDD)

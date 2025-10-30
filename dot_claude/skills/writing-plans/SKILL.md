@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: Use when design is complete and you need detailed implementation tasks for engineers with zero codebase context - creates comprehensive implementation plans with exact file paths, complete code examples, and verification steps assuming engineer has minimal domain knowledge
+description: "Use when design is complete and you need detailed implementation tasks for engineers with zero codebase context - creates comprehensive implementation plans with exact file paths, complete code examples, and verification steps assuming engineer has minimal domain knowledge | 設計が完了し、コードベースの知識がゼロのエンジニア向けに詳細な実装タスクが必要な場合に使用 - 正確なファイルパス、完全なコード例、検証ステップを含む包括的な実装計画を作成。エンジニアの領域知識が最小限であることを前提"
 ---
 
 # Writing Plans

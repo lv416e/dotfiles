@@ -281,6 +281,66 @@ promptq tags
 - **By Priority**: `#urgent`, `#low-priority`
 - **By Category**: `#performance`, `#security`, `#testing`, `#documentation`
 
+## Reusable Prompts
+
+Some prompts are meant to be used repeatedly without being removed from the queue. `promptq` provides two ways to keep prompts in the queue after sending:
+
+### Using the `#reusable` Tag
+
+Add the `#reusable` tag to any prompt that you want to keep in the queue permanently:
+
+```bash
+# Add a reusable prompt
+promptq add "What are the recent changes in this codebase?" "#reusable #review"
+
+# Send it multiple times without removal
+promptq send    # Sends and keeps in queue
+promptq send    # Can send again
+```
+
+The `#reusable` tag is automatically detected when sending prompts. Tagged items will:
+- Remain in the queue after `promptq send`
+- Remain in the queue after `promptq select-send`
+- Be marked as "Kept in queue" in the output
+
+### Using the `--keep` Flag
+
+For one-time reuse of any prompt (regardless of tags):
+
+```bash
+# Keep any prompt temporarily
+promptq --keep send
+
+# Works with interactive selection too
+promptq --keep select-send
+```
+
+### Comparison
+
+| Method | Scope | Use Case |
+|--------|-------|----------|
+| `#reusable` tag | Permanent, per-item | Frequently reused prompts (daily standup, code review checklist) |
+| `--keep` flag | Temporary, all items | Testing prompts before committing to reuse |
+
+### Common Use Cases
+
+**Daily Standup**:
+```bash
+promptq add "Generate my daily standup based on recent git commits" "#reusable #standup"
+```
+
+**Code Review Checklist**:
+```bash
+promptq snippet add code-review-checklist
+promptq tag-add 1 reusable
+```
+
+**Frequently Asked Questions**:
+```bash
+promptq add "Explain the architecture of this project" "#reusable #architecture"
+promptq add "Where are the test files located?" "#reusable #testing"
+```
+
 ## File Structure
 
 ```

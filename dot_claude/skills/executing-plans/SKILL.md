@@ -1,6 +1,6 @@
 ---
 name: executing-plans
-description: Use when partner provides a complete implementation plan to execute in controlled batches with review checkpoints - loads plan, reviews critically, executes tasks in batches, reports for review between batches
+description: "Use when partner provides a complete implementation plan to execute in controlled batches with review checkpoints - loads plan, reviews critically, executes tasks in batches, reports for review between batches | パートナーが完全な実装計画を提供し、レビューチェックポイント付きで制御されたバッチで実行する際に使用 - 計画を読み込み、批判的にレビューし、タスクをバッチで実行し、バッチ間でレビュー報告"
 ---
 
 # Executing Plans

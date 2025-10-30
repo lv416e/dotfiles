@@ -1,6 +1,6 @@
 ---
 name: writing-skills
-description: Use when creating new skills, editing existing skills, or verifying skills work before deployment - applies TDD to process documentation by testing with subagents before writing, iterating until bulletproof against rationalization
+description: "Use when creating new skills, editing existing skills, or verifying skills work before deployment - applies TDD to process documentation by testing with subagents before writing, iterating until bulletproof against rationalization | 新しいスキルの作成、既存スキルの編集、またはデプロイ前にスキルが機能するか検証する際に使用 - プロセスドキュメントにTDDを適用し、記述前にサブエージェントでテストし、合理化に対して堅牢になるまで反復"
 ---
 
 # Writing Skills

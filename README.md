@@ -18,10 +18,19 @@ To use this repository as a template:
 
 ### 1. Install prerequisites
 
+First, install Homebrew if not already installed:
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Then install minimal required tools (others will be installed via Brewfile in step 6):
+
 ```sh
 brew install chezmoi age 1password-cli
 ```
-`age` for encrypted files, `1password-cli` for secrets management.
+
+`age` for encrypted files, `1password-cli` for secrets management. Note: `mise` and other tools are in Brewfile and will be installed later.
 
 Optional: Install 1Password app for biometric authentication
 
@@ -46,13 +55,16 @@ chezmoi init lv416e/dotfiles
 
 ### 4. Set up secrets
 
+First-time 1Password CLI setup (skip if already configured):
+
+```sh
+op account add --address my.1password.com
+```
+
 Sign in to 1Password and restore age key:
 
 ```sh
 eval $(op signin)
-```
-
-```sh
 mkdir -p ~/.config/chezmoi
 op item get "chezmoi-age-key" --fields notesPlain --vault Personal > ~/.config/chezmoi/key.txt
 chmod 600 ~/.config/chezmoi/key.txt
@@ -70,7 +82,10 @@ chezmoi apply
 chezmoi cd
 brew bundle install
 mise install
+mise trust
 ```
+
+Note: `mise trust` is required to use the mise configuration in this repository.
 
 See [New Machine Setup](docs/NEW_MACHINE_SETUP.md) for detailed instructions and troubleshooting.
 
