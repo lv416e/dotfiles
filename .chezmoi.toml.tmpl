@@ -1,33 +1,57 @@
 # chezmoi configuration template
+# Interactive setup on first init - prompts appear only once
 
-# Age encryption (must be at top level)
+# Prompt for user information
+{{- $email := promptStringOnce . "email" "Email address" (or (env "EMAIL") (output "git" "config" "user.email" | trim)) -}}
+{{- $githubUser := promptStringOnce . "github_user" "GitHub username" "" -}}
+
+# 1Password configuration
+{{- $vaultName := promptStringOnce . "onepassword.vault" "1Password vault name" "Personal" -}}
+{{- $useGithubToken := promptBoolOnce . "use_github_token" "Fetch GitHub token from 1Password" false -}}
+{{- $githubTokenItem := promptStringOnce . "github_token_item" "1Password item name for GitHub token" "GitHub Classic PAT" -}}
+
+# Age encryption (optional)
+{{- $useAge := promptBoolOnce . "use_age_encryption" "Enable age encryption for sensitive files" false -}}
+{{- $ageRecipient := "" -}}
+{{- if $useAge -}}
+{{-   $ageRecipient = promptStringOnce . "age.recipient" "Your age public key (run: chezmoi age-keygen)" "" -}}
+{{- end -}}
+
+# Zsh configuration
+{{- $zshVariant := promptChoice "Zsh config style" (list "monolithic" "modular") "monolithic" -}}
+{{- $multiplexer := promptChoice "Terminal multiplexer" (list "tmux" "zellij") "tmux" -}}
+
+# Optional features
+{{- $useDifftastic := promptBoolOnce . "use_difftastic" "Enable difftastic git diff integration" true -}}
+
+# Age encryption configuration (must be at top level, before [data])
+{{- if and $useAge (ne $ageRecipient "") }}
 encryption = "age"
+
+[age]
+    identity = "{{ .chezmoi.homeDir }}/.config/chezmoi/key.txt"
+    recipient = {{ $ageRecipient | quote }}
+{{- end }}
 
 [data]
     name = "{{ output "git" "config" "user.name" | trim }}"
-    email = "{{ output "git" "config" "user.email" | trim }}"
-    github_token = "{{ onepasswordRead "op://Personal/GitHub Classic PAT/credential" }}"
+    email = {{ $email | quote }}
+    github_user = {{ $githubUser | quote }}
+    github_token = "{{ if $useGithubToken }}{{ or (env "GITHUB_TOKEN") (onepasswordRead (printf "op://%s/%s/credential" $vaultName $githubTokenItem)) "" }}{{ else }}{{ env "GITHUB_TOKEN" }}{{ end }}"
 
-# Zsh configuration variant
-# Supported values: "modular" (default, optimized multi-file config) or "monolithic" (single-file config)
 [data.zsh]
-    variant = "monolithic"
-    multiplexer = "tmux"
+    variant = {{ $zshVariant | quote }}
+    multiplexer = {{ $multiplexer | quote }}
 
-# Difftastic integration
-# Controls conditional rendering of difftastic aliases in .gitconfig
 [data.difftastic]
-    enabled = true
+    enabled = {{ $useDifftastic }}
 
-# 1Password integration for secrets management
-# Requires: 1password-cli (brew install --cask 1password-cli)
-# Usage in .tmpl files: onepasswordRead "op://vault/item/field"
-# See docs/SECRETS_MANAGEMENT.md for examples
 [data.onepassword]
-    vault = "Personal"  # Change this to your 1Password vault name
+    vault = {{ $vaultName | quote }}
+    github_token_item = {{ $githubTokenItem | quote }}
 
 [onepassword]
-    mode = "account"  # Options: "account", "connect", "service"
+    mode = "account"
 
 [edit]
     command = "nvim"
@@ -43,11 +67,3 @@ encryption = "age"
 [merge]
     command = "nvim"
     args = ["-d", "{{ "{{ .Destination }}" }}", "{{ "{{ .Source }}" }}"]
-
-# Age encryption configuration
-# Generate your own key: chezmoi age-keygen --output ~/.config/chezmoi/key.txt
-# Replace the recipient below with your public key from age-keygen output
-# Usage: chezmoi add --encrypt <file>
-[age]
-    identity = "{{ .chezmoi.homeDir }}/.config/chezmoi/key.txt"
-    recipient = "age14t9x0zwv2adeujgjryk33s4f7wcxmsn7y7ws65hz7fs80fw9rfeqk8a4rg"  # REPLACE WITH YOUR KEY
