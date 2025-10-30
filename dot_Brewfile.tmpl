@@ -100,6 +100,10 @@ brew "age"             # Modern file encryption tool (for chezmoi secrets)
 brew "pueue"           # Task queue manager for long-running commands
 brew "ouch"            # Universal compression/decompression tool
 brew "viu"             # Terminal image viewer
+
+{{- if eq .chezmoi.os "darwin" }}
+# macOS-only casks (GUI applications, fonts, etc.)
+# On Linux, these will be silently skipped
 cask "alacritty"       # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
 cask "kitty"           # GPU-accelerated terminal (alternative to alacritty)
 cask "ghostty"         # Fast, native, GPU-accelerated terminal (Zig-based, experimental)
@@ -125,3 +129,4 @@ cask "rstudio"
 cask "slack"
 cask "shottr"
 cask "visual-studio-code"
+{{- end }}
