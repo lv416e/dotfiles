@@ -1,6 +1,7 @@
 # dotfiles
 
 ![CI](https://github.com/lv416e/dotfiles/workflows/Dotfiles%20CI/badge.svg)
+![License](https://img.shields.io/github/license/lv416e/dotfiles)
 [![chezmoi](https://img.shields.io/badge/managed%20with-chezmoi-blue)](https://www.chezmoi.io/)
 
 My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
@@ -8,87 +9,79 @@ My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
 > [!WARNING]
 > Fork this repository and review the code before use. Don't blindly use my settings unless you know what they do. Use at your own risk!
 
+## For New Users
+
+To use this repository as a template:
+
+1. Fork this repository to your GitHub account
+2. Update step 3 below: Replace `lv416e/dotfiles` with `YOUR_USERNAME/dotfiles`
+3. Follow the installation steps below - you'll be prompted for your configuration
+4. See [Fork Guide](FORK.md) for detailed instructions
+
 ## Installation
 
-### Quick Start (Interactive Setup)
+### 1. Install prerequisites
 
-```bash
-# Install prerequisites
+First, install Homebrew if not already installed:
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Then install required tools:
+
+```sh
 brew install chezmoi age 1password-cli
+```
 
-# Configure git (if not already done)
+### 2. Configure git
+
+```sh
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
+```
 
-# Initialize dotfiles (you'll be prompted for configuration)
-chezmoi init YOUR_USERNAME/dotfiles
+### 3. Initialize dotfiles
 
-# Apply dotfiles
+You'll be prompted for configuration (email, vault name, encryption options, etc.):
+
+```sh
+chezmoi init lv416e/dotfiles
+```
+
+### 4. Set up secrets (optional)
+
+If you enabled 1Password integration during initialization:
+
+```sh
+op signin
+```
+
+If you enabled age encryption, generate your key:
+
+```sh
+chezmoi age-keygen --output ~/.config/chezmoi/key.txt
+```
+
+> [!NOTE]
+> These steps are optional. The repository works without 1Password or age encryption.
+
+### 5. Apply dotfiles
+
+```sh
 chezmoi apply -v
+```
 
-# Install packages
+### 6. Install packages
+
+```sh
 cd ~/.local/share/chezmoi
 brew bundle install
 mise install
 mise trust
 ```
 
-### Interactive Prompts
-
-When you run `chezmoi init`, you'll be asked:
-
-- **Email address** - Your email (default: from git config)
-- **GitHub username** - For repository references
-- **1Password vault name** - Vault for secrets (default: "Personal")
-- **Use GitHub token from 1Password?** - Optional (default: No)
-- **Enable age encryption?** - For encrypted files (default: No)
-- **Zsh config style** - Monolithic or modular (default: monolithic)
-- **Terminal multiplexer** - tmux or zellij (default: tmux)
-
-> [!NOTE]
-> No manual file editing required - all configuration is handled via prompts.
-
-### Detailed Setup
-
-For step-by-step instructions, troubleshooting, and secrets management, see the [New Machine Setup Guide](docs/getting-started/new-machine-setup.md).
-
-## Features
-
-### Fork-Friendly Design
-
-- Interactive setup - zero hardcoded values
-- All config via prompts on first run
-- Edit `~/.config/chezmoi/chezmoi.toml` to change later
-
-### Dual Secrets Management
-
-- **age**: File-level encryption for static secrets
-- **1Password CLI**: Dynamic credentials with fallbacks
-
-### 24 Mise Tasks - Workflow Automation
-
-```bash
-mise secrets-verify    # Verify secrets setup
-mise sync              # Full sync: apply → update → clean
-mise dot-apply         # Apply dotfiles (alias: mise a)
-mise op-signin         # 1Password signin (alias: mise ops)
-mise sys-health        # System health check
-```
-
-### Modern Tool Stack
-
-- **Shell**: zsh with Powerlevel10k
-- **Multiplexers**: tmux / Zellij (switchable)
-- **Editor**: Neovim with extensive config
-- **VCS**: jj (Jujutsu) + git
-- **Tools**: 90+ packages via Homebrew + mise
-
-### Security
-
-- Pre-commit hooks (lefthook + gitleaks)
-- Automatic secret detection
-- Encrypted file support
-- CI/CD validation
+See [New Machine Setup Guide](docs/getting-started/new-machine-setup.md) for detailed instructions and troubleshooting.
 
 ## Usage
 
@@ -123,86 +116,24 @@ mise ops
 chezmoi add --encrypt ~/.ssh/id_rsa
 ```
 
+## Features
+
+- **Multiplexer Abstraction**: Seamless tmux/zellij switching with `switch-multiplexer`
+- **Configuration Switching**: Switch between modular/monolithic zsh configs with `switch-zsh-config`
+- **Secrets Management**: Integrated 1Password CLI and age encryption
+- **Pre-Commit Hooks**: Automatic secret detection with lefthook and gitleaks
+- **Modern Tools**: jj, WezTerm, Zellij, and 90+ packages
+- **Automated Tasks**: 24 mise tasks for common workflows (`mise tasks`)
+- **CI/CD**: GitHub Actions validates configurations
+
 ## Documentation
 
-### Getting Started
-
-- [New Machine Setup](docs/getting-started/new-machine-setup.md) - Complete guide
+- [New Machine Setup Guide](docs/getting-started/new-machine-setup.md) - Complete setup guide
 - [Fork Guide](FORK.md) - Fork and customize instructions
-
-### Configuration
-
-- [Secrets Management](docs/guides/secrets-management.md) - 1Password & age
-- [Zsh Config](docs/guides/zsh-config-switching.md) - Modular vs monolithic
-- [Multiplexer](docs/guides/multiplexer-abstraction.md) - tmux/zellij switching
-
-### Reference
-
-- [Mise Tasks](docs/reference/mise-tasks.md) - All available tasks
-- [Keybindings](docs/reference/keybindings-reference.md) - tmux/zellij keys
-- [Pre-Commit Hooks](docs/reference/pre-commit-hooks.md) - Git hooks
-
-### Tools
-
-- [Modern Tools Guide](docs/guides/modern-tools.md) - jj, WezTerm, Zellij
-
-## What's Included
-
-<details>
-<summary><strong>Shell & Terminal</strong></summary>
-
-- **zsh** - Fast shell with Powerlevel10k prompt
-- **tmux** / **Zellij** - Terminal multiplexers (switchable)
-- **WezTerm** - GPU-accelerated terminal emulator
-- **starship** - Cross-shell prompt (alternative)
-
-</details>
-
-<details>
-<summary><strong>Development Tools</strong></summary>
-
-- **mise** - Universal version manager + task runner
-- **jj** (Jujutsu) - Modern VCS (co-exists with git)
-- **neovim** - Extensively configured editor
-- **gh** - GitHub CLI
-- **docker** - Containerization
-
-</details>
-
-<details>
-<summary><strong>Productivity</strong></summary>
-
-- **fzf** - Fuzzy finder
-- **ripgrep** - Fast search
-- **fd** - Fast find
-- **bat** - Better cat
-- **eza** - Better ls
-- **zoxide** - Smart cd
-
-</details>
-
-<details>
-<summary><strong>Security & Secrets</strong></summary>
-
-- **age** - Modern encryption tool
-- **1password-cli** - Secret management
-- **gitleaks** - Secret scanning
-- **lefthook** - Fast git hooks
-
-</details>
-
-## Maintenance
-
-```bash
-# Update mise tools
-mise sys-update
-
-# Update Homebrew packages
-brew update && brew upgrade
-
-# Clean caches
-mise sys-clean
-
-# Health check
-mise sys-health
-```
+- [Secrets Management](docs/guides/secrets-management.md) - 1Password and age encryption
+- [Pre-Commit Hooks](docs/explanation/pre-commit-hooks.md) - Git hooks with lefthook and gitleaks
+- [Zsh Config Switching](docs/guides/zsh-config-switching.md) - Modular vs monolithic
+- [Multiplexer Abstraction](docs/explanation/multiplexer-abstraction.md) - Unified tmux/zellij interface
+- [Keybindings Reference](docs/reference/keybindings.md) - Quick reference for tmux/zellij
+- [Modern Tools](docs/guides/modern-tools.md) - jj, WezTerm, Zellij guides
+- [Mise Tasks](docs/reference/mise-tasks.md) - Task runner documentation
