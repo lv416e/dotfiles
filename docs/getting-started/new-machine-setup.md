@@ -533,6 +533,140 @@ mise install
 mise secrets-verify
 ```
 
+## Cloud Development Environments (DevContainer/Codespaces)
+
+This repository includes a DevContainer configuration for GitHub Codespaces and local DevContainer development. Dotfiles are automatically applied when you create a Codespace or open the repository in a DevContainer.
+
+### Quick Start with GitHub Codespaces
+
+1. **Create a Codespace**:
+   - Navigate to the repository on GitHub
+   - Click "Code" → "Codespaces" → "Create codespace on main"
+   - Wait 5-10 minutes for initial setup (includes dotfiles application)
+
+2. **Verify Setup**:
+   ```bash
+   # Check shell configuration
+   echo $SHELL
+   # Should output: /bin/zsh
+
+   # Verify mise tools
+   mise list
+   # Should show installed tools
+
+   # Test development tools
+   which git gh fzf bat eza
+   # All should be found in PATH
+   ```
+
+3. **Start Developing**:
+   - Your personal zsh configuration is already active
+   - All CLI tools (fzf, bat, eza, gitui, etc.) are installed
+   - VS Code extensions are pre-installed
+
+### DevContainer on Local Machine
+
+**Prerequisites**:
+- Docker Desktop or OrbStack installed
+- VS Code with "Dev Containers" extension
+
+**Usage**:
+1. Open repository in VS Code
+2. Press `⌘⇧P` → "Dev Containers: Reopen in Container"
+3. Wait for container build and dotfiles application
+4. Start coding in your familiar environment
+
+### Linux Environment Limitations
+
+DevContainers run on Ubuntu Linux. Due to the best-effort Linux support strategy (see [ADR-0008](../adr/0008-linux-best-effort-support.md)):
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Shell (zsh)** | ✅ Full | Complete zsh configuration with all plugins |
+| **CLI Tools** | ✅ Full | All 102 Homebrew formulae work (mise, fzf, bat, eza, etc.) |
+| **Git Config** | ✅ Full | Difftastic, Jujutsu, all git aliases functional |
+| **Secrets** | ⚠️ Partial | age encryption works; 1Password CLI works but no GUI app |
+| **GUI Apps** | ❌ Skip | All 25 macOS casks silently excluded (Raycast, Hammerspoon, etc.) |
+| **Terminal Emulators** | ❌ Skip | Alacritty/Kitty/Ghostty configs present but apps not installed |
+
+**Expected Warnings**:
+During dotfiles application, you may see:
+```
+⚠️  Dotfiles application encountered errors (expected on Linux - casks skipped)
+```
+
+This is **normal and expected**. The errors are from macOS-specific casks being excluded. Core development functionality is fully operational.
+
+### What Works in DevContainers
+
+**Development Workflow**:
+- ✅ Fast shell startup (~45ms with zsh-defer)
+- ✅ mise version management (Node, Python, Rust, Go)
+- ✅ Modern CLI tools (gitui, bottom, dust, fd, ripgrep)
+- ✅ Git workflow with difftastic and Jujutsu
+- ✅ fzf-powered fuzzy finding
+- ✅ Syntax highlighting (bat) and modern ls (eza)
+- ✅ All zsh aliases and functions
+
+**VS Code Integration**:
+- ✅ 26 pre-installed extensions (Python, Go, Rust, etc.)
+- ✅ Terminal defaults to zsh with your config
+- ✅ mise-managed tool paths configured
+- ✅ Chezmoi extension for dotfiles editing
+
+### Port Forwarding
+
+The DevContainer automatically forwards common development ports:
+
+| Port | Purpose | Auto-forward Behavior |
+|------|---------|----------------------|
+| 3000 | Frontend (React/Next.js) | Notify on forward |
+| 5000 | Backend (Flask/FastAPI) | Notify on forward |
+| 8000 | Development Server | Notify on forward |
+| 8080 | Alternative HTTP | Notify on forward |
+
+### Troubleshooting DevContainers
+
+**Dotfiles failed to apply**:
+```bash
+# Check chezmoi installation
+which chezmoi
+# Should output: /usr/local/bin/chezmoi
+
+# Manually re-apply
+chezmoi init --apply lv416e
+
+# Check status
+chezmoi status
+```
+
+**Tools not in PATH**:
+```bash
+# Reload shell
+exec zsh
+
+# Verify mise activation
+mise doctor
+```
+
+**Performance concerns**:
+- Initial setup takes 5-10 minutes (one-time cost)
+- Subsequent rebuilds are faster (~2-3 minutes)
+- Consider using "Dev Containers: Rebuild Container" sparingly
+
+### When to Use DevContainers
+
+**Good for**:
+- Quick experiments without affecting local machine
+- Consistent team development environments
+- Testing Linux compatibility
+- Development on non-macOS machines (Windows, ChromeOS)
+
+**Not ideal for**:
+- GUI-heavy workflows (window management, Raycast automation)
+- macOS-specific app development (Hammerspoon scripts)
+- When you need macOS-specific tools
+
 ## Notes
 
 - The tmux status bar updates every 15 seconds

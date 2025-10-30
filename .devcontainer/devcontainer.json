@@ -1,0 +1,146 @@
+{
+  // =============================================================================
+  // DevContainer Configuration with Chezmoi Dotfiles Integration
+  // =============================================================================
+  // Automatically applies dotfiles when creating a GitHub Codespace or
+  // opening this repository in a VS Code DevContainer.
+  //
+  // Note: On Linux, macOS-specific casks (Hammerspoon, Raycast, etc.) will be
+  // silently skipped. Core development tools (zsh, git, mise) work fully.
+  //
+  // References:
+  //   - https://containers.dev/
+  //   - https://www.chezmoi.io/user-guide/machines/containers-and-vms/
+  //   - ADR-0008: Linux best-effort support strategy
+  // =============================================================================
+
+  "name": "Development Environment (Chezmoi-managed)",
+
+  // --- Base Image ---
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  // --- Features ---
+  // Install development tools via Dev Container Features
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": false,
+      "upgradePackages": true,
+      "username": "vscode",
+      "uid": "automatic",
+      "gid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.13"
+    },
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "latest",
+      "profile": "default"
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "latest"
+    }
+  },
+
+  // --- Chezmoi Dotfiles Integration ---
+  // Automatically applies dotfiles on container creation
+  // Repository: https://github.com/lv416e/dotfiles
+  "postCreateCommand": "sh -c \"$(curl -fsLS get.chezmoi.io)\" -- init --apply lv416e && echo '✅ Dotfiles applied successfully' || echo '⚠️  Dotfiles application encountered errors (expected on Linux - casks skipped)'",
+
+  // --- Lifecycle Hooks ---
+  "postStartCommand": "echo '🚀 DevContainer ready. Shell: zsh | Tools: mise, fzf, bat, eza'",
+
+  // --- VS Code Extensions ---
+  // Core development extensions
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Dotfiles management
+        "twpayne.vscode-chezmoi",
+
+        // Core editing
+        "editorconfig.editorconfig",
+        "github.copilot",
+        "github.copilot-chat",
+
+        // Git integration
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+
+        // Language support
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "golang.go",
+        "rust-lang.rust-analyzer",
+        "ms-vscode.cpptools",
+
+        // Markdown & documentation
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+
+        // Configuration files
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "ms-azuretools.vscode-docker",
+
+        // Code quality
+        "esbenp.prettier-vscode",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        // Default to zsh (configured via dotfiles)
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        },
+        // Use mise-managed tools
+        "python.defaultInterpreterPath": "${HOME}/.local/share/mise/installs/python/latest/bin/python",
+        "go.goroot": "${HOME}/.local/share/mise/installs/go/latest",
+        "rust-analyzer.server.path": "${HOME}/.cargo/bin/rust-analyzer"
+      }
+    }
+  },
+
+  // --- Container Configuration ---
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "TERM": "xterm-256color",
+    // Help chezmoi detect container environment
+    "CONTAINER": "devcontainer"
+  },
+
+  // --- Port Forwarding ---
+  // Common development server ports
+  "forwardPorts": [3000, 5000, 8000, 8080],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend (React/Next.js)",
+      "onAutoForward": "notify"
+    },
+    "5000": {
+      "label": "Backend (Flask/FastAPI)",
+      "onAutoForward": "notify"
+    },
+    "8000": {
+      "label": "Development Server",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Alternative HTTP",
+      "onAutoForward": "notify"
+    }
+  }
+}
