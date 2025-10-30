@@ -85,34 +85,52 @@ See [New Machine Setup Guide](docs/getting-started/new-machine-setup.md) for det
 
 ## Usage
 
-### Daily Operations
+### Edit files
 
-```bash
-# Quick apply
-mise a
-
-# Edit and apply
+```sh
 chezmoi edit ~/.zshrc
-chezmoi apply
+```
 
-# Commit and push
+### Apply changes
+
+```sh
+chezmoi apply
+```
+
+### Commit and push
+
+```sh
 chezmoi cd
 git add -A && git commit -m "Update config" && git push
+```
 
-# Full system sync
+### Quick apply (alias)
+
+```sh
+mise a
+```
+
+### Full system sync
+
+```sh
 mise sync
 ```
 
-### Secrets Management
+### Verify secrets setup
 
-```bash
-# Verify setup
+```sh
 mise secrets-verify
+```
 
-# Sign in to 1Password
+### Sign in to 1Password
+
+```sh
 mise ops
+```
 
-# Add encrypted file (if age enabled)
+### Add encrypted file (if age enabled)
+
+```sh
 chezmoi add --encrypt ~/.ssh/id_rsa
 ```
 
@@ -125,6 +143,77 @@ chezmoi add --encrypt ~/.ssh/id_rsa
 - **Modern Tools**: jj, WezTerm, Zellij, and 90+ packages
 - **Automated Tasks**: 24 mise tasks for common workflows (`mise tasks`)
 - **CI/CD**: GitHub Actions validates configurations
+
+## What's Included
+
+<details>
+<summary><strong>Shell & Terminal</strong></summary>
+
+- **zsh** - Fast shell with Powerlevel10k prompt
+- **tmux** / **Zellij** - Terminal multiplexers (switchable)
+- **WezTerm** - GPU-accelerated terminal emulator
+- **starship** - Cross-shell prompt (alternative)
+
+</details>
+
+<details>
+<summary><strong>Development Tools</strong></summary>
+
+- **mise** - Universal version manager + task runner
+- **jj** (Jujutsu) - Modern VCS (co-exists with git)
+- **neovim** - Extensively configured editor
+- **gh** - GitHub CLI
+- **docker** - Containerization
+
+</details>
+
+<details>
+<summary><strong>Productivity</strong></summary>
+
+- **fzf** - Fuzzy finder
+- **ripgrep** - Fast search
+- **fd** - Fast find
+- **bat** - Better cat
+- **eza** - Better ls
+- **zoxide** - Smart cd
+
+</details>
+
+<details>
+<summary><strong>Security & Secrets</strong></summary>
+
+- **age** - Modern encryption tool
+- **1password-cli** - Secret management
+- **gitleaks** - Secret scanning
+- **lefthook** - Fast git hooks
+
+</details>
+
+## Maintenance
+
+Update mise tools:
+
+```sh
+mise sys-update
+```
+
+Update Homebrew packages:
+
+```sh
+brew update && brew upgrade
+```
+
+Clean caches:
+
+```sh
+mise sys-clean
+```
+
+Health check:
+
+```sh
+mise sys-health
+```
 
 ## Documentation
 
