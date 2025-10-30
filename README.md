@@ -1,7 +1,6 @@
 # dotfiles
 
 ![CI](https://github.com/lv416e/dotfiles/workflows/Dotfiles%20CI/badge.svg)
-![License](https://img.shields.io/github/license/lv416e/dotfiles)
 [![chezmoi](https://img.shields.io/badge/managed%20with-chezmoi-blue)](https://www.chezmoi.io/)
 
 My personal dotfiles, managed with [chezmoi](https://www.chezmoi.io/).
