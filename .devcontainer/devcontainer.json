@@ -1,26 +1,31 @@
 {
   // =============================================================================
-  // DevContainer Configuration with Chezmoi Dotfiles Integration
+  // DevContainer Configuration with Unified Homebrew Approach
   // =============================================================================
-  // Automatically applies dotfiles when creating a GitHub Codespace or
-  // opening this repository in a VS Code DevContainer.
+  // Development tools are managed via Homebrew (Brewfile) for consistency across
+  // macOS, Linux, and container environments. This configuration provides minimal
+  // Features (common-utils, git) while Homebrew handles language runtimes and
+  // development tools.
   //
-  // Note: On Linux, macOS-specific casks (Hammerspoon, Raycast, etc.) will be
-  // silently skipped. Core development tools (zsh, git, mise) work fully.
+  // On Linux, macOS-specific casks are automatically skipped by Homebrew.
   //
   // References:
   //   - https://containers.dev/
+  //   - https://docs.brew.sh/Homebrew-on-Linux
   //   - https://www.chezmoi.io/user-guide/machines/containers-and-vms/
-  //   - ADR-0008: Linux best-effort support strategy
   // =============================================================================
 
-  "name": "Development Environment (Chezmoi-managed)",
+  "name": "Development Environment",
 
   // --- Base Image ---
+  // Force x86_64/amd64 to ensure Homebrew bottles (binary packages) are available
+  // ARM64 Linux support is Tier 2 (no bottles) as of 2025 - will build from source (very slow)
+  // Using x86_64 via QEMU emulation is faster than ARM64 source builds
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "runArgs": ["--platform=linux/amd64"],
 
   // --- Features ---
-  // Install development tools via Dev Container Features
+  // Minimal Feature set - development tools installed via Homebrew (Brewfile)
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,
@@ -33,22 +38,6 @@
     "ghcr.io/devcontainers/features/git:1": {
       "version": "latest",
       "ppa": true
-    },
-    "ghcr.io/devcontainers/features/github-cli:1": {
-      "version": "latest"
-    },
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "lts"
-    },
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.13"
-    },
-    "ghcr.io/devcontainers/features/rust:1": {
-      "version": "latest",
-      "profile": "default"
-    },
-    "ghcr.io/devcontainers/features/go:1": {
-      "version": "latest"
     }
   },
 
@@ -63,7 +52,7 @@
   "postCreateCommand": "bash ${containerWorkspaceFolder}/.devcontainer/scripts/setup-dotfiles.sh",
 
   // --- Lifecycle Hooks ---
-  "postStartCommand": "echo '🚀 DevContainer ready. Shell: zsh | Tools: mise, fzf, bat, eza'",
+  "postStartCommand": "echo '🚀 DevContainer ready. Shell: zsh | Tools: Homebrew + Brewfile'",
 
   // --- VS Code Extensions ---
   // Core development extensions
