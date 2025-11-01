@@ -21,8 +21,8 @@ set -eufo pipefail
 # Ensure Homebrew is in PATH
 # =============================================================================
 
-{{ if eq .os "darwin" -}}
-{{   if eq .arch "arm64" -}}
+{{ if eq .chezmoi.os "darwin" -}}
+{{   if eq .chezmoi.arch "arm64" -}}
 if [ -x "/opt/homebrew/bin/brew" ]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
 fi

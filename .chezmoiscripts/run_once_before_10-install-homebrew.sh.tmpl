@@ -52,8 +52,8 @@ fi
 log_info "Installing Homebrew..."
 
 # Determine expected installation location
-{{ if eq .os "darwin" -}}
-{{   if eq .arch "arm64" -}}
+{{ if eq .chezmoi.os "darwin" -}}
+{{   if eq .chezmoi.arch "arm64" -}}
 EXPECTED_BREW_PATH="/opt/homebrew/bin/brew"
 {{   else -}}
 EXPECTED_BREW_PATH="/usr/local/bin/brew"
@@ -85,7 +85,7 @@ fi
 # Post-Installation Info
 # =============================================================================
 
-{{ if eq .os "linux" -}}
+{{ if eq .chezmoi.os "linux" -}}
 log_info "Add Homebrew to your PATH by ensuring ~/.zshrc loads correctly"
 {{ end -}}
 

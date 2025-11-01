@@ -8,9 +8,9 @@
 # ============================================================================
 
 # --- Homebrew ---
-{{- if eq .os "darwin" }}
+{{- if eq .chezmoi.os "darwin" }}
 # macOS: Homebrew location depends on architecture
-{{-   if eq .arch "arm64" }}
+{{-   if eq .chezmoi.arch "arm64" }}
 export HOMEBREW_PREFIX="/opt/homebrew"
 export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
 export HOMEBREW_REPOSITORY="/opt/homebrew"
