@@ -5,31 +5,34 @@
 
 [tools]
 # Language runtimes
-node = "lts"           # Node.js LTS version
-python = "3.13"        # Python 3.13 (stable)
-go = "latest"          # Latest Go version
-ruby = "3.3"           # Ruby 3.3
-java = "temurin-11"    # Java 11 (Temurin LTS, supported until 2029)
-rust = "stable"        # Rust stable (managed by mise instead of rustup)
+node = "lts"                                        # Node.js LTS version
+python = "3.13"                                     # Python 3.13 (stable)
+go = "latest"                                       # Latest Go version
+ruby = "3.3"                                        # Ruby 3.3
+java = "temurin-11"                                 # Java 11 (Temurin LTS, supported until 2029)
+rust = "stable"                                     # Rust stable (managed by mise instead of rustup)
 
 # npm global packages
-"npm:@anthropic-ai/claude-code" = "latest"  # Claude Code CLI
-"npm:@google/gemini-cli" = "latest"         # Gemini CLI
-"npm:@openai/codex" = "latest"              # OpenAI Codex CLI
-"npm:@github/copilot" = "latest"            # GitHub Copilot CLI (2025 official version)
-"npm:@slidev/cli" = "latest"                # Slidev presentation tool
-"npm:git-open" = "latest"                   # Open GitHub repo from terminal
-"npm:ccusage" = "latest"                    # Claude Code usage tracker
+"npm:@anthropic-ai/claude-code" = "latest"          # Claude Code CLI
+"npm:@google/gemini-cli" = "latest"                 # Gemini CLI
+"npm:@openai/codex" = "latest"                      # OpenAI Codex CLI
+"npm:@github/copilot" = "latest"                    # GitHub Copilot CLI (2025 official version)
+"npm:@slidev/cli" = "latest"                        # Slidev presentation tool
+"npm:git-open" = "latest"                           # Open GitHub repo from terminal
+"npm:ccusage" = "latest"                            # Claude Code usage tracker
 
 # Python tools (pipx/uvx)
-"pipx:pre-commit" = "latest"                # Git pre-commit framework
-"pipx:claude-monitor" = "latest"            # Claude Code usage monitor
+"pipx:pre-commit" = "latest"                        # Git pre-commit framework
+"pipx:claude-monitor" = "latest"                    # Claude Code usage monitor
+
+# Secrets Management
+fnox = "latest"                                     # Modern secret manager (age, 1Password, cloud providers)
 
 # Modern shell (experimental)
-"cargo:nu" = "latest"                       # Nushell - modern shell with structured data
+"cargo:nu" = "latest"                               # Nushell - modern shell with structured data
 
 # Git hooks and security
-"go:github.com/evilmartians/lefthook" = "latest"     # Modern Git hooks manager
+"go:github.com/evilmartians/lefthook" = "latest"    # Modern Git hooks manager
 "go:github.com/zricethezav/gitleaks/v8" = "latest"  # Secret detection tool (correct module path)
 
 # Terminal multiplexer tools
@@ -67,7 +70,7 @@ rust = "stable"        # Rust stable (managed by mise instead of rustup)
 "npm:prettier" = "latest"                           # Multi-language formatter
 "npm:@fsouza/prettierd" = "latest"                  # Faster prettier daemon
 "cargo:stylua" = "latest"                           # Lua formatter
-"go:mvdan.cc/sh/v3/cmd/shfmt" = "latest"           # Shell script formatter
+"go:mvdan.cc/sh/v3/cmd/shfmt" = "latest"            # Shell script formatter
 "pipx:ruff" = "latest"                              # Fast Python linter/formatter
 "pipx:black" = "latest"                             # Python code formatter
 
@@ -336,6 +339,66 @@ op whoami > /dev/null 2>&1 && echo "✅ Signed in to 1Password" || echo "❌ Not
 
 echo "\n=== Chezmoi Encryption Config ==="
 grep -A3 'encryption = "age"' ~/.config/chezmoi/chezmoi.toml || echo "❌ Age encryption not configured in chezmoi"
+"""
+
+# --- fnox (Modern Secret Manager) ---
+
+[tasks.fnox-init]
+description = "[fnox] Initialize fnox configuration"
+alias = "fxi"
+run = """
+echo "🔐 Initializing fnox..."
+if ! command -v fnox &> /dev/null; then
+  echo "❌ fnox not installed. Installing via mise..."
+  mise use -g fnox
+  echo "✅ fnox installed"
+fi
+mkdir -p ~/.config/fnox/secrets
+chmod 700 ~/.config/fnox/secrets
+if [ -f ~/.config/fnox/fnox.toml ]; then
+  echo "✅ fnox configuration found"
+else
+  echo "❌ fnox configuration not found. Run 'chezmoi apply'"
+  exit 1
+fi
+echo "✅ fnox initialized successfully"
+"""
+
+[tasks.fnox-add]
+description = "[fnox] Add a new secret (usage: mise fnox-add <name> <value>)"
+alias = "fxa"
+run = """
+if [ -z "$1" ] || [ -z "$2" ]; then
+  echo "Usage: mise fnox-add <name> <value>"
+  exit 1
+fi
+fnox set "$1" "$2"
+"""
+
+[tasks.fnox-get]
+description = "[fnox] Get a secret value (usage: mise fnox-get <name>)"
+alias = "fxg"
+run = "fnox get \"$1\""
+
+[tasks.fnox-list]
+description = "[fnox] List all secrets"
+alias = "fxl"
+run = "fnox list"
+
+[tasks.fnox-status]
+description = "[fnox] Show fnox status and backend health"
+alias = "fxs"
+run = """
+echo "=== fnox Status ==="
+if command -v fnox &> /dev/null; then
+  echo "✅ fnox installed: $(which fnox)"
+else
+  echo "❌ fnox not installed. Run: mise use -g fnox"
+fi
+if [ -f ~/.config/fnox/fnox.toml ]; then
+  echo "✅ Config found: ~/.config/fnox/fnox.toml"
+fi
+fnox backends 2>/dev/null || true
 """
 
 # --- Workflows (Complex Operations) ---

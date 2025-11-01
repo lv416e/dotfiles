@@ -1,0 +1,386 @@
+{
+  // ===========================================================================
+  // Zed Editor Configuration - 2025 Best Practices
+  // ===========================================================================
+  // Docs: https://zed.dev/docs/configuring-zed
+  //
+  // Philosophy:
+  // - Vim-first workflow (matching Neovim muscle memory)
+  // - LSP-powered development (TypeScript, Python, Go, Rust, etc.)
+  // - Performance-oriented (GPU acceleration, minimal bloat)
+  // - Consistent with existing dotfiles aesthetic
+
+  // ===========================================================================
+  // Vim Mode (2025 Best Practices)
+  // ===========================================================================
+  "vim_mode": true,
+  "vim": {
+    // Use system clipboard for yank/paste (matching Neovim config)
+    "use_system_clipboard": "always",
+
+    // Use multiline mode for better vim regex compatibility
+    "use_multiline_find": true,
+
+    // Custom digraphs for special characters
+    "custom_digraphs": {
+      // Add Japanese input helpers if needed
+      // Example: "aa": "あ"
+    }
+  },
+
+  // Relative line numbers (essential for vim motions)
+  "relative_line_numbers": true,
+
+  // ===========================================================================
+  // Editor Appearance & Behavior
+  // ===========================================================================
+
+  // Theme (matching Solarized Dark from Alacritty config)
+  "theme": {
+    "mode": "system",
+    "light": "One Light",
+    "dark": "One Dark"
+  },
+
+  // UI density
+  "ui_font_size": 11,
+  "buffer_font_size": 10,
+  "buffer_font_family": "{{- if eq .chezmoi.os "darwin" }}SF Mono{{- else }}monospace{{- end }}",
+  "ui_font_family": "{{- if eq .chezmoi.os "darwin" }}SF Pro{{- else }}system-ui{{- end }}",
+
+  // Cursor settings
+  "cursor_blink": false,
+  "show_inline_completions": true,
+
+  // Scrolling
+  "scroll_beyond_last_line": "one_page",
+  "vertical_scroll_margin": 3,
+
+  // ===========================================================================
+  // Indentation & Formatting (matching existing conventions)
+  // ===========================================================================
+
+  "tab_size": 2,
+  "hard_tabs": false,
+  "preferred_line_length": 80,
+  "soft_wrap": "preferred_line_length",
+
+  // Show indent guides (2025 best practice)
+  "indent_guides": {
+    "enabled": true,
+    "line_width": 1,
+    "active_line_width": 2,
+    "coloring": "indent_aware"
+  },
+
+  // Format on save (essential for modern workflow)
+  "format_on_save": "on",
+  "formatter": "language_server",
+
+  // Remove trailing whitespace
+  "remove_trailing_whitespace_on_save": true,
+  "ensure_final_newline_on_save": true,
+
+  // ===========================================================================
+  // LSP & Language-Specific Settings
+  // ===========================================================================
+
+  // LSP configuration (global)
+  "lsp": {
+    // TypeScript/JavaScript
+    "typescript-language-server": {
+      "settings": {
+        "typescript": {
+          "format": {
+            "enable": true
+          },
+          "inlayHints": {
+            "includeInlayParameterNameHints": "all",
+            "includeInlayFunctionParameterTypeHints": true
+          }
+        }
+      }
+    },
+
+    // Python (basedpyright is Zed's default, recommended)
+    "basedpyright": {
+      "settings": {
+        "analysis": {
+          "typeCheckingMode": "basic",
+          "diagnosticMode": "workspace"
+        }
+      }
+    },
+
+    // Go (gopls)
+    "gopls": {
+      "settings": {
+        "gopls": {
+          "analyses": {
+            "unusedparams": true,
+            "shadow": true
+          },
+          "staticcheck": true
+        }
+      }
+    },
+
+    // Rust (rust-analyzer)
+    "rust-analyzer": {
+      "initialization_options": {
+        "cargo": {
+          "allFeatures": true
+        },
+        "checkOnSave": true,
+        "check": {
+          "command": "clippy"
+        },
+        "inlayHints": {
+          "parameterHints": {
+            "enable": true
+          },
+          "typeHints": {
+            "enable": true
+          }
+        }
+      }
+    }
+  },
+
+  // Per-language configuration
+  "languages": {
+    "TypeScript": {
+      "tab_size": 2,
+      "format_on_save": "on",
+      "formatter": [
+        {
+          "code_actions": {
+            "source.organizeImports": true
+          }
+        },
+        "prettier"
+      ],
+      "language_servers": ["typescript-language-server", "!vtsls", "..."]
+    },
+    "JavaScript": {
+      "tab_size": 2,
+      "format_on_save": "on",
+      "formatter": [
+        {
+          "code_actions": {
+            "source.organizeImports": true
+          }
+        },
+        "prettier"
+      ],
+      "language_servers": ["typescript-language-server", "!vtsls", "..."]
+    },
+    "JSON": {
+      "tab_size": 2,
+      "format_on_save": "on"
+    },
+    "Python": {
+      "tab_size": 4,
+      "format_on_save": "on",
+      "formatter": {
+        "language_server": {
+          "name": "ruff"
+        }
+      }
+    },
+    "Go": {
+      "tab_size": 4,
+      "hard_tabs": true,
+      "format_on_save": "on"
+    },
+    "Rust": {
+      "tab_size": 4,
+      "format_on_save": "on"
+    },
+    "Shell Script": {
+      "tab_size": 2,
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "shfmt",
+          "arguments": ["-i", "2", "-"]
+        }
+      }
+    },
+    "Markdown": {
+      "tab_size": 2,
+      "format_on_save": "on",
+      "soft_wrap": "preferred_line_length",
+      "preferred_line_length": 80
+    },
+    "YAML": {
+      "tab_size": 2,
+      "format_on_save": "on"
+    },
+    "TOML": {
+      "tab_size": 2,
+      "format_on_save": "on"
+    }
+  },
+
+  // ===========================================================================
+  // File Management
+  // ===========================================================================
+
+  // Auto-save strategy
+  "autosave": "on_focus_change",
+
+  // File exclusions (matching gitignore patterns)
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.svn",
+    "**/.hg",
+    "**/node_modules",
+    "**/.venv",
+    "**/venv",
+    "**/__pycache__",
+    "**/target",
+    "**/.DS_Store",
+    "**/.idea",
+    "**/.vscode"
+  ],
+
+  // ===========================================================================
+  // Git Integration
+  // ===========================================================================
+
+  "git": {
+    "enabled": true,
+    "inline_blame": {
+      "enabled": true
+    }
+  },
+
+  // Show git diff in gutter
+  "gutter": {
+    "line_numbers": true,
+    "code_actions": true,
+    "folds": true
+  },
+
+  // ===========================================================================
+  // Terminal Integration
+  // ===========================================================================
+
+  "terminal": {
+    // Use system shell (zsh from dotfiles)
+    "shell": {
+      "program": "{{- if eq .chezmoi.os "darwin" }}/bin/zsh{{- else }}/usr/bin/zsh{{- end }}"
+    },
+    "font_family": "{{- if eq .chezmoi.os "darwin" }}SF Mono{{- else }}monospace{{- end }}",
+    "font_size": 13,
+    "working_directory": "current_project_directory",
+    "blinking": "off",
+    "copy_on_select": false
+  },
+
+  // ===========================================================================
+  // AI & Completions (2025 Features)
+  // ===========================================================================
+
+  // Edit predictions (AI completions)
+  "edit_predictions": {
+    "disabled_globs": [
+      "**/.env*",
+      "**/*.age",
+      "**/secrets/**",
+      "**/*.pem",
+      "**/*.key",
+      "**/*.cert"
+    ]
+  },
+
+  // ===========================================================================
+  // Performance & Behavior
+  // ===========================================================================
+
+  // Restore files and layout on startup
+  "restore_on_startup": "last_workspace",
+
+  // Automatically update Zed
+  "auto_update": true,
+
+  // Telemetry (disable for privacy)
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+
+  // Collaboration (Zed's built-in feature)
+  "collaboration_panel": {
+    "dock": "left"
+  },
+
+  // Project panel (file tree)
+  "project_panel": {
+    "dock": "left",
+    "git_status": true,
+    "indent_size": 20,
+    "default_width": 240
+  },
+
+  // Outline panel (symbols)
+  "outline_panel": {
+    "dock": "right",
+    "default_width": 300
+  },
+
+  // ===========================================================================
+  // Search & Navigation
+  // ===========================================================================
+
+  // Fuzzy finder settings
+  "file_finder": {
+    "file_icons": true
+  },
+
+  // Preview tabs (like VSCode)
+  "preview_tabs": {
+    "enabled": true,
+    "enable_preview_from_file_finder": true
+  },
+
+  // Breadcrumbs
+  "toolbar": {
+    "breadcrumbs": true,
+    "quick_actions": true
+  },
+
+  // ===========================================================================
+  // Diagnostics & Warnings
+  // ===========================================================================
+
+  // Show diagnostics
+  "diagnostics": {
+    "include_warnings": true
+  },
+
+  // Inlay hints (parameter names, types, etc.)
+  "inlay_hints": {
+    "enabled": true,
+    "show_type_hints": true,
+    "show_parameter_hints": true,
+    "show_other_hints": true
+  }
+
+  // ===========================================================================
+  // Extensions (Auto-install on first launch)
+  // ===========================================================================
+  // Extensions are managed separately via Zed's extension system
+  // Install recommended extensions:
+  // - Dockerfile
+  // - TOML
+  // - Just
+  // - Prisma
+  // - Tailwind CSS
+
+  // ===========================================================================
+  // Experimental Features (2025)
+  // ===========================================================================
+  // Note: GitHub Copilot and other features can be enabled via Extensions panel
+}

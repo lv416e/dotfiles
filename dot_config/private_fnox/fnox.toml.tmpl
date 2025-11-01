@@ -1,0 +1,148 @@
+# ==============================================================================
+# fnox - Secret Manager Configuration
+# ==============================================================================
+# Docs: https://github.com/jdx/fnox
+#
+# fnox is a modern secret manager by @jdx (mise author) that provides:
+# - Unified interface for multiple secret backends
+# - Auto-loading secrets into environment variables
+# - Integration with age, 1Password, AWS, Azure, GCP, Bitwarden, Vault
+#
+# Philosophy:
+# - Complement existing age + 1Password setup
+# - Use age for local encrypted secrets
+# - Use 1Password for shared/cloud secrets
+# - Auto-load into shell environment
+
+# ==============================================================================
+# General Configuration
+# ==============================================================================
+
+# Default backend for new secrets
+default_backend = "age"
+
+# Auto-load secrets on shell startup (integrated with zsh config)
+auto_load = true
+
+# ==============================================================================
+# age Backend (Local Encrypted Secrets)
+# ==============================================================================
+# Uses the same age key as chezmoi for consistency
+
+[backends.age]
+enabled = true
+# Reuse chezmoi's age identity for consistency
+identity_file = "{{ .chezmoi.homeDir }}/.config/chezmoi/key.txt"
+# Store age-encrypted secrets in fnox directory
+secrets_dir = "{{ .chezmoi.homeDir }}/.config/fnox/secrets"
+
+# ==============================================================================
+# 1Password Backend (Cloud Secrets)
+# ==============================================================================
+# Integrates with existing 1Password CLI setup
+
+[backends.onepassword]
+enabled = true
+# Use the same vault as chezmoi
+vault = "{{ .onepassword.vault }}"
+# 1Password account (uses signed-in account via `op whoami`)
+account = ""  # Leave empty to use current signed-in account
+
+# ==============================================================================
+# Secret Definitions
+# ==============================================================================
+# Define secrets and their sources
+#
+# Syntax:
+# [secrets.<NAME>]
+# backend = "age" | "onepassword" | "aws" | "azure" | "gcp" | "bitwarden" | "vault"
+# path = "secret/path"  # Backend-specific path
+# env = "ENV_VAR_NAME"  # Optional: auto-export to environment variable
+
+# Example: GitHub token from 1Password
+# Uncomment if you want fnox to manage your GitHub token:
+#
+# [secrets.github_token]
+# backend = "onepassword"
+# path = "op://{{ .onepassword.vault }}/{{ .onepassword.github_token_item }}/credential"
+# env = "GITHUB_TOKEN"
+# description = "GitHub Personal Access Token (Classic)"
+
+# Example: API keys stored locally with age
+# Uncomment and customize as needed:
+#
+# [secrets.openai_api_key]
+# backend = "age"
+# path = "openai/api_key"
+# env = "OPENAI_API_KEY"
+# description = "OpenAI API key for Claude Code and other tools"
+#
+# [secrets.anthropic_api_key]
+# backend = "age"
+# path = "anthropic/api_key"
+# env = "ANTHROPIC_API_KEY"
+# description = "Anthropic API key for Claude"
+
+# ==============================================================================
+# AWS Secrets Manager (Optional)
+# ==============================================================================
+# Uncomment if using AWS for secret storage
+#
+# [backends.aws]
+# enabled = false
+# region = "us-east-1"
+# profile = "default"  # AWS profile name
+
+# ==============================================================================
+# Azure Key Vault (Optional)
+# ==============================================================================
+# Uncomment if using Azure for secret storage
+#
+# [backends.azure]
+# enabled = false
+# vault_name = "my-key-vault"
+# tenant_id = ""
+# client_id = ""
+
+# ==============================================================================
+# GCP Secret Manager (Optional)
+# ==============================================================================
+# Uncomment if using GCP for secret storage
+#
+# [backends.gcp]
+# enabled = false
+# project = "my-project"
+
+# ==============================================================================
+# Bitwarden (Optional)
+# ==============================================================================
+# Uncomment if using Bitwarden for secret storage
+#
+# [backends.bitwarden]
+# enabled = false
+# server_url = "https://vault.bitwarden.com"  # Or self-hosted URL
+
+# ==============================================================================
+# HashiCorp Vault (Optional)
+# ==============================================================================
+# Uncomment if using Vault for secret storage
+#
+# [backends.vault]
+# enabled = false
+# address = "https://vault.example.com"
+# token = ""  # Or use VAULT_TOKEN environment variable
+# mount_path = "secret"
+
+# ==============================================================================
+# Advanced Options
+# ==============================================================================
+
+# Cache secrets in memory for faster access
+[cache]
+enabled = true
+ttl = 3600  # Cache TTL in seconds (1 hour)
+
+# Logging
+[logging]
+level = "info"  # debug, info, warn, error
+file = "{{ .chezmoi.homeDir }}/.local/share/fnox/fnox.log"

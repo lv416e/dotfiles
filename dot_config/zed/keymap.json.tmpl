@@ -1,0 +1,227 @@
+[
+  // ===========================================================================
+  // Zed Keybindings - Vim-Enhanced Workflow
+  // ===========================================================================
+  // Docs: https://zed.dev/docs/key-bindings
+  //
+  // Philosophy:
+  // - Vim motions as primary navigation
+  // - Leader key patterns (matching Neovim config)
+  // - Minimal conflicts with built-in vim mode
+  // - Enhanced with modern IDE features
+
+  // ===========================================================================
+  // Normal Mode Enhancements
+  // ===========================================================================
+
+  // File navigation (matching Neovim <leader>ff, <leader>fg patterns)
+  {
+    "context": "VimControl && !menu",
+    "bindings": {
+      // File finder (like Telescope)
+      "space f f": "file_finder::Toggle",
+
+      // Project-wide search (like Telescope live_grep)
+      "space f g": "pane::DeploySearch",
+
+      // Buffer/tab switching
+      "space b b": "tab_switcher::Toggle",
+
+      // File tree toggle
+      "space e": "workspace::ToggleLeftDock",
+
+      // Symbols outline (like LSP outline)
+      "space o": "outline::Toggle",
+
+      // Diagnostics (like trouble.nvim)
+      "space d": "diagnostics::Deploy"
+    }
+  },
+
+  // ===========================================================================
+  // LSP & Code Actions (matching Neovim LSP keybindings)
+  // ===========================================================================
+
+  {
+    "context": "Editor && VimControl && !menu",
+    "bindings": {
+      // Go to definition (matching Neovim gd)
+      "g d": "editor::GoToDefinition",
+
+      // Go to type definition
+      "g t": "editor::GoToTypeDefinition",
+
+      // Go to implementation
+      "g i": "editor::GoToImplementation",
+
+      // Go to references (matching Neovim gr)
+      "g r": "editor::FindAllReferences",
+
+      // Hover documentation (matching Neovim K)
+      "K": "editor::Hover",
+
+      // Rename symbol (matching Neovim <leader>rn)
+      "space r n": "editor::Rename",
+
+      // Code actions (matching Neovim <leader>ca)
+      "space c a": "editor::ToggleCodeActions",
+
+      // Format document (matching Neovim <leader>f)
+      "space f m": "editor::Format",
+
+      // Next/previous diagnostic
+      "] d": "editor::GoToDiagnostic",
+      "[ d": "editor::GoToPrevDiagnostic"
+    }
+  },
+
+  // ===========================================================================
+  // Window Management (tmux-like with Ctrl prefix)
+  // ===========================================================================
+
+  {
+    "context": "VimControl && !menu",
+    "bindings": {
+      // Split windows (matching vim/tmux)
+      "ctrl-w v": "pane::SplitRight",
+      "ctrl-w s": "pane::SplitDown",
+
+      // Navigate panes (matching vim)
+      "ctrl-w h": ["workspace::ActivatePaneInDirection", "Left"],
+      "ctrl-w j": ["workspace::ActivatePaneInDirection", "Down"],
+      "ctrl-w k": ["workspace::ActivatePaneInDirection", "Up"],
+      "ctrl-w l": ["workspace::ActivatePaneInDirection", "Right"],
+
+      // Close pane (matching vim)
+      "ctrl-w q": "pane::CloseActiveItem",
+
+      // Maximize pane
+      "ctrl-w o": "workspace::CloseInactiveTabsAndPanes"
+    }
+  },
+
+  // ===========================================================================
+  // Terminal Integration
+  // ===========================================================================
+
+  {
+    "context": "Workspace",
+    "bindings": {
+      // Toggle terminal (matching Neovim terminal shortcuts)
+      "ctrl-`": "terminal_panel::ToggleFocus",
+
+      // Open terminal in new pane
+      "space t t": "terminal_panel::ToggleFocus"
+    }
+  },
+
+  // ===========================================================================
+  // Git Integration (matching vim-fugitive patterns)
+  // ===========================================================================
+
+  {
+    "context": "VimControl && !menu",
+    "bindings": {
+      // Git blame (matching <leader>gb)
+      "space g b": "editor::ToggleGitBlame",
+
+      // Git diff (matching <leader>gd)
+      "space g d": "editor::ToggleHunkDiff",
+
+      // Next/previous hunk
+      "] h": "editor::GoToHunk",
+      "[ h": "editor::GoToPrevHunk"
+    }
+  },
+
+  // ===========================================================================
+  // Multi-Cursor & Selection (enhanced vim visual mode)
+  // ===========================================================================
+
+  {
+    "context": "Editor && vim_mode == visual",
+    "bindings": {
+      // Add cursor above/below (like vim-visual-multi)
+      "ctrl-shift-up": "editor::AddSelectionAbove",
+      "ctrl-shift-down": "editor::AddSelectionBelow",
+
+      // Select next occurrence (like vim-visual-multi <C-n>)
+      "ctrl-d": "editor::SelectNext"
+    }
+  },
+
+  // ===========================================================================
+  // Search Enhancements
+  // ===========================================================================
+
+  {
+    "context": "Editor && VimControl && !menu",
+    "bindings": {
+      // Clear search highlight (matching Neovim <leader><CR>)
+      "space enter": "editor::Cancel",
+
+      // Search in project (matching Telescope)
+      "space s p": "pane::DeploySearch",
+
+      // Search current word
+      "space s w": "pane::DeploySearch"
+    }
+  },
+
+  // ===========================================================================
+  // Tab Management
+  // ===========================================================================
+
+  {
+    "context": "Workspace",
+    "bindings": {
+      // Close tab (matching vim :bd)
+      "space q": "pane::CloseActiveItem",
+
+      // Next/previous tab (matching vim gt/gT)
+      "g t": "pane::ActivateNextItem",
+      "g T": "pane::ActivatePrevItem"
+    }
+  },
+
+  // ===========================================================================
+  // Quick Actions (2025 features)
+  // ===========================================================================
+
+  {
+    "context": "Editor && VimControl",
+    "bindings": {
+      // Command palette (matching VSCode/Neovim)
+      "space space": "command_palette::Toggle",
+
+      // Toggle comments (matching vim-commentary gc)
+      "g c c": "editor::ToggleComments",
+
+      // Fold/unfold (matching vim za)
+      "z a": "editor::Fold",
+      "z o": "editor::UnfoldLines",
+      "z c": "editor::Fold",
+      "z R": "editor::UnfoldAll",
+      "z M": "editor::FoldAll"
+    }
+  },
+
+  // ===========================================================================
+  // Normal Zed Shortcuts (for non-vim contexts)
+  // ===========================================================================
+
+  {
+    "context": "Editor",
+    "bindings": {
+      // Save (standard)
+      "cmd-s": "workspace::Save",
+
+      // Quick open
+      "cmd-p": "file_finder::Toggle",
+
+      // Search
+      "cmd-f": "buffer_search::Deploy",
+      "cmd-shift-f": "pane::DeploySearch"
+    }
+  }
+]
