@@ -22,7 +22,9 @@
   // ARM64 Linux support is Tier 2 (no bottles) as of 2025 - will build from source (very slow)
   // Using x86_64 via QEMU emulation is faster than ARM64 source builds
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-  "runArgs": ["--platform=linux/amd64"],
+  "build": {
+    "platform": "linux/amd64"
+  },
 
   // --- Features ---
   // Minimal Feature set - development tools installed via Homebrew (Brewfile)
