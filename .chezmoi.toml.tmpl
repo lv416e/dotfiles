@@ -18,8 +18,14 @@
 {{- $gitEmail := "" -}}
 {{- $gitName := "" -}}
 {{- if lookPath "git" -}}
-{{-   $gitEmail = output "git" "config" "--global" "user.email" | trim | default "" -}}
-{{-   $gitName = output "git" "config" "--global" "user.name" | trim | default "" -}}
+{{-   $gitEmailOutput := output "sh" "-c" "git config --global user.email 2>/dev/null || true" | trim -}}
+{{-   $gitNameOutput := output "sh" "-c" "git config --global user.name 2>/dev/null || true" | trim -}}
+{{-   if ne $gitEmailOutput "" -}}
+{{-     $gitEmail = $gitEmailOutput -}}
+{{-   end -}}
+{{-   if ne $gitNameOutput "" -}}
+{{-     $gitName = $gitNameOutput -}}
+{{-   end -}}
 {{- end -}}
 
 {{- $email := "" -}}
