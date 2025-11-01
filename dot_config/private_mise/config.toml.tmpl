@@ -278,7 +278,7 @@ echo "✅ 1Password authenticated"
 echo "\nVaults available:"
 op vault list
 echo "\nTest reading a secret (replace with your actual op:// path):"
-echo "Example: chezmoi execute-template '{{ "{{" }} onepasswordRead \"op://{{ .onepassword.vault }}/API/password\" {{ "}}" }}'"
+echo 'Example: chezmoi execute-template '"'"'{% raw %}{{ "{{" }} onepasswordRead "op://Personal/API/password" {{ "}}" }}{% endraw %}'"'"
 """
 
 [tasks.secrets-list]

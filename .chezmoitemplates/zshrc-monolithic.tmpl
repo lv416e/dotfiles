@@ -165,6 +165,15 @@ _setup_cpp_env() {
 zsh-defer _setup_cpp_env
 
 # ============================================================================
+# GitHub Integration (1Password)
+# ============================================================================
+# Fallback pattern: env variable → chezmoi data → 1Password
+# GITHUB_TOKEN is used by: gh CLI, git, chezmoi GitHub functions, GitHub Copilot CLI
+{{- if or (env "GITHUB_TOKEN") .github_token }}
+export GITHUB_TOKEN="{{ or (env "GITHUB_TOKEN") .github_token }}"
+{{- end }}
+
+# ============================================================================
 # Aliases
 # ============================================================================
 
@@ -457,11 +466,12 @@ switch-prompt() {
 # Switch between tmux and zellij
 switch-multiplexer() {
   local mux="${1:-}"
-  local chezmoi_config="${HOME}/.local/share/chezmoi/.chezmoi.toml.tmpl"
+  local chezmoi_config_source="${HOME}/.local/share/chezmoi/.chezmoi.toml.tmpl"
+  local chezmoi_config_rendered="${HOME}/.config/chezmoi/chezmoi.toml"
 
   if [[ -z "$mux" ]]; then
-    # Show current configuration
-    local current_mux=$(grep 'multiplexer' "$chezmoi_config" 2>/dev/null | command sed 's/.*"\(.*\)".*/\1/')
+    # Show current configuration (read from rendered config)
+    local current_mux=$(grep 'multiplexer' "$chezmoi_config_rendered" 2>/dev/null | command sed 's/.*"\(.*\)".*/\1/')
     echo "Current multiplexer: ${current_mux:-tmux}"
     echo ""
     echo "Usage: switch-multiplexer [tmux|zellij]"
@@ -482,14 +492,14 @@ switch-multiplexer() {
     return 1
   fi
 
-  # Update .chezmoi.toml.tmpl
-  if [[ ! -f "$chezmoi_config" ]]; then
-    echo "Error: chezmoi config not found at $chezmoi_config" >&2
+  # Update .chezmoi.toml.tmpl (source file)
+  if [[ ! -f "$chezmoi_config_source" ]]; then
+    echo "Error: chezmoi config not found at $chezmoi_config_source" >&2
     return 1
   fi
 
   # Use sed to update the multiplexer value (use command to bypass alias)
-  command sed -i '' "s/multiplexer = \".*\"/multiplexer = \"$mux\"/" "$chezmoi_config"
+  command sed -i '' "s/multiplexer = \".*\"/multiplexer = \"$mux\"/" "$chezmoi_config_source"
 
   echo "✅ Multiplexer switched to: $mux"
   echo "📝 Updated: ~/.local/share/chezmoi/.chezmoi.toml.tmpl"
@@ -513,11 +523,12 @@ switch-multiplexer() {
 # Similar to LazyVim/AstroNvim or Starship/P10k switching
 switch-zsh-config() {
   local variant="${1:-}"
-  local chezmoi_config="${HOME}/.local/share/chezmoi/.chezmoi.toml.tmpl"
+  local chezmoi_config_source="${HOME}/.local/share/chezmoi/.chezmoi.toml.tmpl"
+  local chezmoi_config_rendered="${HOME}/.config/chezmoi/chezmoi.toml"
 
   if [[ -z "$variant" ]]; then
-    # Show current configuration
-    local current_variant=$(grep -A1 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | grep 'variant' | command sed 's/.*"\(.*\)".*/\1/')
+    # Show current configuration (read from rendered config)
+    local current_variant=$(grep -A1 '^\[data\.zsh\]' "$chezmoi_config_rendered" 2>/dev/null | grep 'variant' | command sed 's/.*"\(.*\)".*/\1/')
     echo "Current zsh configuration: ${current_variant:-modular}"
     echo ""
     echo "Usage: switch-zsh-config [modular|monolithic]"
@@ -538,14 +549,14 @@ switch-zsh-config() {
     return 1
   fi
 
-  # Update .chezmoi.toml.tmpl
-  if [[ ! -f "$chezmoi_config" ]]; then
-    echo "Error: chezmoi config not found at $chezmoi_config" >&2
+  # Update .chezmoi.toml.tmpl (source file)
+  if [[ ! -f "$chezmoi_config_source" ]]; then
+    echo "Error: chezmoi config not found at $chezmoi_config_source" >&2
     return 1
   fi
 
   # Use sed to update the variant value (use command to bypass alias)
-  command sed -i '' "s/variant = \".*\"/variant = \"$variant\"/" "$chezmoi_config"
+  command sed -i '' "s/variant = \".*\"/variant = \"$variant\"/" "$chezmoi_config_source"
 
   echo "✅ Zsh configuration switched to: $variant"
   echo "📝 Updated: ~/.local/share/chezmoi/.chezmoi.toml.tmpl"
