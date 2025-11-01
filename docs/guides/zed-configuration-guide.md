@@ -575,12 +575,12 @@ Zed has built-in AI completions (disabled by default for privacy):
 
 ### Related Documentation
 
-- [Mise Tasks Reference](../reference/mise-tasks.md)
-- [Neovim Configuration](./neovim-setup.md) (TODO)
-- [Development Environment Setup](../getting-started/development-setup.md)
+- [Mise Tasks Reference](../reference/mise-tasks-reference.md)
+<!-- TODO: - [Neovim Configuration](./neovim-setup.md) -->
+<!-- TODO: - [Development Environment Setup](../getting-started/development-setup.md) -->
 
 ## See Also
 
-- [Terminal Setup Guide](./terminal-setup.md)
-- [Secrets Management](./secrets-management.md)
-- [Configuration Variants](../explanation/configuration-variants.md)
+<!-- TODO: - [Terminal Setup Guide](./terminal-setup.md) -->
+- [Secrets Management](./secrets-management-overview.md)
+<!-- TODO: - [Configuration Variants](../explanation/configuration-variants.md) -->

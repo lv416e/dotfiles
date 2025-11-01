@@ -1,81 +1,81 @@
 # Implementation Guide: 2025 Tooling Enhancements
 
-This guide covers the implementation of Zed editor configuration and fnox secret management based on 2025 best practices.
+This guide documents the implementation of Zed editor configuration and fnox secret management based on 2025 development best practices.
 
 ## Executive Summary
 
-**Date**: 2025-11-01
+**Implementation Date**: 2025-11-01
 
-**Implemented**:
-1. ✅ **Zed Editor Configuration** - Modern GPU-accelerated editor with vim mode and LSP
-2. ✅ **fnox Secret Management** - Unified secret manager integrating age + 1Password
+**Completed Components**:
+1. **Zed Editor Configuration** - GPU-accelerated code editor with vim mode and integrated Language Server Protocol support
+2. **fnox Secret Management** - Unified secret management interface integrating age encryption and 1Password
 
-**Not Implemented**:
-- ❌ **sudo-rs** - Does NOT support macOS (Linux/FreeBSD only)
+**Excluded Components**:
+- **sudo-rs** - Not compatible with macOS (Linux and FreeBSD only)
 
 ## Overview
 
-### What Was Added
+### Added Components
 
-#### 1. Zed Editor Configuration
+#### Zed Editor Configuration
 
-**Files**:
-- `dot_config/zed/settings.json.tmpl` - Main configuration (vim mode, LSP, themes)
-- `dot_config/zed/keymap.json.tmpl` - Custom keybindings (leader key, LSP shortcuts)
-- `docs/guides/zed-editor-setup.md` - Complete usage guide
+**Configuration Files**:
+- `dot_config/zed/settings.json.tmpl` - Core configuration including vim mode, LSP settings, and theme preferences
+- `dot_config/zed/keymap.json.tmpl` - Custom keybindings with leader key and LSP shortcuts
+- `docs/guide./zed-configuration-guide.md` - Comprehensive usage documentation
 
-**Features**:
-- Vim mode with relative line numbers
-- LSP auto-configuration for TypeScript, Python, Go, Rust, Shell
-- Format on save with language-specific settings
-- Git integration (inline blame, diff, hunks)
-- Terminal integration (zsh)
-- Custom keybindings matching Neovim patterns
+**Capabilities**:
+- Vim mode with relative line numbering
+- Automatic LSP configuration for TypeScript, Python, Go, Rust, and Shell scripts
+- Format-on-save with language-specific formatting rules
+- Git integration including inline blame, diff visualization, and hunk navigation
+- Integrated terminal with zsh configuration
+- Custom keybindings aligned with Neovim conventions
 
-#### 2. fnox Secret Management
+#### fnox Secret Management
 
-**Files**:
-- `dot_config/private_fnox/fnox.toml.tmpl` - fnox configuration
-- Updated `dot_config/private_mise/config.toml.tmpl` - Added fnox tool and tasks
-- `docs/guides/fnox-secrets-management.md` - Complete usage guide
+**Configuration Files**:
+- `dot_config/private_fnox/fnox.toml.tmpl` - fnox configuration template
+- `dot_config/private_mise/config.toml.tmpl` - Updated to include fnox tooling and task definitions
+- `docs/guide./secrets-management-fnox.md` - Complete implementation and usage guide
 
-**Features**:
-- age backend (local encrypted secrets)
-- 1Password backend (cloud secrets)
-- Auto-loading secrets into environment
-- mise tasks for secret management
-- Integration with existing age + 1Password setup
+**Capabilities**:
+- age backend for locally encrypted secrets
+- 1Password backend for cloud-synchronized secrets
+- Automatic secret injection into shell environment
+- mise task integration for secret management workflows
+- Seamless integration with existing age and 1Password configurations
 
-### Why These Tools?
+### Tool Selection Rationale
 
 #### Zed Editor
 
-**2025 Best Practices**:
-- GPU-accelerated rendering (modern performance)
-- Built-in LSP with zero configuration
-- Native collaboration features
-- Fast startup time (~50ms vs 100-200ms for Neovim)
-- First-class TypeScript/Rust support
+**Alignment with 2025 Best Practices**:
+- GPU-accelerated rendering for enhanced performance
+- Built-in Language Server Protocol support with zero-configuration setup
+- Native real-time collaboration capabilities
+- Rapid startup time (approximately 50ms compared to 100-200ms for Neovim)
+- First-class TypeScript and Rust language support
 
-**Use Case**:
-- Quick edits and code browsing
-- Pair programming sessions
-- When you want modern IDE experience
-- Complementary to Neovim (not replacement)
+**Primary Use Cases**:
+- Rapid file editing and codebase navigation
+- Remote pair programming sessions
+- Modern integrated development environment experience
+- Complementary tooling alongside Neovim (not a replacement)
 
 #### fnox
 
-**2025 Best Practices**:
-- Unified interface for multiple secret backends
-- Declarative configuration (Infrastructure as Code)
-- Auto-loading into environment (convenience)
-- Built by @jdx (mise author) - ecosystem integration
+**Alignment with 2025 Best Practices**:
+- Unified interface for heterogeneous secret storage backends
+- Declarative configuration following Infrastructure as Code principles
+- Automatic environment variable injection for developer convenience
+- Developed by the mise author, ensuring ecosystem integration
 
-**Use Case**:
-- Manage API keys (OpenAI, Anthropic, GitHub, etc.)
-- Unify age + 1Password access
-- Auto-load secrets in shell
-- Team secret sharing via 1Password
+**Primary Use Cases**:
+- API credential management (OpenAI, Anthropic, GitHub, etc.)
+- Unified access interface for age-encrypted and 1Password-stored secrets
+- Automatic secret loading in shell sessions
+- Team credential sharing through 1Password vaults
 
 ## Installation
 
@@ -703,9 +703,9 @@ zed .
 
 ### Documentation
 
-- [Zed Editor Setup Guide](./zed-editor-setup.md)
-- [fnox Secrets Management Guide](./fnox-secrets-management.md)
-- [Mise Tasks Reference](../reference/mise-tasks.md)
+- [Zed Editor Setup Guide](./zed-configuration-guide.md)
+- [fnox Secrets Management Guide](./secrets-management-fnox.md)
+- [Mise Tasks Reference](../reference/mise-tasks-reference.md)
 
 ### Official Docs
 
@@ -729,17 +729,15 @@ If you encounter issues or have suggestions:
 
 ## Conclusion
 
-You now have:
+This implementation provides the following capabilities:
 
-1. **Zed Editor** - Modern, GPU-accelerated editing with vim mode
-2. **fnox** - Unified secret management for age + 1Password
-3. **Complete documentation** - Guides for setup and usage
-4. **mise integration** - Convenient tasks for both tools
+1. **Zed Editor** - GPU-accelerated code editing with vim mode integration
+2. **fnox** - Unified secret management combining age encryption and 1Password
+3. **Comprehensive Documentation** - Complete setup and usage guides
+4. **mise Integration** - Streamlined task management for both tools
 
-All configurations are managed via chezmoi and will automatically apply on new machines!
+All configurations are version-controlled through chezmoi and automatically apply during new machine provisioning.
 
-**Status**: ✅ Ready for use
+**Implementation Status**: Production Ready
 
-**Recommendation**: Start with small experiments (try Zed for a quick edit, add one secret to fnox) and gradually increase adoption based on your experience.
-
-Enjoy your enhanced 2025 development environment! 🚀
+**Adoption Recommendation**: Begin with limited use cases (single file edits in Zed, individual secret in fnox) and progressively expand adoption based on workflow evaluation and user experience.

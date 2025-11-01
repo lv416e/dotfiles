@@ -449,8 +449,8 @@ defaults write com.apple.dock tilesize -int {{ $dockSize }}
 ### Related Documentation
 
 - [ADR-0009: macOS defaults automation strategy](../adr/0009-macos-defaults-automation.md)
-- [New Machine Setup Guide](../getting-started/new-machine-setup.md)
-- [Mise Tasks Reference](../reference/mise-tasks.md)
+- [Machine Setup Guide (macOS)](../getting-started/machine-setup-macos.md)
+- [Mise Tasks Reference](../reference/mise-tasks-reference.md)
 
 ## Examples
 
@@ -506,6 +506,6 @@ diff dock-current.txt dock-new.txt
 
 ## See Also
 
-- [Configuration Variants System](../explanation/configuration-variants.md)
-- [Secrets Management Guide](./secrets-management.md)
-- [Troubleshooting Guide](../troubleshooting/README.md)
+<!-- TODO: - [Configuration Variants System](../explanation/configuration-variants.md) -->
+- [Secrets Management Overview](./secrets-management-overview.md)
+<!-- TODO: - [Troubleshooting Guide](../troubleshooting/README.md) -->

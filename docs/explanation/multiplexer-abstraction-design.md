@@ -343,6 +343,6 @@ Possible future improvements:
 
 ## Related Documentation
 
-- [Terminal Multiplexers](../reference/terminal-multiplexers.md) - tmux vs zellij comparison
-- [Keybindings Reference](../reference/keybindings.md) - Quick reference
+- [Terminal Multiplexers](../reference/terminal-multiplexers-comparison.md) - tmux vs zellij comparison
+- [Keybindings Reference](../reference/keybindings-reference.md) - Quick reference
 - [Repository Management](../dot_config/zsh/conf.d/07-repo.zsh) - repo command details

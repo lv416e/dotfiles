@@ -661,10 +661,10 @@ shred -u secret.txt
 
 ### Related Documentation
 
-- [Mise Tasks Reference](../reference/mise-tasks.md)
-- [Secrets Management Overview](./secrets-management.md)
-- [1Password CLI Setup](./onepassword-setup.md) (TODO)
-- [age Encryption Guide](./age-encryption.md) (TODO)
+- [Mise Tasks Reference](../reference/mise-tasks-reference.md)
+- [Secrets Management Overview](./secrets-management-overview.md)
+<!-- TODO: - [1Password CLI Setup](./onepassword-setup.md) -->
+<!-- TODO: - [age Encryption Guide](./age-encryption.md) -->
 
 ### Community
 
@@ -673,6 +673,6 @@ shred -u secret.txt
 
 ## See Also
 
-- [macOS Defaults Automation](./macos-defaults-automation.md)
-- [Configuration Variants](../explanation/configuration-variants.md)
-- [New Machine Setup](../getting-started/new-machine-setup.md)
+- [macOS Defaults Automation](./macos-defaults-automation-guide.md)
+<!-- TODO: - [Configuration Variants](../explanation/configuration-variants.md) -->
+- [New Machine Setup](../getting-started/machine-setup-macos.md)

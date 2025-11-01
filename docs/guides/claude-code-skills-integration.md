@@ -103,7 +103,7 @@ We have **13 Skills** from two trusted sources:
 **Meta Skills:**
 - **writing-skills** - Superpowers-specific guide for creating Skills
 
-See [`~/.claude/skills/README.md`](../../.claude/skills/README.md) for detailed descriptions.
+<!-- See `~/.claude/skills/README.md` for detailed descriptions (if Skills are installed). -->
 
 ## Management with chezmoi
 
@@ -447,7 +447,7 @@ chezmoi add --encrypt ~/.claude/skills/secret-skill
 #   └── encrypted_SKILL.md.age
 ```
 
-See [chezmoi encryption guide](./chezmoi-encryption.md) for setup.
+<!-- TODO: See [chezmoi encryption guide](./chezmoi-encryption.md) for setup. -->
 
 ## Resources
 
@@ -481,6 +481,6 @@ Skills extend Claude Code's capabilities without MCP overhead. They're simple to
 **Next Steps:**
 1. Try asking Claude: "What Skills are available?"
 2. Test a Skill: "Let's brainstorm ideas for..."
-3. Create your own: See [template-skill](../../.claude/skills/template-skill/SKILL.md)
+3. Create your own: Use the `skill-creator` and `writing-skills` Skills for guidance
 
 *Last updated: 2025-10-30*

@@ -7,30 +7,40 @@ Comprehensive documentation for this dotfiles management system, organized using
 ### 🎯 Getting Started
 Start here for initial setup and onboarding.
 
-- [New Machine Setup](getting-started/new-machine-setup.md) - Complete guide for setting up dotfiles on a fresh machine
+- [Machine Setup (macOS)](getting-started/machine-setup-macos.md) - Complete guide for setting up dotfiles on a fresh macOS machine
 
 ### 📖 How-To Guides
 Task-oriented guides for specific operations.
 
-- [Zsh Configuration Switching](guides/zsh-config-switching.md) - Switch between modular and monolithic Zsh configurations
-- [Zsh Rollback Guide](guides/zsh-rollback.md) - Restore previous Zsh configurations
-- [Secrets Management](guides/secrets-management.md) - Manage sensitive data with age and 1Password
-- [Tmux Status Bar Configuration](guides/tmux-status-bar.md) - Customize tmux status bar appearance
+- [Zsh Configuration Switching](guides/zsh-configuration-switching.md) - Switch between modular and monolithic Zsh configurations
+- [Zsh Configuration Rollback](guides/zsh-configuration-rollback.md) - Restore previous Zsh configurations
+- [Secrets Management Overview](guides/secrets-management-overview.md) - Manage sensitive data with age and 1Password
+- [Secrets Management with fnox](guides/secrets-management-fnox.md) - Unified secret manager integration
+- [Tmux Status Bar Customization](guides/tmux-statusbar-customization.md) - Customize tmux status bar appearance
+- [Zed Configuration Guide](guides/zed-configuration-guide.md) - Configure Zed editor with vim mode and LSP
+- [Codespaces Quick Start](guides/codespaces-quickstart.md) - Get started with GitHub Codespaces in 2 minutes
+- [DevContainer Setup](guides/devcontainer-setup-complete.md) - Complete guide for DevContainer configuration
+- [DevContainer Troubleshooting](guides/devcontainer-troubleshooting.md) - Common DevContainer issues and solutions
+- [macOS Defaults Automation Guide](guides/macos-defaults-automation-guide.md) - Automate macOS system preferences
+- [Claude Code Skills Integration](guides/claude-code-skills-integration.md) - Integrate Claude Code skills with dotfiles
+- [Tooling Implementation Guide 2025](guides/tooling-implementation-guide-2025.md) - Modern tooling enhancements
 
 ### 📚 Reference
 Information-oriented documentation for lookup.
 
-- [Keybindings Reference](reference/keybindings.md) - Quick reference for multiplexer keybindings
-- [Mise Tasks](reference/mise-tasks.md) - Available mise task runner commands
-- [Terminal Multiplexers](reference/terminal-multiplexers.md) - Tmux and Zellij comparison and configuration
-- [New Tools](reference/new-tools.md) - Modern alternatives and tooling recommendations
+- [Keybindings Reference](reference/keybindings-reference.md) - Quick reference for multiplexer keybindings
+- [Mise Tasks Reference](reference/mise-tasks-reference.md) - Available mise task runner commands
+- [Terminal Multiplexers Comparison](reference/terminal-multiplexers-comparison.md) - Tmux and Zellij comparison and configuration
+- [Tools Evaluation Criteria](reference/tools-evaluation-criteria.md) - Modern alternatives and tooling recommendations
+- [Helix Configuration Reference](reference/helix-configuration-reference.md) - Helix editor configuration
+- [Raycast Extensions Reference](reference/raycast-extensions-reference.md) - Installed Raycast extensions
 
 ### 💡 Explanation
 Understanding-oriented documentation explaining architectural decisions.
 
-- [Multiplexer Abstraction](explanation/multiplexer-abstraction.md) - Design and rationale for multiplexer abstraction layer
-- [Zsh Modular Configuration](explanation/zsh-modular-config.md) - Architecture of modular Zsh configuration system
-- [Pre-Commit Hooks](explanation/pre-commit-hooks.md) - Lefthook and gitleaks integration
+- [Multiplexer Abstraction Design](explanation/multiplexer-abstraction-design.md) - Design and rationale for multiplexer abstraction layer
+- [Zsh Modular Configuration Design](explanation/zsh-modular-configuration-design.md) - Architecture of modular Zsh configuration system
+- [Pre-Commit Hooks Rationale](explanation/pre-commit-hooks-rationale.md) - Lefthook and gitleaks integration
 
 ### 🏛️ Architecture Decision Records
 Formal documentation of significant architectural decisions.
@@ -77,7 +87,7 @@ When adding new documentation:
 
 ## Need Help?
 
-- **General setup**: Start with [New Machine Setup](getting-started/new-machine-setup.md)
+- **General setup**: Start with [Machine Setup (macOS)](getting-started/machine-setup-macos.md)
 - **Specific task**: Check the relevant how-to guide
 - **Understanding design**: Read architecture decision records
 - **Quick lookup**: Use reference documentation

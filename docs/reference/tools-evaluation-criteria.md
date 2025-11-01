@@ -208,7 +208,7 @@ wezterm connect <domain-name>
 
 ## Zellij - Modern Multiplexer
 
-See [Terminal Multiplexers](terminal-multiplexers.md) for detailed information.
+See [Terminal Multiplexers](terminal-multiplexers-comparison.md) for detailed information.
 
 ### Quick Start
 
