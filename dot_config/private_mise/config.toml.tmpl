@@ -148,6 +148,34 @@ description = "[sys] Benchmark zsh startup time (10x)"
 alias = "b"
 run = "bash -c 'for i in {1..10}; do /usr/bin/time -p zsh -i -c exit 2>&1 | /usr/bin/grep real; done'"
 
+{{- if eq .chezmoi.os "darwin" }}
+
+[tasks.sys-discover-settings]
+description = "[sys] Extract current macOS defaults settings"
+alias = "discover"
+run = '''
+#!/bin/bash
+set -eufo pipefail
+echo "📝 Extracting current macOS system preferences..."
+cd "${HOME}/.local/share/chezmoi"
+./scripts/extract-macos-defaults.sh
+echo ""
+echo "💡 Review the generated file and copy desired settings to:"
+echo "   run_onchange_before_configure-macos.sh.tmpl"
+'''
+
+[tasks.sys-apply-settings]
+description = "[sys] Apply macOS defaults settings"
+alias = "apply-settings"
+run = '''
+#!/bin/bash
+set -eufo pipefail
+echo "🔧 Applying macOS system preferences..."
+chezmoi apply --include=scripts
+echo "✅ Settings applied. Some changes may require logout/restart."
+'''
+{{- end }}
+
 # --- Dotfiles Management ---
 
 [tasks.dot-apply]
