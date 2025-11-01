@@ -26,8 +26,6 @@ bind C-r run-shell ~/.tmux/plugins/tmux-resurrect/scripts/restore.sh
 set -g @menus_trigger 'm'
 set -g @jump-key '/'
 
-run '~/.tmux/plugins/tpm/tpm'
-
 bind \\ split-window -h
 bind - split-window -v
 
@@ -81,3 +79,9 @@ set -g status-right '#[bg=green,fg=black]CPU: #{cpu_percentage} | RAM: #{ram_per
 set -g window-status-format ' #I:#W#F '
 set -g window-status-current-format '#[bg=green,fg=black,bold] #I:#W#F '
 set -g window-status-separator ''
+
+# ============================================================================
+# Initialize TPM (Tmux Plugin Manager)
+# ============================================================================
+# Keep this line at the very bottom of tmux.conf
+run '~/.tmux/plugins/tpm/tpm'
