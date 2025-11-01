@@ -1,5 +1,4 @@
 tap "hashicorp/tap"
-tap "homebrew/services"
 tap "universal-ctags/universal-ctags"
 brew "automake"
 brew "bear"
@@ -65,7 +64,6 @@ brew "suite-sparse"
 brew "terraform"
 brew "tmux"
 brew "zellij"          # Modern tmux alternative (Rust-based, with built-in UI)
-brew "trash"
 brew "tty-clock"
 brew "universal-ctags"
 brew "uv"
@@ -101,8 +99,10 @@ brew "gitleaks"        # Detect secrets in Git repos
 brew "pre-commit"      # Git pre-commit hook framework
 
 {{- if eq .chezmoi.os "darwin" }}
+# macOS-only packages and casks
+brew "trash"           # Move files to trash instead of rm (macOS only)
+
 # macOS-only casks (GUI applications, fonts, etc.)
-# On Linux, these will be silently skipped
 cask "alacritty"       # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
 cask "kitty"           # GPU-accelerated terminal (alternative to alacritty)
 cask "ghostty"         # Fast, native, GPU-accelerated terminal (Zig-based, experimental)
