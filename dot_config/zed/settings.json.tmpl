@@ -9,7 +9,6 @@
   // - LSP-powered development (TypeScript, Python, Go, Rust, etc.)
   // - Performance-oriented (GPU acceleration, minimal bloat)
   // - Consistent with existing dotfiles aesthetic
-
   // ===========================================================================
   // Vim Mode (2025 Best Practices)
   // ===========================================================================
@@ -17,56 +16,51 @@
   "vim": {
     // Use system clipboard for yank/paste (matching Neovim config)
     "use_system_clipboard": "always",
-
-    // Use multiline mode for better vim regex compatibility
-    "use_multiline_find": true,
-
     // Custom digraphs for special characters
     "custom_digraphs": {
       // Add Japanese input helpers if needed
       // Example: "aa": "あ"
     }
   },
-
   // Relative line numbers (essential for vim motions)
   "relative_line_numbers": true,
-
   // ===========================================================================
   // Editor Appearance & Behavior
   // ===========================================================================
-
   // Theme (matching Solarized Dark from Alacritty config)
   "theme": {
     "mode": "system",
     "light": "One Light",
     "dark": "One Dark"
   },
-
-  // UI density
-  "ui_font_size": 12,
-  "buffer_font_size": 11,
-
-  // Font families
-  "buffer_font_family": "{{- if eq .chezmoi.os "darwin" }}SF Mono{{- else }}monospace{{- end }}",
-  "ui_font_family": "{{- if eq .chezmoi.os "darwin" }}SF Pro{{- else }}system-ui{{- end }}",
-
+  // Buffer font (editor font) - optimized for code readability
+  "buffer_font_family": "HackGen35 Console NF",
+  "buffer_font_size": 13,
+  "buffer_font_weight": 400,
+  "buffer_line_height": {
+    "custom": 1.4
+  },
+  "buffer_font_features": {
+    "calt": true,
+    "liga": true,
+    "zero": true
+  },
+  // UI font (menus, panels, etc.)
+  "ui_font_family": "Menlo",
+  "ui_font_size": 14,
+  "ui_font_weight": 600,
   // Cursor settings
   "cursor_blink": false,
-  "show_inline_completions": true,
-
   // Scrolling
   "scroll_beyond_last_line": "one_page",
   "vertical_scroll_margin": 3,
-
   // ===========================================================================
   // Indentation & Formatting (matching existing conventions)
   // ===========================================================================
-
   "tab_size": 2,
   "hard_tabs": false,
   "preferred_line_length": 80,
   "soft_wrap": "preferred_line_length",
-
   // Show indent guides (2025 best practice)
   "indent_guides": {
     "enabled": true,
@@ -74,19 +68,15 @@
     "active_line_width": 2,
     "coloring": "indent_aware"
   },
-
   // Format on save (essential for modern workflow)
   "format_on_save": "on",
   "formatter": "language_server",
-
   // Remove trailing whitespace
   "remove_trailing_whitespace_on_save": true,
   "ensure_final_newline_on_save": true,
-
   // ===========================================================================
   // LSP & Language-Specific Settings
   // ===========================================================================
-
   // LSP configuration (global)
   "lsp": {
     // TypeScript/JavaScript
@@ -103,7 +93,6 @@
         }
       }
     },
-
     // Python (basedpyright is Zed's default, recommended)
     "basedpyright": {
       "settings": {
@@ -113,7 +102,6 @@
         }
       }
     },
-
     // Go (gopls)
     "gopls": {
       "settings": {
@@ -126,7 +114,6 @@
         }
       }
     },
-
     // Rust (rust-analyzer)
     "rust-analyzer": {
       "initialization_options": {
@@ -148,7 +135,6 @@
       }
     }
   },
-
   // Per-language configuration
   "languages": {
     "TypeScript": {
@@ -162,7 +148,11 @@
         },
         "prettier"
       ],
-      "language_servers": ["typescript-language-server", "!vtsls", "..."]
+      "language_servers": [
+        "typescript-language-server",
+        "!vtsls",
+        "..."
+      ]
     },
     "JavaScript": {
       "tab_size": 2,
@@ -175,7 +165,11 @@
         },
         "prettier"
       ],
-      "language_servers": ["typescript-language-server", "!vtsls", "..."]
+      "language_servers": [
+        "typescript-language-server",
+        "!vtsls",
+        "..."
+      ]
     },
     "JSON": {
       "tab_size": 2,
@@ -205,7 +199,11 @@
       "formatter": {
         "external": {
           "command": "shfmt",
-          "arguments": ["-i", "2", "-"]
+          "arguments": [
+            "-i",
+            "2",
+            "-"
+          ]
         }
       }
     },
@@ -224,14 +222,11 @@
       "format_on_save": "on"
     }
   },
-
   // ===========================================================================
   // File Management
   // ===========================================================================
-
   // Auto-save strategy
   "autosave": "on_focus_change",
-
   // File exclusions (matching gitignore patterns)
   "file_scan_exclusions": [
     "**/.git",
@@ -246,45 +241,38 @@
     "**/.idea",
     "**/.vscode"
   ],
-
   // ===========================================================================
   // Git Integration
   // ===========================================================================
-
   "git": {
     "enabled": true,
     "inline_blame": {
       "enabled": true
     }
   },
-
   // Show git diff in gutter
   "gutter": {
     "line_numbers": true,
     "code_actions": true,
     "folds": true
   },
-
   // ===========================================================================
   // Terminal Integration
   // ===========================================================================
-
   "terminal": {
     // Use system shell (zsh from dotfiles)
     "shell": {
-      "program": "{{- if eq .chezmoi.os "darwin" }}/bin/zsh{{- else }}/usr/bin/zsh{{- end }}"
+      "program": "/bin/zsh"
     },
-    "font_family": "{{- if eq .chezmoi.os "darwin" }}SF Mono{{- else }}monospace{{- end }}",
-    "font_size": 13,
+    "font_family": "HackGen35 Console NF",
+    "font_size": 12,
     "working_directory": "current_project_directory",
     "blinking": "off",
     "copy_on_select": false
   },
-
   // ===========================================================================
   // AI & Completions (2025 Features)
   // ===========================================================================
-
   // Edit predictions (AI completions)
   "edit_predictions": {
     "disabled_globs": [
@@ -296,28 +284,22 @@
       "**/*.cert"
     ]
   },
-
   // ===========================================================================
   // Performance & Behavior
   // ===========================================================================
-
   // Restore files and layout on startup
   "restore_on_startup": "last_workspace",
-
   // Automatically update Zed
   "auto_update": true,
-
   // Telemetry (disable for privacy)
   "telemetry": {
     "diagnostics": false,
     "metrics": false
   },
-
   // Collaboration (Zed's built-in feature)
   "collaboration_panel": {
     "dock": "left"
   },
-
   // Project panel (file tree)
   "project_panel": {
     "dock": "left",
@@ -325,43 +307,35 @@
     "indent_size": 20,
     "default_width": 240
   },
-
   // Outline panel (symbols)
   "outline_panel": {
     "dock": "right",
     "default_width": 300
   },
-
   // ===========================================================================
   // Search & Navigation
   // ===========================================================================
-
   // Fuzzy finder settings
   "file_finder": {
     "file_icons": true
   },
-
   // Preview tabs (like VSCode)
   "preview_tabs": {
     "enabled": true,
     "enable_preview_from_file_finder": true
   },
-
   // Breadcrumbs
   "toolbar": {
     "breadcrumbs": true,
     "quick_actions": true
   },
-
   // ===========================================================================
   // Diagnostics & Warnings
   // ===========================================================================
-
   // Show diagnostics
   "diagnostics": {
     "include_warnings": true
   },
-
   // Inlay hints (parameter names, types, etc.)
   "inlay_hints": {
     "enabled": true,
@@ -369,7 +343,6 @@
     "show_parameter_hints": true,
     "show_other_hints": true
   }
-
   // ===========================================================================
   // Extensions (Auto-install on first launch)
   // ===========================================================================
@@ -380,7 +353,6 @@
   // - Just
   // - Prisma
   // - Tailwind CSS
-
   // ===========================================================================
   // Experimental Features (2025)
   // ===========================================================================
