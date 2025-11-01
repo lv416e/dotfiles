@@ -68,7 +68,37 @@ Use the included `.devcontainer/devcontainer.json` configuration.
 - Docker Desktop installed and running
 - VS Code with "Dev Containers" extension
 
-### Step 1: Open in DevContainer
+### Setup for Your Project
+
+#### Step 1: Copy DevContainer Configuration
+
+```bash
+cd /path/to/your-project
+mkdir -p .devcontainer/scripts
+
+# Copy template
+cp ~/.local/share/chezmoi/.devcontainer/devcontainer-template.json \
+   .devcontainer/devcontainer.json
+
+# Copy setup script
+cp ~/.local/share/chezmoi/.devcontainer/scripts/setup-dotfiles.sh \
+   .devcontainer/scripts/
+```
+
+#### Step 2: Customize Configuration
+
+Edit `.devcontainer/devcontainer.json`:
+
+```json
+{
+  "name": "Your Project Name",
+  "containerEnv": {
+    "DOTFILES_REPO": "https://github.com/YOUR_USERNAME/dotfiles.git"
+  }
+}
+```
+
+#### Step 3: Open in DevContainer
 
 **Option A: Open Existing Folder**
 1. Open your project folder in VS Code

@@ -14,16 +14,24 @@
 # User Information
 # =============================================================================
 # In non-interactive environments, use defaults; otherwise prompt
+# Safely get git config values (returns empty string if not set)
+{{- $gitEmail := "" -}}
+{{- $gitName := "" -}}
+{{- if lookPath "git" -}}
+{{-   $gitEmail = output "git" "config" "--global" "user.email" | trim | default "" -}}
+{{-   $gitName = output "git" "config" "--global" "user.name" | trim | default "" -}}
+{{- end -}}
+
 {{- $email := "" -}}
 {{- if $isNonInteractive -}}
-{{-   $email = or (env "EMAIL") (output "git" "config" "user.email" | trim) "codespace@example.com" -}}
+{{-   $email = env "EMAIL" | default $gitEmail | default "devcontainer@localhost" -}}
 {{- else -}}
-{{-   $email = promptStringOnce . "email" "Email address" (or (env "EMAIL") (output "git" "config" "user.email" | trim)) -}}
+{{-   $email = promptStringOnce . "email" "Email address" (env "EMAIL" | default $gitEmail) -}}
 {{- end -}}
 
 {{- $githubUser := "" -}}
 {{- if $isNonInteractive -}}
-{{-   $githubUser = or (env "GITHUB_USER") (output "git" "config" "github.user" | trim) "codespace-user" -}}
+{{-   $githubUser = env "GITHUB_USER" | default (env "USER") | default "vscode" -}}
 {{- else -}}
 {{-   $githubUser = promptStringOnce . "github_user" "GitHub username" "" -}}
 {{- end -}}
@@ -96,7 +104,9 @@ encryption = "age"
     is_container = {{ $isContainer }}
     is_ci = {{ $isCI }}
     is_non_interactive = {{ $isNonInteractive }}
-    name = "{{ output "git" "config" "user.name" | trim }}"
+
+    # User information
+    name = {{ $gitName | default "DevContainer User" | quote }}
     email = {{ $email | quote }}
     github_user = {{ $githubUser | quote }}
     github_token = "{{ if $useGithubToken }}{{ or (env "GITHUB_TOKEN") (onepasswordRead (printf "op://%s/%s/credential" $vaultName $githubTokenItem)) "" }}{{ else }}{{ env "GITHUB_TOKEN" }}{{ end }}"

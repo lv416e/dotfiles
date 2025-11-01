@@ -1,0 +1,206 @@
+{
+  // =============================================================================
+  // DevContainer Template for Projects
+  // =============================================================================
+  // This is a template for using chezmoi-managed dotfiles in your projects.
+  //
+  // To use:
+  //   1. Copy this file to your project's .devcontainer/devcontainer.json
+  //   2. Copy scripts/setup-dotfiles.sh to your project's .devcontainer/scripts/
+  //   3. Update "name" and "DOTFILES_REPO" below
+  //   4. Customize features/extensions as needed
+  //
+  // References:
+  //   - https://containers.dev/
+  //   - https://www.chezmoi.io/user-guide/machines/containers-and-vms/
+  // =============================================================================
+
+  "name": "My Project (Chezmoi-managed)",
+
+  // --- Base Image ---
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  // --- Features ---
+  // Install development tools via Dev Container Features
+  // Browse available features: https://containers.dev/features
+  "features": {
+    // Common utilities (includes zsh)
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": false,
+      "upgradePackages": true,
+      "username": "vscode",
+      "uid": "automatic",
+      "gid": "automatic"
+    },
+
+    // Version control
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    },
+
+    // --- Customize below based on your project needs ---
+
+    // JavaScript/TypeScript
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+
+    // Python
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.13"
+    }
+
+    // Uncomment as needed:
+
+    // Rust
+    // "ghcr.io/devcontainers/features/rust:1": {
+    //   "version": "latest",
+    //   "profile": "default"
+    // },
+
+    // Go
+    // "ghcr.io/devcontainers/features/go:1": {
+    //   "version": "latest"
+    // },
+
+    // Java
+    // "ghcr.io/devcontainers/features/java:1": {
+    //   "version": "17"
+    // },
+
+    // Docker-in-Docker
+    // "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  // --- Chezmoi Dotfiles Integration ---
+  // Automatically applies your personal dotfiles on container creation
+  //
+  // IMPORTANT: Update DOTFILES_REPO in containerEnv below!
+  "postCreateCommand": "bash ${containerWorkspaceFolder}/.devcontainer/scripts/setup-dotfiles.sh",
+
+  // --- Lifecycle Hooks ---
+  "postStartCommand": "echo '🚀 DevContainer ready. Shell: zsh'",
+
+  // --- VS Code Extensions ---
+  // Customize based on your project's tech stack
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Core editing
+        "editorconfig.editorconfig",
+
+        // Git integration
+        "eamodio.gitlens",
+
+        // --- Add your project-specific extensions below ---
+
+        // Example: JavaScript/TypeScript
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+
+        // Example: Python
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff"
+
+        // Example: Markdown
+        // "yzhang.markdown-all-in-one",
+        // "davidanson.vscode-markdownlint"
+
+        // Example: Docker
+        // "ms-azuretools.vscode-docker"
+      ],
+
+      "settings": {
+        // --- Shell Configuration ---
+        // Default to zsh (configured via dotfiles)
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh",
+            "args": ["-l"]
+          },
+          "bash": {
+            "path": "/bin/bash",
+            "args": ["-l"]
+          }
+        },
+
+        // --- Tool Paths (if using mise) ---
+        // Uncomment and adjust if your dotfiles use mise for version management
+        // "python.defaultInterpreterPath": "${HOME}/.local/share/mise/installs/python/latest/bin/python",
+        // "go.goroot": "${HOME}/.local/share/mise/installs/go/latest",
+
+        // --- Add your project-specific settings below ---
+
+        // Example: Formatting
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  },
+
+  // --- Container Configuration ---
+  "remoteUser": "vscode",
+
+  "containerEnv": {
+    "TERM": "xterm-256color",
+
+    // Help chezmoi detect container environment
+    "CONTAINER": "devcontainer",
+
+    // Set SHELL to zsh for scripts that check this variable
+    "SHELL": "/usr/bin/zsh",
+
+    // --- IMPORTANT: Set your dotfiles repository URL ---
+    // Replace with your own dotfiles repo!
+    "DOTFILES_REPO": "https://github.com/YOUR_USERNAME/dotfiles.git"
+
+    // --- Add project-specific environment variables below ---
+    // Example:
+    // "NODE_ENV": "development",
+    // "DEBUG": "app:*"
+
+    // For secrets, use localEnv (local devcontainer) or GitHub Secrets (Codespaces):
+    // "API_KEY": "${localEnv:API_KEY}"
+  },
+
+  // --- Port Forwarding ---
+  // Customize based on your project's needs
+  "forwardPorts": [3000, 8000],
+
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend",
+      "onAutoForward": "notify"
+    },
+    "8000": {
+      "label": "Backend",
+      "onAutoForward": "notify"
+    }
+  }
+
+  // --- Additional Options ---
+
+  // Persist bash history
+  // "mounts": [
+  //   "source=${localEnv:HOME}/.bash_history,target=/home/vscode/.bash_history,type=bind,consistency=cached"
+  // ],
+
+  // Mount additional volumes
+  // "mounts": [
+  //   "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  // ],
+
+  // Run as root (not recommended)
+  // "remoteUser": "root",
+
+  // Custom entrypoint
+  // "overrideCommand": false,
+  // "postAttachCommand": "echo 'Container attached'"
+}

@@ -54,11 +54,13 @@
 
   // --- Chezmoi Dotfiles Integration ---
   // Automatically applies dotfiles on container creation
-  // Repository: https://github.com/lv416e/dotfiles
   //
-  // Note: When opening in devcontainer (not Codespaces), this will clone and apply
-  // your dotfiles. The process is non-interactive thanks to .chezmoi.toml.tmpl
-  "postCreateCommand": "bash -c 'if ! command -v chezmoi >/dev/null 2>&1; then sh -c \"$(curl -fsLS get.chezmoi.io)\" -- -b \"$HOME/.local/bin\"; fi && export PATH=\"$HOME/.local/bin:$PATH\" && chezmoi init --apply https://github.com/lv416e/dotfiles.git && echo \"✅ Dotfiles applied successfully\" || echo \"⚠️ Dotfiles application encountered errors\"'",
+  // To use with your own dotfiles repository, set the DOTFILES_REPO environment variable:
+  //   "containerEnv": { "DOTFILES_REPO": "https://github.com/YOUR_USERNAME/dotfiles.git" }
+  //
+  // Or modify .devcontainer/scripts/setup-dotfiles.sh directly.
+  // The process is non-interactive thanks to .chezmoi.toml.tmpl environment detection.
+  "postCreateCommand": "bash ${containerWorkspaceFolder}/.devcontainer/scripts/setup-dotfiles.sh",
 
   // --- Lifecycle Hooks ---
   "postStartCommand": "echo '🚀 DevContainer ready. Shell: zsh | Tools: mise, fzf, bat, eza'",
@@ -68,9 +70,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        // Dotfiles management
-        "twpayne.vscode-chezmoi",
-
         // Core editing
         "editorconfig.editorconfig",
         "github.copilot",
@@ -130,7 +129,10 @@
     // Help chezmoi detect container environment
     "CONTAINER": "devcontainer",
     // Set SHELL to zsh for scripts that check this variable
-    "SHELL": "/usr/bin/zsh"
+    "SHELL": "/usr/bin/zsh",
+    // Dotfiles repository (customize this for your fork)
+    // Default: https://github.com/lv416e/dotfiles.git
+    "DOTFILES_REPO": "https://github.com/lv416e/dotfiles.git"
   },
 
   // --- Port Forwarding ---
