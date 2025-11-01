@@ -1,0 +1,63 @@
+# =============================================================================
+# GitHub Codespaces Prebuild Workflow
+# =============================================================================
+# Automatically builds and caches the DevContainer for faster Codespace startup
+#
+# Benefits:
+#   - Codespaces start in seconds instead of 10-20 minutes
+#   - Homebrew packages pre-installed and cached
+#   - Dotfiles pre-applied
+#
+# Triggers:
+#   - Push to main branch
+#   - Changes to .devcontainer/ files
+#   - Manual workflow dispatch
+#
+# References:
+#   - https://docs.github.com/en/codespaces/prebuilding-your-codespaces
+#   - https://github.blog/news-insights/product-news/codespaces-largest-repositories-faster/
+# =============================================================================
+
+name: Codespaces Prebuild
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.devcontainer/**'
+      - '.Brewfile.tmpl'
+      - '.github/workflows/codespaces-prebuild.yml'
+  workflow_dispatch:
+  schedule:
+    # Rebuild weekly on Monday at 00:00 UTC to keep dependencies fresh
+    - cron: '0 0 * * 1'
+
+jobs:
+  prebuild:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      codespaces: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build DevContainer
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: ghcr.io/${{ github.repository }}/devcontainer
+          cacheFrom: ghcr.io/${{ github.repository }}/devcontainer
+          push: always
+          runCmd: |
+            echo "Verifying prebuild..."
+            chezmoi --version
+            brew --version
+            zsh --version
+
+      - name: Create Codespace prebuild
+        uses: github/codespaces-precache@v1
+        with:
+          devcontainer_json_path: .devcontainer/devcontainer.json

@@ -262,42 +262,85 @@ api_key = "{{ or (env "API_KEY") (onepasswordRead "op://vault/item/field" | defa
 
 ## Performance Optimizations
 
+### Architecture Decision: x86_64 vs ARM64
+
+This configuration uses **x86_64/amd64** architecture even on Apple Silicon Macs:
+
+```json
+{
+  "runArgs": ["--platform=linux/amd64"]
+}
+```
+
+**Why x86_64?**
+- ✅ Homebrew bottles (binary packages) available for x86_64 Linux
+- ❌ ARM64 Linux is Tier 2 (no bottles, must build from source)
+- ⚡ Installing binaries: seconds vs source builds: 10-60+ minutes per package
+- 🐌 QEMU emulation overhead < compilation time
+
+**Performance Comparison:**
+
+| Architecture | Homebrew | Package Install | Total Setup |
+|--------------|----------|-----------------|-------------|
+| ARM64 (native) | No bottles | Source build (30-60 min) | ~45-90 min |
+| x86_64 (QEMU) | Bottles ✅ | Binary install (1-5 min) | ~5-10 min |
+
 ### Build Time Comparison
 
-| Approach | First Build | Rebuild (cached) |
-|----------|------------|------------------|
-| Homebrew in container | ~15-20 min | ~10-15 min |
-| DevContainer Features | ~3-5 min | ~1-2 min |
-| Dockerfile packages | ~2-3 min | ~30 sec |
+| Component | First Build | With Prebuild | Rebuild |
+|-----------|-------------|---------------|---------|
+| Container + Homebrew | ~10-15 min | ~30 sec | ~2-3 min |
+| Dotfiles application | ~1-2 min | Instant | ~30 sec |
+| **Total** | **~12-17 min** | **~30 sec** | **~3 min** |
+
+### Using Codespaces Prebuilds (Recommended)
+
+Prebuilds dramatically reduce startup time:
+
+1. **Enable in Repository Settings:**
+   - Go to: `Settings` → `Codespaces` → `Set up prebuild`
+   - Branch: `main`
+   - Configuration: `.devcontainer/devcontainer.json`
+   - Region: Select closest to you
+   - Click **Create**
+
+2. **Automatic Rebuilds:**
+   - Triggers on changes to `.devcontainer/` or `Brewfile`
+   - Weekly automatic rebuild (keeps dependencies fresh)
+   - Workflow: `.github/workflows/codespaces-prebuild.yml`
+
+3. **Benefits:**
+   - Codespace startup: **30 seconds** instead of 15 minutes
+   - Homebrew packages pre-installed
+   - Dotfiles pre-applied
 
 ### Optimization Checklist
 
-- ✅ **Heavy packages**: Install via devcontainer Features (cached)
-- ✅ **Dotfiles**: Apply in `postCreateCommand` (runs after cache)
+- ✅ **x86_64 architecture**: Ensures Homebrew bottles work
+- ✅ **Codespaces Prebuilds**: Cache container for instant startup
+- ✅ **Unified Homebrew**: Same Brewfile across all environments
 - ✅ **Shell config**: Set in devcontainer.json (instant)
-- ✅ **Skip Homebrew**: Detected automatically in containers
-- ❌ **Avoid**: Installing packages via `postCreateCommand`
+- ✅ **Minimal Features**: Only base tools, rest via Homebrew
 
 ### DevContainer Lifecycle
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ 1. Build container (Features installed)  [CACHED]  │
-├─────────────────────────────────────────────────────┤
-│ 2. postCreateCommand (chezmoi apply)     [1st only]│
-├─────────────────────────────────────────────────────┤
-│ 3. postStartCommand (info message)       [every]   │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│ 1. Pull prebuild image (if available)       [INSTANT]  │
+├─────────────────────────────────────────────────────────┤
+│ 2. Build container (if no prebuild)         [10-15min] │
+│    - Install minimal Features (git, curl)               │
+│    - Install Homebrew                                   │
+│    - Install packages from Brewfile                     │
+├─────────────────────────────────────────────────────────┤
+│ 3. postCreateCommand (chezmoi apply)         [1st only] │
+├─────────────────────────────────────────────────────────┤
+│ 4. postStartCommand (info message)           [every]    │
+└─────────────────────────────────────────────────────────┘
 ```
 
-**Use postCreateCommand for:**
-- One-time setup (chezmoi, shell configuration)
-
-**Use postStartCommand for:**
-- Health checks, startup messages
-
-**Use Features/Dockerfile for:**
-- All packages (git, zsh, node, python, etc.)
+**With Prebuilds:** Steps 1-2 are cached, startup takes ~30 seconds
+**Without Prebuilds:** Full build each time, takes ~12-17 minutes
 
 ---
 
