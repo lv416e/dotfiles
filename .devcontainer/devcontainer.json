@@ -21,9 +21,21 @@
   // Force x86_64/amd64 to ensure Homebrew bottles (binary packages) are available
   // ARM64 Linux support is Tier 2 (no bottles) as of 2025 - will build from source (very slow)
   // Using x86_64 via QEMU emulation is faster than ARM64 source builds
+  //
+  // Image Caching Strategy:
+  //   - First build: Uses Dockerfile (builds from scratch with Homebrew)
+  //   - Subsequent builds: Docker automatically caches layers
+  //   - Team sharing: GitHub Actions workflow (.github/workflows/codespaces-prebuild.yml)
+  //     pre-builds and pushes image to ghcr.io for faster rebuilds
+  //
+  // To use pre-built image from GHCR (optional, requires workflow to run first):
+  //   "image": "ghcr.io/lv416e/dotfiles/devcontainer:latest"
+  //
+  // Default approach (build from Dockerfile):
   "build": {
     "dockerfile": "Dockerfile",
-    "context": "."
+    "context": ".",
+    "cacheFrom": "ghcr.io/lv416e/dotfiles/devcontainer"
   },
 
   // --- Features ---
