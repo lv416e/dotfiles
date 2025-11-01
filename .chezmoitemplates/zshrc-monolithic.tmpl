@@ -85,11 +85,24 @@ export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 if command -v sheldon >/dev/null 2>&1; then
   _sheldon_cache="${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
   _sheldon_toml="${XDG_CONFIG_HOME:-$HOME/.config}/sheldon/plugins.toml"
-  if [[ ! -r "$_sheldon_cache" || "$_sheldon_toml" -nt "$_sheldon_cache" ]]; then
+
+  # Regenerate cache if it doesn't exist, is older than config, or is empty
+  if [[ ! -s "$_sheldon_cache" ]] || [[ "$_sheldon_toml" -nt "$_sheldon_cache" ]]; then
     mkdir -p "${_sheldon_cache:h}"
-    sheldon source > "$_sheldon_cache"
+    if sheldon source > "$_sheldon_cache" 2>/dev/null; then
+      # Verify cache was created and is not empty
+      [[ -s "$_sheldon_cache" ]] || rm -f "$_sheldon_cache"
+    fi
   fi
-  source "$_sheldon_cache"
+
+  # Source cache if it exists and is not empty
+  if [[ -s "$_sheldon_cache" ]]; then
+    source "$_sheldon_cache"
+  else
+    # Fallback: source directly without cache
+    eval "$(sheldon source 2>/dev/null)"
+  fi
+
   unset _sheldon_cache _sheldon_toml
 else
   echo "Warning: sheldon not found. Plugins will not be loaded." >&2
