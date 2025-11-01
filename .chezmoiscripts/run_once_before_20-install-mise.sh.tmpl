@@ -1,0 +1,104 @@
+#!/bin/bash
+# =============================================================================
+# Install mise (Runtime Version Manager)
+# =============================================================================
+# Runs once before dotfiles are applied to ensure mise is available.
+# mise manages runtime versions (Node.js, Python, Ruby, etc.) and can also
+# manage other tools including chezmoi itself.
+#
+# Execution: run_once_before (executes before dotfiles, only once per content)
+# Depends on: Homebrew (run_once_before_10-install-homebrew.sh)
+# Platform: macOS, Linux (including Codespaces/DevContainers)
+#
+# References:
+#   - https://mise.jdx.dev/
+#   - https://github.com/jdx/mise
+# =============================================================================
+
+set -euo pipefail
+
+# =============================================================================
+# Logging Functions
+# =============================================================================
+
+log_info() {
+    echo "ℹ️  $*"
+}
+
+log_success() {
+    echo "✅ $*"
+}
+
+log_warn() {
+    echo "⚠️  $*"
+}
+
+log_error() {
+    echo "❌ $*" >&2
+}
+
+# =============================================================================
+# Ensure Homebrew is Available
+# =============================================================================
+
+# Configure Homebrew PATH based on OS and architecture
+{{ if eq .os "darwin" -}}
+{{   if eq .arch "arm64" -}}
+if [ -x "/opt/homebrew/bin/brew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+{{   else -}}
+if [ -x "/usr/local/bin/brew" ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+{{   end -}}
+{{ else -}}
+if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+{{ end -}}
+
+# Verify Homebrew is available
+if ! command -v brew >/dev/null 2>&1; then
+    log_error "Homebrew not found - mise installation requires Homebrew"
+    log_warn "Please ensure run_once_before_10-install-homebrew.sh ran successfully"
+    exit 1
+fi
+
+# =============================================================================
+# Check if mise is Already Installed
+# =============================================================================
+
+if command -v mise >/dev/null 2>&1; then
+    log_info "mise already installed: $(mise --version)"
+    exit 0
+fi
+
+# =============================================================================
+# Install mise via Homebrew
+# =============================================================================
+
+log_info "Installing mise via Homebrew..."
+
+if brew install mise; then
+    log_success "mise installed successfully"
+
+    # Verify installation
+    if command -v mise >/dev/null 2>&1; then
+        log_info "Version: $(mise --version)"
+    else
+        log_warn "mise installed but not found in PATH"
+        log_info "It will be available after shell restart"
+    fi
+else
+    log_error "mise installation failed"
+    exit 1
+fi
+
+# =============================================================================
+# Post-Installation Info
+# =============================================================================
+
+log_info "mise will be activated automatically via ~/.zshrc"
+log_info "Configuration: ~/.config/mise/config.toml"
+log_success "mise setup complete"

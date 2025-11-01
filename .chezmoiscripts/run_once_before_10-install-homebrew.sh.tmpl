@@ -1,0 +1,92 @@
+#!/bin/bash
+# =============================================================================
+# Install Homebrew (Package Manager)
+# =============================================================================
+# Runs once before dotfiles are applied to ensure Homebrew is available.
+# This is a foundational dependency for most other tools.
+#
+# Execution: run_once_before (executes before dotfiles, only once per content)
+# Platform: macOS, Linux (including Codespaces/DevContainers)
+#
+# Installation Locations:
+#   - macOS arm64:  /opt/homebrew
+#   - macOS x86_64: /usr/local
+#   - Linux:        /home/linuxbrew/.linuxbrew
+# =============================================================================
+
+set -euo pipefail
+
+# =============================================================================
+# Logging Functions
+# =============================================================================
+
+log_info() {
+    echo "ℹ️  $*"
+}
+
+log_success() {
+    echo "✅ $*"
+}
+
+log_warn() {
+    echo "⚠️  $*"
+}
+
+log_error() {
+    echo "❌ $*" >&2
+}
+
+# =============================================================================
+# Check if Homebrew is Already Installed
+# =============================================================================
+
+if command -v brew >/dev/null 2>&1; then
+    log_info "Homebrew already installed: $(brew --version | head -n1)"
+    exit 0
+fi
+
+# =============================================================================
+# Install Homebrew
+# =============================================================================
+
+log_info "Installing Homebrew..."
+
+# Determine expected installation location
+{{ if eq .os "darwin" -}}
+{{   if eq .arch "arm64" -}}
+EXPECTED_BREW_PATH="/opt/homebrew/bin/brew"
+{{   else -}}
+EXPECTED_BREW_PATH="/usr/local/bin/brew"
+{{   end -}}
+{{ else -}}
+EXPECTED_BREW_PATH="/home/linuxbrew/.linuxbrew/bin/brew"
+{{ end -}}
+
+# Non-interactive installation
+if NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+    log_success "Homebrew installed successfully"
+
+    # Verify installation
+    if [ -x "$EXPECTED_BREW_PATH" ]; then
+        # Configure PATH for current session
+        eval "$("$EXPECTED_BREW_PATH" shellenv)"
+        log_info "Homebrew configured at $EXPECTED_BREW_PATH"
+        log_info "Version: $(brew --version | head -n1)"
+    else
+        log_warn "Homebrew installed but not found at expected path: $EXPECTED_BREW_PATH"
+    fi
+else
+    log_error "Homebrew installation failed"
+    log_warn "Continuing without Homebrew - some features may not work"
+    exit 0  # Don't fail the entire chezmoi apply
+fi
+
+# =============================================================================
+# Post-Installation Info
+# =============================================================================
+
+{{ if eq .os "linux" -}}
+log_info "Add Homebrew to your PATH by ensuring ~/.zshrc loads correctly"
+{{ end -}}
+
+log_success "Homebrew setup complete"

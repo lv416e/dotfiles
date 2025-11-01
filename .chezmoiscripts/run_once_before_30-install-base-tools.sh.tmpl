@@ -1,0 +1,112 @@
+#!/bin/bash
+# =============================================================================
+# Install Base Shell Tools
+# =============================================================================
+# Installs essential tools needed for shell configuration to work properly.
+# These tools must be available before dotfiles are applied.
+#
+# Execution: run_once_before (executes before dotfiles, only once per content)
+# Depends on: Homebrew (run_once_before_10), mise (run_once_before_20)
+# Platform: macOS, Linux (including Codespaces/DevContainers)
+#
+# Tools Installed:
+#   - sheldon: Fast zsh plugin manager
+#   - starship: Cross-shell prompt (alternative to p10k)
+#
+# Note: Most other tools are installed via Brewfile (run_onchange_install-packages.sh)
+# =============================================================================
+
+set -euo pipefail
+
+# =============================================================================
+# Logging Functions
+# =============================================================================
+
+log_info() {
+    echo "ℹ️  $*"
+}
+
+log_success() {
+    echo "✅ $*"
+}
+
+log_warn() {
+    echo "⚠️  $*"
+}
+
+log_error() {
+    echo "❌ $*" >&2
+}
+
+# =============================================================================
+# Ensure Homebrew is Available
+# =============================================================================
+
+{{ if eq .os "darwin" -}}
+{{   if eq .arch "arm64" -}}
+if [ -x "/opt/homebrew/bin/brew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+{{   else -}}
+if [ -x "/usr/local/bin/brew" ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+{{   end -}}
+{{ else -}}
+if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+{{ end -}}
+
+if ! command -v brew >/dev/null 2>&1; then
+    log_error "Homebrew not found - cannot install base tools"
+    exit 1
+fi
+
+# =============================================================================
+# Install Base Tools
+# =============================================================================
+
+log_info "Installing base shell tools..."
+
+# Track if any installation failed
+FAILED=0
+
+# sheldon (zsh plugin manager)
+if ! command -v sheldon >/dev/null 2>&1; then
+    log_info "Installing sheldon..."
+    if brew install sheldon; then
+        log_success "sheldon installed"
+    else
+        log_error "Failed to install sheldon"
+        FAILED=1
+    fi
+else
+    log_info "sheldon already installed: $(sheldon --version)"
+fi
+
+# starship (cross-shell prompt)
+if ! command -v starship >/dev/null 2>&1; then
+    log_info "Installing starship..."
+    if brew install starship; then
+        log_success "starship installed"
+    else
+        log_error "Failed to install starship"
+        FAILED=1
+    fi
+else
+    log_info "starship already installed: $(starship --version)"
+fi
+
+# =============================================================================
+# Summary
+# =============================================================================
+
+if [ $FAILED -eq 0 ]; then
+    log_success "All base tools installed successfully"
+else
+    log_warn "Some tools failed to install - shell may not work optimally"
+    log_info "You can manually install missing tools with: brew install <tool>"
+fi
+
+exit 0  # Don't fail chezmoi apply even if some tools failed

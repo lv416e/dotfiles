@@ -5,6 +5,9 @@
 # Installs packages defined in Brewfile across all environments (macOS, Linux,
 # Codespaces, DevContainer). This script executes whenever the Brewfile changes.
 #
+# Execution: run_onchange (runs when Brewfile content changes)
+# Depends on: Homebrew (run_once_before_10-install-homebrew.sh)
+#
 # Brewfile hash: {{ include "dot_Brewfile.tmpl" | sha256sum }}
 #
 # Platform behavior:
@@ -14,19 +17,44 @@
 
 set -eufo pipefail
 
+# =============================================================================
 # Ensure Homebrew is in PATH
-if [ -d "/home/linuxbrew/.linuxbrew" ]; then
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-elif [ -d "/opt/homebrew" ]; then
+# =============================================================================
+
+{{ if eq .os "darwin" -}}
+{{   if eq .arch "arm64" -}}
+if [ -x "/opt/homebrew/bin/brew" ]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
-
-# Verify Homebrew availability
-if ! command -v brew >/dev/null 2>&1; then
-    echo "⚠️  Homebrew not found. Package installation skipped."
-    echo "   Run the setup script to install Homebrew first."
-    exit 0
+{{   else -}}
+if [ -x "/usr/local/bin/brew" ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
 fi
+{{   end -}}
+{{ else -}}
+if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+{{ end -}}
+
+# =============================================================================
+# Verify Homebrew Availability
+# =============================================================================
+
+if ! command -v brew >/dev/null 2>&1; then
+    echo "❌ ERROR: Homebrew not found"
+    echo ""
+    echo "Homebrew should have been installed by run_once_before_10-install-homebrew.sh"
+    echo "Please check if that script ran successfully."
+    echo ""
+    echo "To manually install Homebrew:"
+    echo '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+    echo ""
+    exit 1
+fi
+
+echo "ℹ️  Using Homebrew: $(command -v brew)"
+echo "ℹ️  Version: $(brew --version | head -n1)"
 
 # Install packages from Brewfile
 if [ -f "$HOME/.Brewfile" ]; then
