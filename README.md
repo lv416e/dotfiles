@@ -31,7 +31,7 @@ First, install Homebrew if not already installed:
 Then install required tools:
 
 ```sh
-brew install chezmoi age 1password-cli
+brew install chezmoi age 1password-cli mise
 ```
 
 ### 2. Configure git
@@ -54,7 +54,7 @@ chezmoi init lv416e/dotfiles
 If you enabled 1Password integration during initialization:
 
 ```sh
-op signin
+eval $(op signin)
 ```
 
 If you enabled age encryption, generate your key:
@@ -85,25 +85,25 @@ See [New Machine Setup Guide](docs/getting-started/new-machine-setup.md) for det
 
 ## Usage
 
-| Task | Command |
-|------|---------|
-| Edit files | `chezmoi edit ~/.zshrc` |
-| Apply changes | `chezmoi apply` |
-| Commit and push | `chezmoi cd && git add -A && git commit -m "Update config" && git push` |
-| Quick apply (alias) | `mise a` |
-| Full system sync | `mise sync` |
-| Verify secrets setup | `mise secrets-verify` |
-| Sign in to 1Password | `mise ops` |
-| Add encrypted file (if age enabled) | `chezmoi add --encrypt ~/.ssh/id_rsa` |
+| Task                                | Command                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------- |
+| Edit files                          | `chezmoi edit ~/.zshrc`                                                 |
+| Apply changes                       | `chezmoi apply`                                                         |
+| Commit and push                     | `chezmoi cd && git add -A && git commit -m "Update config" && git push` |
+| Quick apply (alias)                 | `mise a`                                                                |
+| Full system sync                    | `mise sync`                                                             |
+| Verify secrets setup                | `mise secrets-verify`                                                   |
+| Sign in to 1Password                | `mise ops`                                                              |
+| Add encrypted file (if age enabled) | `chezmoi add --encrypt ~/.ssh/id_rsa`                                   |
 
 ## Maintenance
 
-| Task | Command |
-|------|---------|
-| Update mise tools | `mise sys-update` |
+| Task                     | Command                       |
+| ------------------------ | ----------------------------- |
+| Update mise tools        | `mise sys-update`             |
 | Update Homebrew packages | `brew update && brew upgrade` |
-| Clean caches | `mise sys-clean` |
-| Health check | `mise sys-health` |
+| Clean caches             | `mise sys-clean`              |
+| Health check             | `mise sys-health`             |
 
 ## What's Included
 
