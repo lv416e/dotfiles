@@ -1,7 +1,7 @@
 #!/bin/bash
 # Setup tmux plugin manager (TPM) and install plugins
 # This script runs when tmux.conf changes
-# tmux.conf hash: {{ include "dot_tmux.conf" | sha256sum }}
+# tmux.conf hash: {{ include "dot_tmux.conf.tmpl" | sha256sum }}
 
 set -eufo pipefail
 
