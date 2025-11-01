@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+# =============================================================================
+# GitHub Codespaces Bootstrap Script
+# =============================================================================
+# This script is automatically executed when creating a new GitHub Codespace
+# if you've enabled dotfiles integration in GitHub Settings.
+#
+# Recognized script names (in priority order):
+#   install.sh, install, bootstrap.sh, bootstrap, setup.sh, setup
+#
+# References:
+#   - https://docs.github.com/en/codespaces/setting-your-user-preferences/personalizing-github-codespaces-for-your-account
+#   - https://www.chezmoi.io/user-guide/machines/containers-and-vms/
+# =============================================================================
+
+set -euo pipefail
+
+# Colors for output
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${GREEN}[INFO]${NC} $*"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $*"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $*"
+}
+
+# =============================================================================
+# Environment Detection
+# =============================================================================
+
+IS_CODESPACES="${CODESPACES:-false}"
+IS_CONTAINER="${CONTAINER:-false}"
+IS_CI="${CI:-false}"
+
+log_info "Environment Detection:"
+log_info "  CODESPACES: $IS_CODESPACES"
+log_info "  CONTAINER: $IS_CONTAINER"
+log_info "  CI: $IS_CI"
+
+# =============================================================================
+# Install chezmoi
+# =============================================================================
+
+if ! command -v chezmoi >/dev/null 2>&1; then
+    log_info "Installing chezmoi..."
+    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+    export PATH="$HOME/.local/bin:$PATH"
+    log_info "chezmoi installed to $HOME/.local/bin/chezmoi"
+else
+    log_info "chezmoi already installed: $(command -v chezmoi)"
+fi
+
+# =============================================================================
+# Determine Source Directory
+# =============================================================================
+
+# In Codespaces, dotfiles are cloned to this location:
+CODESPACES_DOTFILES_DIR="/workspaces/.codespaces/.persistedshare/dotfiles"
+
+# Determine the source directory
+if [ -d "$CODESPACES_DOTFILES_DIR" ]; then
+    SOURCE_DIR="$CODESPACES_DOTFILES_DIR"
+    log_info "Using Codespaces dotfiles directory: $SOURCE_DIR"
+elif [ -d "$HOME/dotfiles" ]; then
+    SOURCE_DIR="$HOME/dotfiles"
+    log_info "Using ~/dotfiles directory: $SOURCE_DIR"
+else
+    SOURCE_DIR=""
+    log_warn "No dotfiles directory found"
+fi
+
+# =============================================================================
+# Initialize chezmoi
+# =============================================================================
+
+CHEZMOI_DIR="$HOME/.local/share/chezmoi"
+
+if [ -n "$SOURCE_DIR" ]; then
+    if [ ! -d "$CHEZMOI_DIR" ]; then
+        log_info "Initializing chezmoi from $SOURCE_DIR..."
+
+        # Non-interactive init for Codespaces/containers
+        # These prompt values should match your .chezmoi.toml.tmpl defaults
+        chezmoi init \
+            --source="$SOURCE_DIR" \
+            --apply \
+            --verbose
+
+        log_info "✅ Dotfiles initialized and applied"
+    else
+        log_info "chezmoi already initialized, updating..."
+        chezmoi update --apply --verbose
+        log_info "✅ Dotfiles updated and applied"
+    fi
+else
+    log_error "Cannot initialize chezmoi without source directory"
+    exit 1
+fi
+
+# =============================================================================
+# Change default shell to zsh (if in container/Codespaces)
+# =============================================================================
+
+if [ "$IS_CODESPACES" = "true" ] || [ "$IS_CONTAINER" = "devcontainer" ]; then
+    if command -v zsh >/dev/null 2>&1; then
+        CURRENT_SHELL="$(getent passwd "$USER" | cut -d: -f7)"
+        if [ "$CURRENT_SHELL" != "$(which zsh)" ]; then
+            log_info "Changing default shell to zsh..."
+            if sudo chsh -s "$(which zsh)" "$USER" 2>/dev/null; then
+                log_info "✅ Default shell changed to zsh"
+                log_warn "Note: Restart your terminal for shell change to take effect"
+            else
+                log_warn "Could not change default shell (this is normal in some environments)"
+                log_info "VS Code terminal will still use zsh based on devcontainer.json settings"
+            fi
+        else
+            log_info "Default shell is already zsh"
+        fi
+    else
+        log_warn "zsh not found, skipping shell change"
+    fi
+fi
+
+# =============================================================================
+# Post-installation Info
+# =============================================================================
+
+log_info ""
+log_info "================================================"
+log_info "🎉 Dotfiles installation complete!"
+log_info "================================================"
+log_info ""
+log_info "Next steps:"
+log_info "  1. Open a new terminal to start using zsh"
+log_info "  2. Verify with: echo \$SHELL"
+log_info "  3. Check dotfiles with: chezmoi managed"
+log_info ""
+
+if [ "$IS_CODESPACES" = "true" ]; then
+    log_info "Codespaces-specific notes:"
+    log_info "  • Heavy packages (Homebrew casks) are skipped automatically"
+    log_info "  • 1Password/age encryption are disabled (use GitHub Secrets)"
+    log_info "  • VS Code terminal will default to zsh"
+    log_info ""
+fi

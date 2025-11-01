@@ -1,25 +1,60 @@
 #!/bin/bash
+# =============================================================================
 # Install Homebrew packages from Brewfile
+# =============================================================================
 # This script runs when the Brewfile changes
 # Brewfile hash: {{ include "dot_Brewfile.tmpl" | sha256sum }}
+#
+# Environment-aware installation:
+#   - Local macOS: Full Homebrew installation
+#   - Codespaces/Containers: Skip (packages installed via devcontainer)
+# =============================================================================
 
 set -eufo pipefail
+
+# =============================================================================
+# Environment Detection
+# =============================================================================
+{{ if .is_codespaces -}}
+echo "🚫 Skipping Homebrew installation in GitHub Codespaces"
+echo "   Packages are managed via devcontainer.json Features"
+echo "   (This saves ~5-10 minutes of container startup time)"
+exit 0
+{{ else if .is_container -}}
+echo "🚫 Skipping Homebrew installation in container environment"
+echo "   Packages should be installed via devcontainer Features or Dockerfile"
+echo "   for better performance and caching"
+exit 0
+{{ else -}}
+# =============================================================================
+# Local Installation (macOS/Linux)
+# =============================================================================
+
+echo "📦 Installing Homebrew packages..."
 
 # Check if Homebrew is installed
 if ! command -v brew >/dev/null 2>&1; then
     echo "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    # Add Homebrew to PATH for the current session
+    if [ -f "/opt/homebrew/bin/brew" ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    fi
 fi
 
 # Install packages from Brewfile
 if [ -f "$HOME/.Brewfile" ]; then
     echo "Installing packages from Brewfile..."
     if brew bundle --file="$HOME/.Brewfile"; then
-        echo "Successfully installed packages from Brewfile"
+        echo "✅ Successfully installed packages from Brewfile"
     else
-        echo "Warning: Some packages may have failed to install, but continuing..."
-        echo "You can manually run: brew bundle --file=\"$HOME/.Brewfile\""
+        echo "⚠️  Warning: Some packages may have failed to install, but continuing..."
+        echo "   You can manually run: brew bundle --file=\"$HOME/.Brewfile\""
     fi
 else
-    echo "Brewfile not found, skipping package installation"
+    echo "⚠️  Brewfile not found, skipping package installation"
 fi
+{{ end -}}

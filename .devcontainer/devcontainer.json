@@ -55,7 +55,10 @@
   // --- Chezmoi Dotfiles Integration ---
   // Automatically applies dotfiles on container creation
   // Repository: https://github.com/lv416e/dotfiles
-  "postCreateCommand": "sh -c \"$(curl -fsLS get.chezmoi.io)\" -- init --apply lv416e && echo '✅ Dotfiles applied successfully' || echo '⚠️  Dotfiles application encountered errors (expected on Linux - casks skipped)'",
+  //
+  // Note: When opening in devcontainer (not Codespaces), this will clone and apply
+  // your dotfiles. The process is non-interactive thanks to .chezmoi.toml.tmpl
+  "postCreateCommand": "bash -c 'if ! command -v chezmoi >/dev/null 2>&1; then sh -c \"$(curl -fsLS get.chezmoi.io)\" -- -b \"$HOME/.local/bin\"; fi && export PATH=\"$HOME/.local/bin:$PATH\" && chezmoi init --apply https://github.com/lv416e/dotfiles.git && echo \"✅ Dotfiles applied successfully\" || echo \"⚠️ Dotfiles application encountered errors\"'",
 
   // --- Lifecycle Hooks ---
   "postStartCommand": "echo '🚀 DevContainer ready. Shell: zsh | Tools: mise, fzf, bat, eza'",
@@ -100,10 +103,16 @@
       ],
       "settings": {
         // Default to zsh (configured via dotfiles)
+        // CRITICAL: This ensures VS Code terminal uses zsh, not bash
         "terminal.integrated.defaultProfile.linux": "zsh",
         "terminal.integrated.profiles.linux": {
           "zsh": {
-            "path": "/bin/zsh"
+            "path": "/usr/bin/zsh",
+            "args": ["-l"]
+          },
+          "bash": {
+            "path": "/bin/bash",
+            "args": ["-l"]
           }
         },
         // Use mise-managed tools
@@ -119,7 +128,9 @@
   "containerEnv": {
     "TERM": "xterm-256color",
     // Help chezmoi detect container environment
-    "CONTAINER": "devcontainer"
+    "CONTAINER": "devcontainer",
+    // Set SHELL to zsh for scripts that check this variable
+    "SHELL": "/usr/bin/zsh"
   },
 
   // --- Port Forwarding ---

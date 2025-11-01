@@ -1,28 +1,85 @@
 # chezmoi configuration template
 # Interactive setup on first init - prompts appear only once
+# Non-interactive in Codespaces/containers for automated provisioning
 
-# Prompt for user information
-{{- $email := promptStringOnce . "email" "Email address" (or (env "EMAIL") (output "git" "config" "user.email" | trim)) -}}
-{{- $githubUser := promptStringOnce . "github_user" "GitHub username" "" -}}
+# =============================================================================
+# Environment Detection
+# =============================================================================
+{{- $isCodespaces := env "CODESPACES" | not | not -}}
+{{- $isContainer := or (env "CONTAINER") (env "REMOTE_CONTAINERS") | not | not -}}
+{{- $isCI := env "CI" | not | not -}}
+{{- $isNonInteractive := or $isCodespaces $isCI -}}
 
-# 1Password configuration
-{{- $vaultName := promptStringOnce . "onepassword.vault" "1Password vault name" "Personal" -}}
-{{- $useGithubToken := promptBoolOnce . "use_github_token" "Fetch GitHub token from 1Password" false -}}
-{{- $githubTokenItem := promptStringOnce . "github_token_item" "1Password item name for GitHub token" "GitHub Classic PAT" -}}
-
-# Age encryption (optional)
-{{- $useAge := promptBoolOnce . "use_age_encryption" "Enable age encryption for sensitive files" false -}}
-{{- $ageRecipient := "" -}}
-{{- if $useAge -}}
-{{-   $ageRecipient = promptStringOnce . "age.recipient" "Your age public key (run: chezmoi age-keygen)" "" -}}
+# =============================================================================
+# User Information
+# =============================================================================
+# In non-interactive environments, use defaults; otherwise prompt
+{{- $email := "" -}}
+{{- if $isNonInteractive -}}
+{{-   $email = or (env "EMAIL") (output "git" "config" "user.email" | trim) "codespace@example.com" -}}
+{{- else -}}
+{{-   $email = promptStringOnce . "email" "Email address" (or (env "EMAIL") (output "git" "config" "user.email" | trim)) -}}
 {{- end -}}
 
-# Zsh configuration
-{{- $zshVariant := promptChoice "Zsh config style" (list "monolithic" "modular") "monolithic" -}}
-{{- $multiplexer := promptChoice "Terminal multiplexer" (list "tmux" "zellij") "tmux" -}}
+{{- $githubUser := "" -}}
+{{- if $isNonInteractive -}}
+{{-   $githubUser = or (env "GITHUB_USER") (output "git" "config" "github.user" | trim) "codespace-user" -}}
+{{- else -}}
+{{-   $githubUser = promptStringOnce . "github_user" "GitHub username" "" -}}
+{{- end -}}
 
-# Optional features
-{{- $useDifftastic := promptBoolOnce . "use_difftastic" "Enable difftastic git diff integration" true -}}
+# =============================================================================
+# 1Password Configuration
+# =============================================================================
+# Disable in non-interactive environments (use GitHub Secrets instead)
+{{- $vaultName := "Personal" -}}
+{{- $useGithubToken := false -}}
+{{- $githubTokenItem := "GitHub Classic PAT" -}}
+
+{{- if not $isNonInteractive -}}
+{{-   $vaultName = promptStringOnce . "onepassword.vault" "1Password vault name" "Personal" -}}
+{{-   $useGithubToken = promptBoolOnce . "use_github_token" "Fetch GitHub token from 1Password" false -}}
+{{-   $githubTokenItem = promptStringOnce . "github_token_item" "1Password item name for GitHub token" "GitHub Classic PAT" -}}
+{{- end -}}
+
+# =============================================================================
+# Age Encryption Configuration
+# =============================================================================
+# Disable in non-interactive environments
+{{- $useAge := false -}}
+{{- $ageRecipient := "" -}}
+{{- if not $isNonInteractive -}}
+{{-   $useAge = promptBoolOnce . "use_age_encryption" "Enable age encryption for sensitive files" false -}}
+{{-   if $useAge -}}
+{{-     $ageRecipient = promptStringOnce . "age.recipient" "Your age public key (run: chezmoi age-keygen)" "" -}}
+{{-   end -}}
+{{- end -}}
+
+# =============================================================================
+# Zsh Configuration
+# =============================================================================
+{{- $zshVariant := "monolithic" -}}
+{{- $multiplexer := "tmux" -}}
+{{- if not $isNonInteractive -}}
+{{-   $zshVariant = promptChoice "Zsh config style" (list "monolithic" "modular") "monolithic" -}}
+{{-   $multiplexer = promptChoice "Terminal multiplexer" (list "tmux" "zellij") "tmux" -}}
+{{- end -}}
+
+# =============================================================================
+# Optional Features
+# =============================================================================
+{{- $useDifftastic := true -}}
+{{- if not $isNonInteractive -}}
+{{-   $useDifftastic = promptBoolOnce . "use_difftastic" "Enable difftastic git diff integration" true -}}
+{{- end -}}
+
+# =============================================================================
+# chezmoi Configuration
+# =============================================================================
+
+# CRITICAL: Set sourceDir for Codespaces compatibility
+# Codespaces clones dotfiles to /workspaces/.codespaces/.persistedshare/dotfiles
+sourceDir = {{ .chezmoi.sourceDir | quote }}
 
 # Age encryption configuration (must be at top level, before [data])
 {{- if and $useAge (ne $ageRecipient "") }}
@@ -34,6 +91,11 @@ encryption = "age"
 {{- end }}
 
 [data]
+    # Environment detection flags
+    is_codespaces = {{ $isCodespaces }}
+    is_container = {{ $isContainer }}
+    is_ci = {{ $isCI }}
+    is_non_interactive = {{ $isNonInteractive }}
     name = "{{ output "git" "config" "user.name" | trim }}"
     email = {{ $email | quote }}
     github_user = {{ $githubUser | quote }}
