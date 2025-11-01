@@ -111,6 +111,10 @@ encryption = "age"
     is_ci = {{ $isCI }}
     is_non_interactive = {{ $isNonInteractive }}
 
+    # OS and architecture information
+    os = {{ .chezmoi.os | quote }}
+    arch = {{ .chezmoi.arch | quote }}
+
     # User information
     name = {{ $gitName | default "DevContainer User" | quote }}
     email = {{ $email | quote }}

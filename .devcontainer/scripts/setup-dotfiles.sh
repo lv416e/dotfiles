@@ -59,6 +59,29 @@ fi
 export PATH="$HOME/.local/bin:$PATH"
 
 # =============================================================================
+# Install Homebrew
+# =============================================================================
+
+if command -v brew >/dev/null 2>&1; then
+    log_info "Homebrew already installed: $(brew --version | head -n1)"
+else
+    log_info "Installing Homebrew..."
+
+    # Non-interactive installation for Linux environments
+    if NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+        log_info "✅ Homebrew installed successfully"
+
+        # Configure PATH for current session
+        if [ -d "/home/linuxbrew/.linuxbrew" ]; then
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+            log_info "Homebrew configured at /home/linuxbrew/.linuxbrew"
+        fi
+    else
+        log_warn "⚠️  Homebrew installation failed, continuing without it"
+    fi
+fi
+
+# =============================================================================
 # Initialize and apply dotfiles
 # =============================================================================
 

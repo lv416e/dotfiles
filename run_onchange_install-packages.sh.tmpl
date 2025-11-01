@@ -1,60 +1,45 @@
 #!/bin/bash
 # =============================================================================
-# Install Homebrew packages from Brewfile
+# Homebrew Package Installation
 # =============================================================================
-# This script runs when the Brewfile changes
+# Installs packages defined in Brewfile across all environments (macOS, Linux,
+# Codespaces, DevContainer). This script executes whenever the Brewfile changes.
+#
 # Brewfile hash: {{ include "dot_Brewfile.tmpl" | sha256sum }}
 #
-# Environment-aware installation:
-#   - Local macOS: Full Homebrew installation
-#   - Codespaces/Containers: Skip (packages installed via devcontainer)
+# Platform behavior:
+#   - macOS: Installs formulae and casks
+#   - Linux: Installs formulae only (casks automatically skipped)
 # =============================================================================
 
 set -eufo pipefail
 
-# =============================================================================
-# Environment Detection
-# =============================================================================
-{{ if .is_codespaces -}}
-echo "🚫 Skipping Homebrew installation in GitHub Codespaces"
-echo "   Packages are managed via devcontainer.json Features"
-echo "   (This saves ~5-10 minutes of container startup time)"
-exit 0
-{{ else if .is_container -}}
-echo "🚫 Skipping Homebrew installation in container environment"
-echo "   Packages should be installed via devcontainer Features or Dockerfile"
-echo "   for better performance and caching"
-exit 0
-{{ else -}}
-# =============================================================================
-# Local Installation (macOS/Linux)
-# =============================================================================
+# Ensure Homebrew is in PATH
+if [ -d "/home/linuxbrew/.linuxbrew" ]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+elif [ -d "/opt/homebrew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
 
-echo "📦 Installing Homebrew packages..."
-
-# Check if Homebrew is installed
+# Verify Homebrew availability
 if ! command -v brew >/dev/null 2>&1; then
-    echo "Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-    # Add Homebrew to PATH for the current session
-    if [ -f "/opt/homebrew/bin/brew" ]; then
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    elif [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-    fi
+    echo "⚠️  Homebrew not found. Package installation skipped."
+    echo "   Run the setup script to install Homebrew first."
+    exit 0
 fi
 
 # Install packages from Brewfile
 if [ -f "$HOME/.Brewfile" ]; then
-    echo "Installing packages from Brewfile..."
-    if brew bundle --file="$HOME/.Brewfile"; then
-        echo "✅ Successfully installed packages from Brewfile"
+    echo "📦 Installing packages from Brewfile..."
+    echo "   Platform: {{ .chezmoi.os }}/{{ .chezmoi.arch }}"
+
+    if brew bundle --file="$HOME/.Brewfile" --no-lock; then
+        echo "✅ Package installation complete"
     else
-        echo "⚠️  Warning: Some packages may have failed to install, but continuing..."
-        echo "   You can manually run: brew bundle --file=\"$HOME/.Brewfile\""
+        echo "⚠️  Some packages failed to install"
+        echo "   Review errors above and run manually if needed: brew bundle --file=\"$HOME/.Brewfile\""
     fi
 else
-    echo "⚠️  Brewfile not found, skipping package installation"
+    echo "⚠️  Brewfile not found at $HOME/.Brewfile"
+    exit 1
 fi
-{{ end -}}

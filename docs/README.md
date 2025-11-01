@@ -21,6 +21,7 @@ Task-oriented guides for specific operations.
 - [Codespaces Quick Start](guides/codespaces-quickstart.md) - Get started with GitHub Codespaces in 2 minutes
 - [DevContainer Setup](guides/devcontainer-setup-complete.md) - Complete guide for DevContainer configuration
 - [DevContainer Troubleshooting](guides/devcontainer-troubleshooting.md) - Common DevContainer issues and solutions
+- [Codespaces Prebuilds Setup](guides/codespaces-prebuilds-setup.md) - Configure prebuilds for faster Codespace creation
 - [macOS Defaults Automation Guide](guides/macos-defaults-automation-guide.md) - Automate macOS system preferences
 - [Claude Code Skills Integration](guides/claude-code-skills-integration.md) - Integrate Claude Code skills with dotfiles
 - [Tooling Implementation Guide 2025](guides/tooling-implementation-guide-2025.md) - Modern tooling enhancements

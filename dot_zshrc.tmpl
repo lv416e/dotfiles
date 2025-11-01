@@ -8,7 +8,9 @@
 # ============================================================================
 
 # --- Homebrew ---
-{{- if eq .chezmoi.arch "arm64" }}
+{{- if eq .os "darwin" }}
+# macOS: Homebrew location depends on architecture
+{{-   if eq .arch "arm64" }}
 export HOMEBREW_PREFIX="/opt/homebrew"
 export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
 export HOMEBREW_REPOSITORY="/opt/homebrew"
@@ -16,9 +18,15 @@ fpath[1,0]="/opt/homebrew/share/zsh/site-functions"
 eval "$(/usr/bin/env PATH_HELPER_ROOT="/opt/homebrew" /usr/libexec/path_helper -s)"
 [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}"
 export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
-{{- else }}
+{{-   else }}
 eval "$(/usr/local/bin/brew shellenv)"
-HOMEBREW_PREFIX="/usr/local"
+export HOMEBREW_PREFIX="/usr/local"
+{{-   end }}
+{{- else }}
+# Linux (including Codespaces/DevContainers): Homebrew always at /home/linuxbrew
+if [ -d "/home/linuxbrew/.linuxbrew" ]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
 {{- end }}
 
 # --- Prompt ---
@@ -56,14 +64,31 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=1
 export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 
 # --- sheldon (plugin manager with cache) ---
-_sheldon_cache="${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
-_sheldon_toml="${XDG_CONFIG_HOME:-$HOME/.config}/sheldon/plugins.toml"
-if [[ ! -r "$_sheldon_cache" || "$_sheldon_toml" -nt "$_sheldon_cache" ]]; then
-  mkdir -p "${_sheldon_cache:h}"
-  sheldon source > "$_sheldon_cache"
+if command -v sheldon &>/dev/null; then
+  _sheldon_cache="${XDG_CACHE_HOME:-$HOME/.cache}/sheldon/sheldon.zsh"
+  _sheldon_toml="${XDG_CONFIG_HOME:-$HOME/.config}/sheldon/plugins.toml"
+  if [[ ! -r "$_sheldon_cache" || "$_sheldon_toml" -nt "$_sheldon_cache" ]]; then
+    mkdir -p "${_sheldon_cache:h}"
+    sheldon source > "$_sheldon_cache"
+  fi
+  source "$_sheldon_cache"
+  unset _sheldon_cache _sheldon_toml
+else
+  echo "⚠️  sheldon not found - plugins not loaded. Install with: brew install sheldon"
 fi
-source "$_sheldon_cache"
-unset _sheldon_cache _sheldon_toml
+
+# --- zsh-defer fallback ---
+# If zsh-defer is not available (sheldon failed to load), provide a no-op fallback
+if ! command -v zsh-defer &>/dev/null; then
+  zsh-defer() {
+    # Fallback: execute immediately without deferring
+    if [[ "$1" == "-c" ]]; then
+      eval "$2"
+    else
+      "$@"
+    fi
+  }
+fi
 
 # --- Completion system (cached, deferred) ---
 _load_completion() {
@@ -78,9 +103,9 @@ _load_completion() {
 zsh-defer _load_completion
 
 # --- Deferred tool initialization ---
-zsh-defer -c 'eval "$(zoxide init --cmd j zsh)"'
-zsh-defer -c 'eval "$(atuin init zsh)"'
-zsh-defer -c 'eval "$(mise activate zsh)"'
+command -v zoxide &>/dev/null && zsh-defer -c 'eval "$(zoxide init --cmd j zsh)"'
+command -v atuin &>/dev/null && zsh-defer -c 'eval "$(atuin init zsh)"'
+command -v mise &>/dev/null && zsh-defer -c 'eval "$(mise activate zsh)"'
 
 # --- FZF key bindings ---
 if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh" ]]; then
