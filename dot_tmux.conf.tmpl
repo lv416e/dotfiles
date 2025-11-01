@@ -70,7 +70,12 @@ set -g status-left '#[bg=green,fg=black,bold] [#{session_name}] '
 
 # Right side: system info + date/time
 set -g status-right-length 120
-set -g status-right '#[bg=green,fg=black]#(~/.local/bin/tmux-claude-usage.sh) | #(~/.local/bin/tmux-cpu-usage.sh) | #(~/.local/bin/tmux-ram-usage.sh) | #(~/.local/bin/tmux-battery.sh) | %H:%M %d-%b-%y '
+{{- if eq .chezmoi.os "darwin" }}
+set -g status-right '#[bg=green,fg=black]#(~/.local/bin/tmux-claude-usage.sh 2>/dev/null || echo "") | CPU: #{cpu_percentage} | RAM: #{ram_percentage} | #(~/.local/bin/tmux-battery.sh 2>/dev/null || pmset -g batt | grep -Eo "[0-9]+%" | head -1) | %H:%M %d-%b-%y '
+{{- else }}
+# Codespaces/Linux: Simplified status (no battery, use built-in CPU/RAM plugins)
+set -g status-right '#[bg=green,fg=black]CPU: #{cpu_percentage} | RAM: #{ram_percentage} | %H:%M %d-%b-%y '
+{{- end }}
 
 # Window status formatting
 set -g window-status-format ' #I:#W#F '
