@@ -10,8 +10,16 @@
   // - Performance-oriented (GPU acceleration, minimal bloat)
   // - Consistent with existing dotfiles aesthetic
   // ===========================================================================
-  // Vim Mode (2025 Best Practices)
-  // ===========================================================================
+  "icon_theme": "Material Icon Theme",
+  "context_servers": {
+    "mcp-server-context7": {
+      "source": "extension",
+      "enabled": true,
+      "settings": {
+        "context7_api_key": ""
+      }
+    }
+  },
   "vim_mode": true,
   "vim": {
     // Use system clipboard for yank/paste (matching Neovim config)
@@ -28,11 +36,7 @@
   // Editor Appearance & Behavior
   // ===========================================================================
   // Theme (matching Solarized Dark from Alacritty config)
-  "theme": {
-    "mode": "system",
-    "light": "One Light",
-    "dark": "One Dark"
-  },
+  "theme": "Github Dark Dimmed",
   // Buffer font (editor font) - optimized for code readability
   "buffer_font_family": "HackGen35 Console NF",
   "buffer_font_size": 13,
@@ -142,9 +146,7 @@
       "format_on_save": "on",
       "formatter": [
         {
-          "code_actions": {
-            "source.organizeImports": true
-          }
+          "code_action": "source.organizeImports"
         },
         "prettier"
       ],
@@ -159,9 +161,7 @@
       "format_on_save": "on",
       "formatter": [
         {
-          "code_actions": {
-            "source.organizeImports": true
-          }
+          "code_action": "source.organizeImports"
         },
         "prettier"
       ],
