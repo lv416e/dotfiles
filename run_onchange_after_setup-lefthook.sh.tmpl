@@ -5,22 +5,56 @@
 # This script runs automatically when lefthook.yml changes.
 # It installs Git hooks managed by lefthook.
 #
+# Execution: run_onchange_after (runs after dotfiles applied, when lefthook.yml changes)
+# Depends on: lefthook, gitleaks (installed via Brewfile)
+#
 # Hash: {{ include "lefthook.yml" | sha256sum }}
 
 set -euo pipefail
 
 echo "🪝 Setting up lefthook Git hooks..."
 
+# =============================================================================
+# Ensure Homebrew tools are in PATH
+# =============================================================================
+# This is necessary because this script runs in the same shell session
+# where Homebrew was just installed, and PATH may not be updated yet.
+
+{{ if eq .os "darwin" -}}
+{{   if eq .arch "arm64" -}}
+if [ -x "/opt/homebrew/bin/brew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+{{   else -}}
+if [ -x "/usr/local/bin/brew" ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+{{   end -}}
+{{ else -}}
+if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+{{ end -}}
+
+# =============================================================================
+# Verify Required Tools
+# =============================================================================
+
 # Check if lefthook is installed
 if ! command -v lefthook &> /dev/null; then
-    echo "⚠️  lefthook not found. Installing via mise..."
-    mise install go:github.com/evilmartians/lefthook@latest
+    echo "❌ ERROR: lefthook not found"
+    echo ""
+    echo "lefthook should have been installed via Brewfile."
+    echo "Please ensure run_onchange_install-packages.sh completed successfully."
+    echo ""
+    echo "To manually install: brew install lefthook"
+    exit 1
 fi
 
 # Check if gitleaks is installed
 if ! command -v gitleaks &> /dev/null; then
-    echo "⚠️  gitleaks not found. Installing via mise..."
-    mise install go:github.com/zricethezav/gitleaks/v8@latest
+    echo "⚠️  WARNING: gitleaks not found"
+    echo "   Some hooks may not work. Install with: brew install gitleaks"
 fi
 
 # Navigate to dotfiles directory
