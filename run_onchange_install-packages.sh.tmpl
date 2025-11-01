@@ -61,7 +61,7 @@ if [ -f "$HOME/.Brewfile" ]; then
     echo "📦 Installing packages from Brewfile..."
     echo "   Platform: {{ .chezmoi.os }}/{{ .chezmoi.arch }}"
 
-    if brew bundle --file="$HOME/.Brewfile" --no-lock; then
+    if brew bundle --file="$HOME/.Brewfile"; then
         echo "✅ Package installation complete"
     else
         echo "⚠️  Some packages failed to install"
