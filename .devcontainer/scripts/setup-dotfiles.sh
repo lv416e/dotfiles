@@ -73,16 +73,18 @@ CHEZMOI_DIR="$HOME/.local/share/chezmoi"
 
 if [ -d "$CHEZMOI_DIR" ]; then
     log_info "Dotfiles already initialized, updating..."
-    # Use --no-prompt for non-interactive CI/CD environments
-    if chezmoi update --apply --verbose --no-prompt; then
+    # Use --promptDefaults --no-tty for non-interactive CI/CD environments
+    if chezmoi update --apply --verbose --promptDefaults --no-tty; then
         log_info "✅ Dotfiles updated successfully"
     else
         log_warn "⚠️  Dotfiles update encountered errors (this may be expected)"
     fi
 else
     log_info "Initializing dotfiles from $DOTFILES_REPO..."
-    # Use --no-prompt for non-interactive CI/CD environments
-    if chezmoi init --apply --verbose --no-prompt "$DOTFILES_REPO"; then
+    # Use --promptDefaults --no-tty for non-interactive CI/CD environments
+    # --promptDefaults: Use default values for all prompt* functions
+    # --no-tty: Don't attempt to get TTY, read from stdin instead
+    if chezmoi init --apply --verbose --promptDefaults --no-tty "$DOTFILES_REPO"; then
         log_info "✅ Dotfiles initialized and applied successfully"
     else
         log_error "Failed to initialize dotfiles"
