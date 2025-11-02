@@ -49,12 +49,12 @@ jobs:
             echo "Warning: Potential secrets found in templates"
 
           echo "Checking for shell syntax errors..."
-          find . -name "*.sh" -o -name "*.zsh" | while read file; do
+          find . -name "*.sh" -o -name "*.zsh" | while read -r file; do
             echo "Checking $file"
             zsh -n "$file" 2>&1 || echo "Syntax error in $file"
           done
 
-  linux-compatibility:
+  compatibility:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -68,7 +68,7 @@ jobs:
         run: |
           # Install Homebrew on Linux
           install_url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
-          NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL $install_url)"
+          NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$install_url")"
 
           # Add Homebrew to PATH for subsequent steps
           echo "/home/linuxbrew/.linuxbrew/bin" >> $GITHUB_PATH
