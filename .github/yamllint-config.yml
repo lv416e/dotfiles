@@ -1,0 +1,58 @@
+# =============================================================================
+# yamllint Configuration
+# =============================================================================
+# Comprehensive YAML linting rules for consistent formatting and best practices.
+#
+# References:
+#   - yamllint documentation: https://yamllint.readthedocs.io/
+#   - Default configuration: https://github.com/adrienverge/yamllint/blob/master/yamllint/conf/default.yaml
+# =============================================================================
+
+extends: default
+
+rules:
+  # Line length: Allow up to 120 characters (not 80)
+  # GitHub Actions workflows often need longer lines for readability
+  line-length:
+    max: 120
+    level: warning
+
+  # Document start: Allow files without ---
+  document-start:
+    present: false
+
+  # Indentation: 2 spaces, consistent with GitHub Actions convention
+  indentation:
+    spaces: 2
+    indent-sequences: true
+
+  # Comments: Require space after # for readability
+  comments:
+    min-spaces-from-content: 2
+
+  # Trailing spaces: Not allowed (good practice)
+  trailing-spaces: enable
+
+  # Empty lines: Reasonable limits for readability
+  empty-lines:
+    max: 2
+    max-start: 0
+    max-end: 1
+
+  # Key duplicates: Not allowed (prevents errors)
+  key-duplicates: enable
+
+  # Truthy values: Allow yes/no/on/off (common in YAML)
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    check-keys: false
+
+  # Brackets: Allow for readability (e.g., [main])
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 0
+
+  # Braces: Allow for readability (e.g., { key: value })
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1

@@ -45,7 +45,8 @@ pre-commit:
 
           # Check if file is larger than 1MB
           if [ "$size" -gt 1048576 ]; then
-            echo "❌ File too large: $file ($(numfmt --to=iec-i --suffix=B $size 2>/dev/null || echo "$size bytes") > 1MB)"
+            size_human=$(numfmt --to=iec-i --suffix=B "$size" 2>/dev/null || echo "$size bytes")
+            echo "❌ File too large: $file ($size_human > 1MB)"
             echo "   Large files should not be committed to dotfiles."
             echo "   Consider using Git LFS or external storage."
             exit 1

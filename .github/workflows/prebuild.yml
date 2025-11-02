@@ -1,0 +1,87 @@
+# =============================================================================
+# DevContainer Image Pre-Build and Cache
+# =============================================================================
+# Builds and caches the DevContainer image to GitHub Container Registry (GHCR).
+# This workflow is for LOCAL DevContainer usage, NOT for GitHub Codespaces.
+#
+# Purpose:
+#   - Pre-builds DevContainer image with Homebrew and dependencies
+#   - Pushes to GHCR for faster local VS Code DevContainer rebuilds
+#   - Shares cached image across team members
+#
+# GitHub Codespaces Prebuilds:
+#   GitHub Codespaces has its OWN separate prebuild system configured via:
+#   Settings → Codespaces → Set up prebuild (Repository Settings UI)
+#
+#   When you enable Codespaces Prebuilds in Settings, GitHub automatically:
+#   1. Creates a managed workflow (.github/workflows/codespaces-prebuilds_*.yml)
+#   2. Builds and caches the environment on push/schedule
+#   3. Provides ~30 second startup vs 10-20 minute fresh builds
+#
+#   This workflow is complementary but separate from Codespaces Prebuilds.
+#
+# Benefits of This Workflow:
+#   - Faster local DevContainer rebuilds (shared GHCR cache)
+#   - Team members pull pre-built image instead of building from scratch
+#   - CI/CD can use the same pre-built environment
+#   - Architecture locked to x86_64/amd64 for Homebrew bottles
+#
+# References:
+#   - Codespaces Prebuilds: https://docs.github.com/en/codespaces/prebuilding-your-codespaces/configuring-prebuilds
+#   - devcontainers/ci: https://github.com/devcontainers/ci
+# =============================================================================
+
+name: prebuild
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".devcontainer/**"
+      - "dot_Brewfile.tmpl"
+      - ".github/workflows/codespaces-prebuild.yml"
+  workflow_dispatch:
+  schedule:
+    # Rebuild weekly on Monday at 00:00 UTC to keep dependencies fresh
+    - cron: "0 0 * * 1"
+
+jobs:
+  build-devcontainer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: v0.16.1
+          platforms: linux/amd64
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pre-build and push DevContainer image
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: ghcr.io/${{ github.repository }}/devcontainer
+          cacheFrom: ghcr.io/${{ github.repository }}/devcontainer
+          push: always
+          platform: linux/amd64
+          runCmd: |
+            echo "=== Verifying DevContainer Build ==="
+            echo "Architecture: $(uname -m)"
+            echo "Chezmoi: $(chezmoi --version)"
+            echo "Homebrew: $(brew --version | head -1)"
+            echo "Shell: $(zsh --version)"
+            echo "=== Build Verified ==="

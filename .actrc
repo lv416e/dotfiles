@@ -1,0 +1,88 @@
+# =============================================================================
+# act Configuration File
+# =============================================================================
+# Local GitHub Actions testing with nektos/act
+# https://nektosact.com/usage/index.html
+#
+# This file is placed in the repository root to ensure consistent behavior
+# across all team members and CI environments.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Platform Configuration
+# -----------------------------------------------------------------------------
+# Force x86_64/amd64 architecture for consistent Homebrew bottle support
+# This is essential on Apple Silicon (M1/M2/M3) Macs to match GitHub Actions
+--container-architecture linux/amd64
+
+# -----------------------------------------------------------------------------
+# Container Images
+# -----------------------------------------------------------------------------
+# Use catthehacker's optimized images that closely mirror GitHub's runners
+# Medium size (~500MB) provides good balance of size and compatibility
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+-P ubuntu-24.04=catthehacker/ubuntu:act-24.04
+-P ubuntu-22.04=catthehacker/ubuntu:act-22.04
+-P ubuntu-20.04=catthehacker/ubuntu:act-20.04
+
+# macOS runners (use with caution - Linux containers only)
+# These are mapped to Ubuntu for act testing
+-P macos-latest=catthehacker/ubuntu:act-latest
+-P macos-14=catthehacker/ubuntu:act-latest
+-P macos-13=catthehacker/ubuntu:act-latest
+
+# -----------------------------------------------------------------------------
+# Secrets & Environment
+# -----------------------------------------------------------------------------
+# Automatically set ACT=true environment variable for act detection
+# This allows workflows to conditionally handle act-specific limitations
+--env ACT=true
+
+# Uncomment to load secrets from .secrets file (gitignored)
+# Format: KEY=value (one per line)
+# --secret-file .secrets
+
+# -----------------------------------------------------------------------------
+# Performance & Behavior
+# -----------------------------------------------------------------------------
+# Use Docker host's network for faster operations
+# --container-daemon-socket -
+
+# Reuse containers between runs for speed (use with caution)
+# --reuse
+
+# Enable verbose logging for debugging
+# --verbose
+
+# -----------------------------------------------------------------------------
+# Artifact Handling
+# -----------------------------------------------------------------------------
+# Directory for storing artifacts from workflow runs
+--artifact-server-path /tmp/act-artifacts
+
+# -----------------------------------------------------------------------------
+# Job Configuration
+# -----------------------------------------------------------------------------
+# Set default shell (bash is standard for GitHub Actions)
+--defaultbranch main
+
+# -----------------------------------------------------------------------------
+# Notes for Users
+# -----------------------------------------------------------------------------
+# 1. M1/M2/M3 Mac users: --container-architecture linux/amd64 is REQUIRED
+#    to match GitHub Actions amd64 runners and avoid Homebrew bottle issues
+#
+# 2. Create .secrets file for sensitive values (add to .gitignore):
+#    GITHUB_TOKEN=ghp_xxxxx
+#    OTHER_SECRET=value
+#
+# 3. Override settings per-run with command-line flags:
+#    act -W .github/workflows/lint.yml --verbose
+#
+# 4. Test specific jobs:
+#    act -j quick-checks
+#    act -j shell-checks
+#
+# 5. List all available jobs:
+#    act -l
+# =============================================================================

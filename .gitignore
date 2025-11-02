@@ -69,3 +69,4 @@ dot_config/nvim-astronvim/lazy-lock.json
 dot_config/nvim-lazyvim/lazy-lock.json
 dot_config/nvim-astronvim/.neoconf.json
 dot_config/nvim-lazyvim/.neoconf.json
+.secrets

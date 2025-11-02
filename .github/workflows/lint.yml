@@ -1,0 +1,201 @@
+# =============================================================================
+# Linting and Security Checks Workflow
+# =============================================================================
+# Comprehensive static analysis workflow for code quality and security.
+# Follows 2025 GitHub Actions best practices with minimal permissions,
+# explicit timeouts, and optimized caching.
+#
+# Jobs:
+#   1. quick-checks: Fast workflow validation (actionlint, ghalint)
+#   2. shell-checks: Shell script validation (ShellCheck, shfmt)
+#   3. yaml-checks: YAML file validation (yamllint)
+#   4. security-scan: Secret detection with gitleaks (CI mode)
+#   5. dependency-review: Detect vulnerable dependencies (PRs only)
+#
+# References:
+#   - actionlint: https://github.com/rhysd/actionlint
+#   - ghalint: https://github.com/tmknom/ghalint
+#   - ShellCheck: https://github.com/koalaman/shellcheck
+#   - shfmt: https://github.com/mvdan/sh
+#   - yamllint: https://github.com/adrienverge/yamllint
+#   - gitleaks: https://github.com/gitleaks/gitleaks
+# =============================================================================
+
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Minimal permissions at workflow level
+permissions:
+  contents: read
+
+jobs:
+  # ===========================================================================
+  # Quick Checks: Fast workflow validation
+  # ===========================================================================
+  quick-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache actionlint
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/actionlint
+          key: ${{ runner.os }}-actionlint-${{ hashFiles('.github/workflows/*.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-actionlint-
+
+      - name: Install actionlint
+        run: |
+          # Install actionlint for GitHub Actions workflow linting
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          sudo mv ./actionlint /usr/local/bin/
+
+      - name: Run actionlint
+        run: |
+          actionlint -color
+
+      - name: Install ghalint
+        run: |
+          # Install ghalint for GitHub Actions security best practices
+          # Download binary instead of using 'go install' to avoid Go dependency
+          GHALINT_VERSION="v1.5.3"
+          REPO="suzuki-shunsuke/ghalint"
+          DOWNLOAD_URL="https://github.com/${REPO}/releases/download"
+          curl -sSfL "${DOWNLOAD_URL}/${GHALINT_VERSION}/ghalint_1.5.3_linux_amd64.tar.gz" | tar xz
+          sudo mv ghalint /usr/local/bin/
+          chmod +x /usr/local/bin/ghalint
+
+      - name: Run ghalint
+        run: |
+          ghalint run
+
+  # ===========================================================================
+  # Shell Checks: Shell script validation
+  # ===========================================================================
+  shell-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck on shell scripts
+        run: |
+          echo "=== Running ShellCheck on .sh files ==="
+          find . -name "*.sh" -not -path "./.git/*" -print0 | \
+            xargs -0 shellcheck --severity=warning --format=gcc || true
+
+      - name: Run ShellCheck on zsh scripts
+        run: |
+          echo "=== Running ShellCheck on .zsh files ==="
+          find . -name "*.zsh" -not -path "./.git/*" -print0 | \
+            xargs -0 shellcheck --shell=bash --severity=warning --format=gcc || true
+
+      - name: Install shfmt
+        run: |
+          # Install shfmt for shell script formatting
+          # Download binary instead of using 'go install' to avoid Go dependency
+          SHFMT_VERSION="v3.10.0"
+          DOWNLOAD_URL="https://github.com/mvdan/sh/releases/download"
+          curl -sSfL "${DOWNLOAD_URL}/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64" -o shfmt
+          chmod +x shfmt
+          sudo mv shfmt /usr/local/bin/
+
+      - name: Run shfmt (check mode)
+        run: |
+          echo "=== Checking shell script formatting ==="
+          shfmt -d -i 2 -ci -sr . || true
+
+  # ===========================================================================
+  # YAML Checks: YAML file validation
+  # ===========================================================================
+  yaml-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install yamllint
+        run: |
+          pip install yamllint
+
+      - name: Run yamllint
+        run: |
+          yamllint -c .github/yamllint-config.yml .
+
+  # ===========================================================================
+  # Security Scan: Secret detection with gitleaks
+  # ===========================================================================
+  security-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for comprehensive scan
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        # Note: This action may fail in act (local testing) due to missing GitHub context
+        # However, it will work correctly in actual GitHub Actions
+        continue-on-error: ${{ env.ACT == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_SUMMARY: true
+
+  # ===========================================================================
+  # Dependency Review: Detect vulnerable dependencies (PRs only)
+  # ===========================================================================
+  dependency-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only run on pull requests
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          warn-on-openssf-scorecard-level: 3
