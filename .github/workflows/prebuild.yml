@@ -14,7 +14,7 @@
 #   Settings → Codespaces → Set up prebuild (Repository Settings UI)
 #
 #   When you enable Codespaces Prebuilds in Settings, GitHub automatically:
-#   1. Creates a managed workflow (.github/workflows/codespaces-prebuilds_*.yml)
+#   1. Creates a managed workflow (.github/workflows/prebuild_*.yml)
 #   2. Builds and caches the environment on push/schedule
 #   3. Provides ~30 second startup vs 10-20 minute fresh builds
 #
@@ -38,9 +38,9 @@ on:
     branches:
       - main
     paths:
-      - ".devcontainer/**"
       - "dot_Brewfile.tmpl"
-      - ".github/workflows/codespaces-prebuild.yml"
+      - ".devcontainer/**"
+      - ".github/workflows/prebuild.yml"
   workflow_dispatch:
   schedule:
     # Rebuild weekly on Monday at 00:00 UTC to keep dependencies fresh
