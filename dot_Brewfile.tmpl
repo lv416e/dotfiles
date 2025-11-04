@@ -100,6 +100,7 @@ brew "gitleaks"        # Detect secrets in Git repos
 brew "pre-commit"      # Git pre-commit hook framework
 
 {{- if eq .chezmoi.os "darwin" }}
+
 # macOS-only packages and casks
 brew "trash"           # Move files to trash instead of rm (macOS only)
 
@@ -132,4 +133,5 @@ cask "visual-studio-code"
 cask "zed"
 cask "google-japanese-ime"
 cask "shiftit"
+
 {{- end }}
