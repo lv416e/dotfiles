@@ -100,10 +100,8 @@ brew "gitleaks"        # Detect secrets in Git repos
 brew "pre-commit"      # Git pre-commit hook framework
 
 {{- if eq .chezmoi.os "darwin" }}
-
 # macOS-only packages and casks
 brew "trash"           # Move files to trash instead of rm (macOS only)
-
 # macOS-only casks (GUI applications, fonts, etc.)
 cask "alacritty"       # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
 cask "kitty"           # GPU-accelerated terminal (alternative to alacritty)
@@ -133,5 +131,4 @@ cask "visual-studio-code"
 cask "zed"
 cask "google-japanese-ime"
 cask "shiftit"
-
 {{- end }}
