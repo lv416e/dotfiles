@@ -126,6 +126,7 @@ zsh-defer -c '[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.po
 # ============================================================================
 
 # --- Development tools ---
+export PATH="{{ .chezmoi.homeDir }}/.local/bin:$PATH"
 export PATH="{{ .chezmoi.homeDir }}/.slack/bin:$PATH"
 # Cargo bin already added in .zshenv via '. "$HOME/.cargo/env"'
 export PATH="${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin:$PATH"

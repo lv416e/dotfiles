@@ -19,7 +19,7 @@
 # Set marker to prevent duplicate loading in .zshrc (03-tools.zsh checks this)
 # Note: Interactive shells use 'mise activate' in .zshrc for full features
 # See: https://mise.jdx.dev/dev-tools/shims.html
-export PATH="{{ .chezmoi.homeDir }}/.local/share/mise/shims:$PATH"
+export PATH="{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/.local/share/mise/shims:$PATH"
 export MISE_SHELL=zsh
 
 # Added by Toolbox App
