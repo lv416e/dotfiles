@@ -23,6 +23,9 @@ if [[ -f "$HOME/.cargo/env" ]]; then
   . "$HOME/.cargo/env"
 fi
 
+# User binaries (needed for all shell sessions)
+export PATH="{{ .chezmoi.homeDir }}/.local/bin:$PATH"
+
 # Load local overrides (not managed by chezmoi)
 # Use this file for machine-specific environment variables like PROMPT_THEME
 if [[ -f "${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}/.zshenv.local" ]]; then
