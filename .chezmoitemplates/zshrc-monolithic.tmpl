@@ -26,6 +26,11 @@ if [[ ! -f "$_PATH_HELPER_CACHE" ]] || \
 fi
 [[ -f "$_PATH_HELPER_CACHE" ]] && source "$_PATH_HELPER_CACHE"
 
+# CRITICAL FIX: Re-add ~/.local/bin after path_helper
+# path_helper overwrites PATH, removing ~/.local/bin set in .zshenv
+# This must happen IMMEDIATELY (not deferred) for commands like mux-work to be available
+export PATH="{{ .chezmoi.homeDir }}/.local/bin:$PATH"
+
 [ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}"
 export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
 {{-   else }}
