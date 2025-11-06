@@ -403,6 +403,496 @@ fi
 fnox backends 2>/dev/null || true
 """
 
+# --- AI Profile Management (Claude Code / API Switching) ---
+
+[tasks.claude-switch]
+description = "[claude] Switch between API and MAX authentication"
+alias = "cls"
+usage = '''
+arg "<profile>" help="API (pay-per-use) or MAX (subscription)" {
+  choices "API" "MAX" "api" "max"
+}
+'''
+run = '''
+set -eu
+CFG=~/.config/claude
+profile="${usage_profile}"
+
+mkdir -p "$CFG"
+
+case "$profile" in
+  API|api)
+    # Check API config exists
+    if [ ! -f "$CFG/.env.api" ]; then
+      echo "❌ $CFG/.env.api not found."
+      echo "   Run: mise claude-init"
+      exit 1
+    fi
+
+    # Switch to API profile
+    cp "$CFG/.env.api" "$CFG/.env"
+
+    echo ""
+    echo "✅ Switched to API mode"
+    echo "   💳 Usage will be charged to API key"
+    echo ""
+    echo "💡 ANTHROPIC_API_KEY takes precedence over any logged-in account"
+    echo ""
+    echo "⚠️  Apply changes:"
+    echo "   Option 1: Open NEW terminal tab"
+    echo "   Option 2: Run in current shell:"
+    echo "             source ~/.config/claude/.env"
+    echo ""
+    echo "   Then verify with: claude"
+    echo "                    (run /status to confirm)"
+    ;;
+
+  MAX|max)
+    # Check MAX config exists
+    if [ ! -f "$CFG/.env.max" ]; then
+      echo "❌ $CFG/.env.max not found."
+      echo "   Run: chezmoi apply"
+      exit 1
+    fi
+
+    # Switch to MAX profile (unsets ANTHROPIC_API_KEY)
+    cp "$CFG/.env.max" "$CFG/.env"
+
+    echo ""
+    echo "✅ Switched to MAX mode"
+    echo "   🎫 Usage will be charged to Max/Pro subscription"
+    echo ""
+    echo "⚠️  Apply changes:"
+    echo "   Option 1: Open NEW terminal tab"
+    echo "   Option 2: Run in current shell:"
+    echo "             unset ANTHROPIC_API_KEY"
+    echo "             source ~/.config/claude/.env"
+    echo ""
+    echo "   Then run: claude"
+    echo "   (Login prompt will appear if not already logged in)"
+    ;;
+
+  *)
+    echo "Usage: mise claude-switch [API|MAX]" >&2
+    exit 1
+    ;;
+esac
+'''
+
+[tasks.claude-current]
+description = "[claude] Show current AI profile"
+alias = "clc"
+run = '''
+CFG=~/.config/claude
+if [ ! -f "$CFG/.env" ]; then
+  echo "❌ No AI profile active"
+  echo "   Run: mise ai-use [API|MAX]"
+  exit 0
+fi
+
+echo "=== Current AI Profile ==="
+grep -E "^(AI_PROFILE|ANTHROPIC_API_KEY)=" "$CFG/.env" | while IFS='=' read -r key value; do
+  case "$key" in
+    AI_PROFILE)
+      echo "Profile: $value"
+      ;;
+    ANTHROPIC_API_KEY)
+      if [ -n "$value" ] && [ "$value" != "" ]; then
+        len=$(printf "%s" "$value" | wc -c | tr -d ' ')
+        echo "API Key: ${value:0:8}...${value: -4} ($len chars)"
+      else
+        echo "API Key: (not set)"
+      fi
+      ;;
+  esac
+done
+'''
+
+[tasks.ai-exec]
+description = "[claude] Execute command with current AI profile"
+alias = "aie"
+run = '''
+set -a
+[ -f ~/.config/claude/.env ] && . ~/.config/claude/.env
+set +a
+exec "$@"
+'''
+
+[tasks.claude-init]
+description = "[claude] Initialize AI profile configuration"
+alias = "cli"
+run = '''
+set -eu
+echo "🔧 Initializing AI profile configuration..."
+CFG=~/.config/claude
+mkdir -p "$CFG"
+
+# Apply chezmoi templates first (creates .env.max and .env.api.example)
+echo "📦 Applying chezmoi templates..."
+chezmoi apply --include="$HOME/.config/claude/*" 2>/dev/null || true
+
+# Try to fetch API key from 1Password
+if [ ! -f "$CFG/.env.api" ]; then
+  echo ""
+  echo "🔐 Attempting to fetch API key from 1Password..."
+
+  if ! command -v op &> /dev/null; then
+    echo "⚠️  1Password CLI (op) not found"
+    echo "   Install: brew install 1password-cli"
+    echo ""
+    echo "📝 Manual setup required:"
+    echo "   cp $CFG/.env.api.example $CFG/.env.api"
+    echo "   Edit $CFG/.env.api and add your API key"
+  elif ! op whoami &> /dev/null; then
+    echo "⚠️  Not signed in to 1Password"
+    echo "   Sign in: eval \$(op signin)"
+    echo ""
+    echo "📝 Manual setup required:"
+    echo "   cp $CFG/.env.api.example $CFG/.env.api"
+    echo "   Edit $CFG/.env.api and add your API key"
+  else
+    # Try to read from 1Password
+    VAULT="{{ .onepassword.vault }}"
+    ITEM="Claude Code API Key"
+
+    if API_KEY=$(op read "op://$VAULT/$ITEM/credential" 2>/dev/null); then
+      cat > "$CFG/.env.api" <<EOF
+# =============================================================================
+# AI Profile: API Mode
+# =============================================================================
+# Auto-generated from 1Password on $(date)
+
+# Anthropic API Key
+ANTHROPIC_API_KEY=$API_KEY
+
+# Profile identifier
+AI_PROFILE=API
+
+# Config directory (keeps work and personal accounts completely separated)
+CLAUDE_CONFIG_DIR=$HOME/.claude-work
+
+# Optional: OpenAI-compatible router (e.g., LiteLLM)
+# Uncomment if using a proxy/router
+# OPENAI_BASE_URL=http://localhost:4000
+# OPENAI_API_KEY=proxy-key
+EOF
+      chmod 600 "$CFG/.env.api"
+      echo "✅ API key fetched from 1Password"
+    else
+      echo "⚠️  Failed to read from 1Password"
+      echo "   Item: $ITEM (Vault: $VAULT)"
+      echo ""
+      echo "📝 Manual setup required:"
+      echo "   cp $CFG/.env.api.example $CFG/.env.api"
+      echo "   Edit $CFG/.env.api and add your API key"
+    fi
+  fi
+fi
+
+# Set default profile if none exists
+if [ ! -f "$CFG/.env" ]; then
+  echo ""
+  echo "⚠️  No active profile. Setting default to MAX..."
+  if [ -f "$CFG/.env.max" ]; then
+    cp "$CFG/.env.max" "$CFG/.env"
+    echo "✅ Default profile set to MAX"
+  else
+    echo "❌ Cannot set default profile: .env.max not found"
+    exit 1
+  fi
+fi
+
+echo ""
+echo "✅ AI profile configuration initialized"
+mise claude-current
+'''
+
+# === Codex Profile Management ===
+
+[tasks.codex-switch]
+description = "[codex] Switch between API and subscription auth"
+alias = "cxs"
+usage = '''
+arg "<profile>" help="API (pay-per-use) or subscription (ChatGPT Plus/Pro)" {
+  choices "API" "api" "MAX" "max"
+}
+'''
+run = '''
+set -eu
+CFG=~/.config/codex
+profile="${usage_profile}"
+mkdir -p "$CFG"
+
+case "$profile" in
+  API|api)
+    # Check API config exists
+    if [ ! -f "$CFG/.env.api" ]; then
+      echo "❌ $CFG/.env.api not found."
+      echo "   Run: mise codex-init"
+      exit 1
+    fi
+
+    # Switch to API profile
+    cp "$CFG/.env.api" "$CFG/.env"
+
+    # Load and login with API key
+    set -a
+    . "$CFG/.env.api"
+    set +a
+
+    echo ""
+    echo "✅ Switched to API mode"
+    echo "   💳 Usage will be charged to API key"
+    echo ""
+
+    # Perform login
+    if [ -n "${OPENAI_API_KEY:-}" ]; then
+      echo "🔐 Logging in with API key..."
+      if printf "%s" "$OPENAI_API_KEY" | mise exec -- codex login --with-api-key 2>&1; then
+        echo "✅ Logged in successfully"
+      else
+        echo "⚠️  Login failed"
+      fi
+    fi
+
+    echo ""
+    echo "⚠️  Apply changes:"
+    echo "   Option 1: Open NEW terminal tab"
+    echo "   Option 2: Run in current shell:"
+    echo "             source ~/.config/codex/.env"
+    echo ""
+    echo "   Then verify with: mise exec -- codex login status"
+    ;;
+
+  MAX|max)
+    # Check MAX config exists
+    if [ ! -f "$CFG/.env.max" ]; then
+      echo "❌ $CFG/.env.max not found."
+      echo "   Run: chezmoi apply"
+      exit 1
+    fi
+
+    # Switch to MAX profile (unsets OPENAI_API_KEY)
+    cp "$CFG/.env.max" "$CFG/.env"
+
+    echo ""
+    echo "✅ Switched to subscription mode"
+    echo "   🎫 Usage will be charged to ChatGPT subscription"
+    echo ""
+    echo "⚠️  Apply changes:"
+    echo "   Option 1: Open NEW terminal tab"
+    echo "   Option 2: Run in current shell:"
+    echo "             unset OPENAI_API_KEY"
+    echo "             source ~/.config/codex/.env"
+    echo ""
+    echo "   Then run: codex"
+    echo "   (Login prompt will appear if not already logged in)"
+    ;;
+
+  *)
+    echo "Usage: mise codex-switch [API|MAX]" >&2
+    exit 1
+    ;;
+esac
+'''
+
+[tasks.codex-current]
+description = "[codex] Show current Codex profile"
+alias = "cxc"
+run = '''
+CFG=~/.config/codex
+if [ ! -f "$CFG/.env" ]; then
+  echo "❌ No Codex profile active"
+  echo "   Run: mise codex-init"
+  exit 1
+fi
+
+echo "=== Current Codex Profile ==="
+while IFS='=' read -r key value; do
+  [[ "$key" =~ ^[[:space:]]*# ]] && continue
+  [[ -z "$key" ]] && continue
+  key=$(echo "$key" | xargs)
+  value=$(echo "$value" | xargs)
+  if [ -n "$key" ] && [ -n "$value" ]; then
+    len=$(printf "%s" "$value" | wc -c | xargs)
+    if [ "$len" -gt 20 ]; then
+      echo "$key: ${value:0:20}..."
+    else
+      echo "$key: $value"
+    fi
+  fi
+done < "$CFG/.env"
+'''
+
+[tasks.codex-use]
+description = "[codex] Run command with active Codex profile"
+alias = "cxu"
+run = '''
+set -a
+[ -f ~/.config/codex/.env ] && . ~/.config/codex/.env
+set +a
+exec "$@"
+'''
+
+[tasks.codex-init]
+description = "[codex] Initialize Codex profile configuration"
+alias = "cxi"
+run = '''
+set -eu
+echo "🔧 Initializing Codex profile configuration..."
+CFG=~/.config/codex
+mkdir -p "$CFG"
+
+# Apply chezmoi templates first (creates .env.max and .env.api.example)
+echo "📦 Applying chezmoi templates..."
+chezmoi apply --include="$HOME/.config/codex/*" 2>/dev/null || true
+
+# Try to fetch API key from 1Password
+if [ ! -f "$CFG/.env.api" ]; then
+  echo ""
+  echo "🔐 Attempting to fetch API key from 1Password..."
+
+  if ! command -v op &> /dev/null; then
+    echo "⚠️  1Password CLI (op) not found"
+    echo "   Install: brew install 1password-cli"
+    echo ""
+    echo "📝 Manual setup required:"
+    echo "   cp $CFG/.env.api.example $CFG/.env.api"
+    echo "   Edit $CFG/.env.api and add your API key"
+  elif ! op whoami &> /dev/null; then
+    echo "⚠️  Not signed in to 1Password"
+    echo "   Sign in: eval \$(op signin)"
+    echo ""
+    echo "📝 Manual setup required:"
+    echo "   cp $CFG/.env.api.example $CFG/.env.api"
+    echo "   Edit $CFG/.env.api and add your API key"
+  else
+    # Try to read from 1Password
+    VAULT="{{ .onepassword.vault }}"
+    ITEM="OpenAI API Key"
+
+    if API_KEY=$(op read "op://$VAULT/$ITEM/credential" 2>/dev/null); then
+      cat > "$CFG/.env.api" <<EOF
+# =============================================================================
+# Codex Profile: API Mode
+# =============================================================================
+# Auto-generated from 1Password on $(date)
+
+# OpenAI API Key
+OPENAI_API_KEY=$API_KEY
+
+# Profile identifier
+CODEX_PROFILE=API
+
+# Config directory (keeps work and personal accounts completely separated)
+CODEX_HOME=$HOME/.codex-work
+EOF
+      chmod 600 "$CFG/.env.api"
+      echo "✅ API key fetched from 1Password"
+    else
+      echo "⚠️  Failed to read from 1Password"
+      echo "   Item: $ITEM (Vault: $VAULT)"
+      echo ""
+      echo "📝 Manual setup required:"
+      echo "   cp $CFG/.env.api.example $CFG/.env.api"
+      echo "   Edit $CFG/.env.api and add your API key"
+    fi
+  fi
+fi
+
+# Initialize CODEX_HOME directories with config.toml
+echo ""
+echo "📁 Initializing Codex config directories..."
+
+# Work directory (API mode)
+WORK_DIR="$HOME/.codex-work"
+mkdir -p "$WORK_DIR"
+if [ ! -f "$WORK_DIR/config.toml" ]; then
+  cat > "$WORK_DIR/config.toml" <<EOF
+# Codex configuration for work account (API mode)
+# Auto-generated by mise codex-init
+
+# Authentication
+preferred_auth_method = "apikey"
+
+# Model settings
+model = "gpt-5"
+model_provider = "openai"
+
+# Sandbox and approval
+sandbox_mode = "workspace-write"
+approval_policy = "untrusted"
+EOF
+  echo "✅ Created $WORK_DIR/config.toml"
+else
+  echo "⚠️  $WORK_DIR/config.toml already exists (skipped)"
+fi
+
+# Personal directory (subscription mode)
+PERSONAL_DIR="$HOME/.codex-personal"
+mkdir -p "$PERSONAL_DIR"
+if [ ! -f "$PERSONAL_DIR/config.toml" ]; then
+  cat > "$PERSONAL_DIR/config.toml" <<EOF
+# Codex configuration for personal account (subscription mode)
+# Auto-generated by mise codex-init
+
+# Authentication
+preferred_auth_method = "chatgpt"
+
+# Model settings
+model = "gpt-5"
+model_provider = "openai"
+
+# Sandbox and approval
+sandbox_mode = "workspace-write"
+approval_policy = "untrusted"
+EOF
+  echo "✅ Created $PERSONAL_DIR/config.toml"
+else
+  echo "⚠️  $PERSONAL_DIR/config.toml already exists (skipped)"
+fi
+
+# Perform API key login for work account
+if [ -f "$CFG/.env.api" ]; then
+  echo ""
+  echo "🔐 Logging in with API key for work account..."
+
+  # Load API profile
+  set -a
+  . "$CFG/.env.api"
+  set +a
+
+  # Login with API key
+  if [ -n "${OPENAI_API_KEY:-}" ]; then
+    if printf "%s" "$OPENAI_API_KEY" | mise exec -- codex login --with-api-key 2>&1; then
+      echo "✅ Logged in to work account (.codex-work) using API key"
+    else
+      echo "⚠️  API key login failed. You may need to login manually:"
+      echo "   CODEX_HOME=~/.codex-work printenv OPENAI_API_KEY | codex login --with-api-key"
+    fi
+  else
+    echo "⚠️  OPENAI_API_KEY not set in .env.api"
+  fi
+fi
+
+# Set default profile if none exists
+if [ ! -f "$CFG/.env" ]; then
+  echo ""
+  echo "⚠️  No active profile. Setting default to MAX..."
+  if [ -f "$CFG/.env.max" ]; then
+    cp "$CFG/.env.max" "$CFG/.env"
+    echo "✅ Default profile set to MAX (subscription)"
+  else
+    echo "❌ Cannot set default profile: .env.max not found"
+    exit 1
+  fi
+fi
+
+echo ""
+echo "✅ Codex profile configuration initialized"
+mise codex-current
+'''
+
 # --- Workflows (Complex Operations) ---
 
 [tasks.workflow-sync]

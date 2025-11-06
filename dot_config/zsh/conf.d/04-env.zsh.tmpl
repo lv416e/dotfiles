@@ -4,6 +4,15 @@
 # Dependencies: HOMEBREW_PREFIX (from 01-init.zsh)
 # ============================================================================
 
+# --- AI Profile (Claude Code / API Switching) ---
+# Load current AI profile if exists (managed by claude-switch)
+# set -a: auto-export all variables (required for child processes like Claude Code)
+if [ -f "$HOME/.config/claude/.env" ]; then
+  set -a
+  source "$HOME/.config/claude/.env"
+  set +a
+fi
+
 # --- Critical PATH (needed immediately) ---
 # Empty for now - all PATHs can be deferred
 
@@ -267,6 +276,167 @@ switch-multiplexer() {
   echo "💡 Restart your terminal emulator to use $mux"
   echo "   Or run: exec zsh"
 }
+
+# Switch between API and MAX authentication for Claude Code
+# Avoids auth conflicts by logging out before switching to API mode
+claude-switch() {
+  local profile="${1:-}"
+  local cfg="$HOME/.config/claude"
+
+  if [ -z "$profile" ]; then
+    echo "Usage: claude-switch [api|max]"
+    echo ""
+    echo "  api - Use Anthropic API Key (pay-per-use)"
+    echo "  max - Use Claude Max/Pro subscription"
+    return 1
+  fi
+
+  case "$profile" in
+    api|API)
+      # Check config exists
+      if [ ! -f "$cfg/.env.api" ]; then
+        echo "❌ $cfg/.env.api not found. Run: mise claude-init"
+        return 1
+      fi
+
+      # Switch profile
+      cp "$cfg/.env.api" "$cfg/.env"
+
+      # Apply to current shell
+      set -a
+      source "$cfg/.env"
+      set +a
+
+      echo "✅ Switched to API mode"
+      echo "   💳 Usage will be charged to API key"
+      echo "   Active in current shell and future shells"
+      echo ""
+      echo "💡 ANTHROPIC_API_KEY takes precedence over any logged-in account"
+      ;;
+
+    max|MAX)
+      # Check config exists
+      if [ ! -f "$cfg/.env.max" ]; then
+        echo "❌ $cfg/.env.max not found. Run: chezmoi apply"
+        return 1
+      fi
+
+      # Switch profile
+      cp "$cfg/.env.max" "$cfg/.env"
+
+      # Unset API key and apply to current shell
+      unset ANTHROPIC_API_KEY
+      set -a
+      source "$cfg/.env"
+      set +a
+
+      echo "✅ Switched to MAX mode"
+      echo "   🎫 Usage will be charged to Max/Pro subscription"
+      echo "   Active in current shell and future shells"
+      ;;
+
+    *)
+      echo "❌ Unknown profile: $profile"
+      echo "Usage: claude-switch [api|max]"
+      return 1
+      ;;
+  esac
+}
+
+# Alias for checking current profile
+alias claude-current='mise claude-current'
+
+# ============================================================================
+# Codex Profile Management
+# ============================================================================
+# Load Codex profile if exists
+if [ -f "$HOME/.config/codex/.env" ]; then
+  set -a
+  source "$HOME/.config/codex/.env"
+  set +a
+fi
+
+# Switch between API and subscription for Codex
+codex-switch() {
+  local profile="${1:-}"
+  local cfg="$HOME/.config/codex"
+
+  if [ -z "$profile" ]; then
+    echo "Usage: codex-switch [api|max]"
+    echo ""
+    echo "  api - Use OpenAI API Key (pay-per-use)"
+    echo "  max - Use ChatGPT subscription (Plus/Pro)"
+    return 1
+  fi
+
+  case "$profile" in
+    api|API)
+      # Check config exists
+      if [ ! -f "$cfg/.env.api" ]; then
+        echo "❌ $cfg/.env.api not found. Run: mise codex-init"
+        return 1
+      fi
+
+      # Switch profile
+      cp "$cfg/.env.api" "$cfg/.env"
+
+      # Apply to current shell
+      set -a
+      source "$cfg/.env"
+      set +a
+
+      echo "✅ Switched to API mode"
+      echo "   💳 Usage will be charged to API key"
+      echo "   Active in current shell and future shells"
+      echo ""
+
+      # Perform login
+      if [ -n "${OPENAI_API_KEY:-}" ]; then
+        echo "🔐 Logging in with API key..."
+        if printf "%s" "$OPENAI_API_KEY" | mise exec -- codex login --with-api-key 2>&1; then
+          echo "✅ Logged in successfully"
+        else
+          echo "⚠️  Login failed"
+        fi
+      fi
+
+      echo ""
+      echo "💡 OPENAI_API_KEY + CODEX_HOME=$CODEX_HOME"
+      ;;
+
+    max|MAX)
+      # Check config exists
+      if [ ! -f "$cfg/.env.max" ]; then
+        echo "❌ $cfg/.env.max not found. Run: chezmoi apply"
+        return 1
+      fi
+
+      # Switch profile
+      cp "$cfg/.env.max" "$cfg/.env"
+
+      # Unset API key and apply to current shell
+      unset OPENAI_API_KEY
+      set -a
+      source "$cfg/.env"
+      set +a
+
+      echo "✅ Switched to subscription mode"
+      echo "   🎫 Usage will be charged to ChatGPT subscription"
+      echo "   Active in current shell and future shells"
+      echo ""
+      echo "💡 CODEX_HOME=$CODEX_HOME"
+      ;;
+
+    *)
+      echo "❌ Unknown profile: $profile"
+      echo "Usage: codex-switch [api|max]"
+      return 1
+      ;;
+  esac
+}
+
+# Alias for checking current Codex profile
+alias codex-current='mise codex-current'
 
 # ============================================================================
 # GitHub Integration (1Password)

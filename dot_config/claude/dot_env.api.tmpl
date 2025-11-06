@@ -1,0 +1,19 @@
+{{- $apiKey := onepasswordRead (printf "op://%s/Claude Code API Key/credential" .onepassword.vault) -}}
+# =============================================================================
+# AI Profile: API Mode
+# =============================================================================
+# Auto-generated from 1Password by chezmoi
+
+# Anthropic API Key
+ANTHROPIC_API_KEY={{ $apiKey }}
+
+# Profile identifier
+AI_PROFILE=API
+
+# Config directory (keeps work and personal accounts completely separated)
+CLAUDE_CONFIG_DIR={{ .chezmoi.homeDir }}/.claude-work
+
+# Optional: OpenAI-compatible router (e.g., LiteLLM)
+# Uncomment if using a proxy/router
+# OPENAI_BASE_URL=http://localhost:4000
+# OPENAI_API_KEY=proxy-key

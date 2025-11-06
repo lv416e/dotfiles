@@ -1,0 +1,18 @@
+# =============================================================================
+# Codex Profile: API Mode (Example Template)
+# =============================================================================
+# This is a template file. The actual .env.api will be created by:
+#   mise codex-init (fetches from 1Password)
+# Or manually copy this file:
+#   cp ~/.config/codex/.env.api.example ~/.config/codex/.env.api
+#   (then edit and add your API key)
+
+# OpenAI API Key
+# Get your key from: https://platform.openai.com/api-keys
+OPENAI_API_KEY=YOUR_API_KEY_HERE
+
+# Profile identifier
+CODEX_PROFILE=API
+
+# Config directory (keeps work and personal accounts completely separated)
+CODEX_HOME={{ .chezmoi.homeDir }}/.codex-work

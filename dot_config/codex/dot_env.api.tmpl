@@ -1,0 +1,14 @@
+{{- $apiKey := onepasswordRead (printf "op://%s/OpenAI API Key/credential" .onepassword.vault) -}}
+# =============================================================================
+# Codex Profile: API Mode
+# =============================================================================
+# Auto-generated from 1Password by chezmoi
+
+# OpenAI API Key
+OPENAI_API_KEY={{ $apiKey }}
+
+# Profile identifier
+CODEX_PROFILE=API
+
+# Config directory (keeps work and personal accounts completely separated)
+CODEX_HOME={{ .chezmoi.homeDir }}/.codex-work

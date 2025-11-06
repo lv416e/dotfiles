@@ -1,0 +1,23 @@
+# =============================================================================
+# AI Profile: API Mode (Example Template)
+# =============================================================================
+# This is a template file. The actual .env.api will be created by:
+#   mise ai-init (fetches from 1Password)
+# Or manually copy this file:
+#   cp ~/.config/ai/.env.api.example ~/.config/ai/.env.api
+#   (then edit and add your API key)
+
+# Anthropic API Key
+# Get your key from: https://console.anthropic.com/settings/keys
+ANTHROPIC_API_KEY=YOUR_API_KEY_HERE
+
+# Profile identifier
+AI_PROFILE=API
+
+# Config directory (keeps work and personal accounts completely separated)
+CLAUDE_CONFIG_DIR={{ .chezmoi.homeDir }}/.claude-work
+
+# Optional: OpenAI-compatible router (e.g., LiteLLM)
+# Uncomment if using a proxy/router
+# OPENAI_BASE_URL=http://localhost:4000
+# OPENAI_API_KEY=proxy-key
