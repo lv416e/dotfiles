@@ -350,8 +350,10 @@ alias claude-current='mise claude-current'
 # Note: Aggregates data from both ~/.claude and ~/.claude-personal
 alias ccusage='CLAUDE_CONFIG_DIR="{{ .chezmoi.homeDir }}/.claude,{{ .chezmoi.homeDir }}/.claude-personal" command ccusage'
 
-# claude-monitor は元の動作のまま（CLAUDE_CONFIG_DIR環境変数を使用）
-# リアルタイム表示のため、単一ディレクトリの方が安定している
+# claude-monitor: 最新データを含む ~/.claude-personal を優先
+# 注意: claude-code-monitorは複数ディレクトリをサポートしていないため、
+#      最新データがある ~/.claude-personal のみを指定
+alias claude-monitor='CLAUDE_CONFIG_DIR="{{ .chezmoi.homeDir }}/.claude-personal" command claude-code-monitor'
 
 # ============================================================================
 # Codex Profile Management
