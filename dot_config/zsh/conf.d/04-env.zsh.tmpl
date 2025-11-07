@@ -346,6 +346,11 @@ claude-switch() {
 # Alias for checking current profile
 alias claude-current='mise claude-current'
 
+# Aliases for usage tracking across both MAX and API accounts
+# Note: Aggregates data from both ~/.claude and ~/.claude-personal
+alias ccusage='CLAUDE_CONFIG_DIR="{{ .chezmoi.homeDir }}/.claude,{{ .chezmoi.homeDir }}/.claude-personal" command ccusage'
+alias claude-monitor='CLAUDE_CONFIG_DIR="{{ .chezmoi.homeDir }}/.claude,{{ .chezmoi.homeDir }}/.claude-personal" command claude-code-monitor'
+
 # ============================================================================
 # Codex Profile Management
 # ============================================================================
