@@ -346,13 +346,13 @@ claude-switch() {
 # Alias for checking current profile
 alias claude-current='mise claude-current'
 
-# Alias for usage tracking across both MAX and API accounts
-# Note: Aggregates data from both ~/.claude and ~/.claude-personal
+# Usage tracking aliases for MAX and API accounts
+# ccusage: Aggregates historical data from both directories
 alias ccusage='CLAUDE_CONFIG_DIR="{{ .chezmoi.homeDir }}/.claude,{{ .chezmoi.homeDir }}/.claude-personal" command ccusage'
 
-# claude-monitor: 最新データを含む ~/.claude-personal を優先
-# 注意: claude-code-monitorは複数ディレクトリをサポートしていないため、
-#      最新データがある ~/.claude-personal のみを指定
+# claude-monitor: Points to latest session data in ~/.claude-personal
+# Note: claude-code-monitor doesn't support multiple directories (unlike ccusage),
+#       so we explicitly point to where the latest sessions are stored
 alias claude-monitor='CLAUDE_CONFIG_DIR="{{ .chezmoi.homeDir }}/.claude-personal" command claude-code-monitor'
 
 # ============================================================================
