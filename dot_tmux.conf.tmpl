@@ -17,10 +17,11 @@ set -g @plugin 'tmux-plugins/tmux-open'
 set -g @plugin 'laktak/extrakto'
 set -g @plugin 'tmux-plugins/tmux-cpu'
 
-set -g @continuum-restore 'on'
+# Auto-restore disabled - use manual restore (Prefix + C-r) instead
+set -g @continuum-restore 'off'
 set -g @continuum-save-interval '15'
 
-# Manual restore: Prefix + Ctrl-r
+# Manual restore: Prefix + C-r (C-g C-r with our custom prefix)
 bind C-r run-shell ~/.tmux/plugins/tmux-resurrect/scripts/restore.sh
 
 set -g @menus_trigger 'm'
