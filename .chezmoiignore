@@ -2,6 +2,9 @@
 # Bootstrap & Installation Scripts
 # =============================================================================
 # GitHub Codespaces bootstrap script (executed by GitHub, not managed by chezmoi)
+docs
+README.md
+lefthook.yml
 install
 install.sh
 bootstrap

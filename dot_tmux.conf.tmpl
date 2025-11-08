@@ -27,8 +27,8 @@ bind C-r run-shell ~/.tmux/plugins/tmux-resurrect/scripts/restore.sh
 set -g @menus_trigger 'm'
 set -g @jump-key '/'
 
-bind \\ split-window -h
-bind - split-window -v
+bind \\ split-window -h -c "~/Documents"
+bind - split-window -v -c "~/Documents"
 
 set -g display-panes-time 2000
 set -g default-terminal "tmux-256color"
