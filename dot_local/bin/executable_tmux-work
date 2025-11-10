@@ -65,7 +65,7 @@ FORCE="${FORCE:-0}"
 CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
 
 BOTTOM_ROW_PCT="${BOTTOM_ROW_PCT:-25}"
-RIGHT_COL_PCT="${RIGHT_COL_PCT:-50}"
+RIGHT_COL_PCT="${RIGHT_COL_PCT:-52}"
 RIGHT_TOP_TO_MID_PCT="${RIGHT_TOP_TO_MID_PCT:-43}"
 BR_RIGHT_PCT="${BR_RIGHT_PCT:-50}"
 
@@ -82,11 +82,15 @@ CCUSAGE_BIN="$(abspath_or_name ccusage)"
 CLAUDE_MONITOR_BIN="$(abspath_or_name claude-monitor)"
 BTM_BIN="$(abspath_or_name btm)"
 TTY_CLOCK_BIN="$(abspath_or_name tty-clock)"
-SHELL_BIN="$(abspath_or_name "${SHELL:-zsh}")"   # fallback to zsh if $SHELL unset
+SHELL_BIN="$(abspath_or_name "${SHELL:-zsh}")" # fallback to zsh if $SHELL unset
 
 # ---------- window name (random if omitted) ----------
 ANIMALS=(tiger leopard lion panther jaguar cheetah wolf fox bear eagle hawk falcon giraffe dolphin whale shark octopus turtle seal cobra viper dragon phoenix griffin unicorn)
-generate_random_name() { local base="${ANIMALS[$RANDOM % ${#ANIMALS[@]}]}"; local suffix=$((RANDOM % 10)); printf '%s-%d\n' "$base" "$suffix"; }
+generate_random_name() {
+  local base="${ANIMALS[$RANDOM % ${#ANIMALS[@]}]}"
+  local suffix=$((RANDOM % 10))
+  printf '%s-%d\n' "$base" "$suffix"
+}
 
 if [[ -n "${1:-}" ]]; then
   WINDOW="$1"
@@ -136,7 +140,7 @@ if [[ "$ALLOW_DUPLICATE" == "0" ]]; then
       ORIGINAL_WINDOW="$WINDOW"
       while "$TMUX_BIN" list-windows -t "$SESSION" -F '#{window_name}' | grep -qx "$WINDOW"; do
         WINDOW="${ORIGINAL_WINDOW}-${COUNT}"
-        COUNT=$((COUNT+1))
+        COUNT=$((COUNT + 1))
       done
       printf 'tmux-work: Window "%s" exists. Creating as "%s" instead.\n' "$ORIGINAL_WINDOW" "$WINDOW" >&2
     fi

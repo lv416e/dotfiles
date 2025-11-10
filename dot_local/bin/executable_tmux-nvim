@@ -7,7 +7,7 @@ LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
 
 # Top panes: 2 or 1
 TOP_PANES="${TOP_PANES:-1}"
-TOP_SPLIT="${TOP_SPLIT:-58}"
+TOP_SPLIT="${TOP_SPLIT:-55}"
 
 # Bottom pane height: lines or percentage
 BOTTOM_LINES="${BOTTOM_LINES:-}"
@@ -95,7 +95,7 @@ else
   LTOP="$TOP"
 fi
 
-RB1="$(tmux split-window -h -p 58 -t "$BOT" -P -F '#{pane_id}')"
+RB1="$(tmux split-window -h -p 55 -t "$BOT" -P -F '#{pane_id}')"
 LBOT="$BOT"
 RBR="$(tmux split-window -h -p "$RIGHT_BOTTOM_SPLIT" -t "$RB1" -P -F '#{pane_id}')"
 RBL="$RB1"
