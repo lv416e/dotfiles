@@ -11,7 +11,7 @@ TOP_SPLIT="${TOP_SPLIT:-58}"
 
 # Bottom pane height: lines or percentage
 BOTTOM_LINES="${BOTTOM_LINES:-}"
-BOTTOM_PCT_DEFAULT=24
+BOTTOM_PCT_DEFAULT=25
 
 # Right bottom split
 RIGHT_BOTTOM_SPLIT="${RIGHT_BOTTOM_SPLIT:-40}"
