@@ -78,8 +78,8 @@ DEBUG="${DEBUG:-0}"
 abspath_or_name() { command -v "$1" 2>/dev/null || printf '%s' "$1"; }
 
 WATCH_BIN="$(abspath_or_name watch)"
-CCUSAGE_BIN="$(abspath_or_name ccusage)"
-CLAUDE_MONITOR_BIN="$(abspath_or_name claude-monitor)"
+# Note: ccusage and claude-monitor are shell aliases with CLAUDE_CONFIG_DIR set,
+# so they must be invoked via login shell to ensure aliases are loaded
 BTM_BIN="$(abspath_or_name btm)"
 TTY_CLOCK_BIN="$(abspath_or_name tty-clock)"
 SHELL_BIN="$(abspath_or_name "${SHELL:-zsh}")" # fallback to zsh if $SHELL unset
@@ -203,11 +203,11 @@ if [[ "$RUN_RIGHT_CMDS" == "1" ]]; then
 
   sleep "${d1}"
   "$TMUX_BIN" respawn-pane -k -t "$RT_ID" \
-    "$WATCH_BIN" -n 10 "$CCUSAGE_BIN" daily --since "$SINCE_DATE" --no-color || true
+    zsh -lc "\"$WATCH_BIN\" -n 10 ccusage daily --since \"$SINCE_DATE\" --no-color" || true
 
   sleep "${d2}"
   "$TMUX_BIN" respawn-pane -k -t "$RM_ID" \
-    "$CLAUDE_MONITOR_BIN" --plan "$CLAUDE_PLAN" || true
+    zsh -lc "claude-monitor --plan \"$CLAUDE_PLAN\"" || true
 
   sleep "${d3}"
   "$TMUX_BIN" respawn-pane -k -t "$BRL_ID" \

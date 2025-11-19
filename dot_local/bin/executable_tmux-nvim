@@ -120,11 +120,9 @@ if [[ -n "$RTOP" ]]; then
   tmux select-pane -t "$RTOP" -T "claude"
 fi
 
-if command -v claude-monitor >/dev/null 2>&1; then
-  tmux respawn-pane -k -t "$LBOT" "claude-monitor --plan ${CLAUDE_PLAN}"
-else
-  tmux respawn-pane -k -t "$LBOT" "bash -lc 'echo \"[warn] claude-monitor not found\"; exec zsh'"
-fi
+# Note: claude-monitor is a shell alias with CLAUDE_CONFIG_DIR set,
+# so it must be invoked via login shell to ensure aliases are loaded
+tmux respawn-pane -k -t "$LBOT" "zsh -lc 'claude-monitor --plan ${CLAUDE_PLAN} || echo \"[warn] claude-monitor failed\"; exec zsh'"
 
 tmux respawn-pane -k -t "$RBL" "zsh -lc '
   DIR=\"$LEFT_DIR\"
