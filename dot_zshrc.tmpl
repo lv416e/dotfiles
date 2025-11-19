@@ -225,6 +225,14 @@ alias adot='chezmoi apply'
 # --- Claude Code ---
 alias ai='claude'
 
+# ccusage: Aggregates historical data from both directories
+alias ccusage='CLAUDE_CONFIG_DIR="/Users/mary/.claude,/Users/mary/.claude-personal" command ccusage'
+
+# claude-monitor: Points to latest session data in ~/.claude-personal
+# Note: claude-code-monitor doesn't support multiple directories (unlike ccusage),
+#       so we explicitly point to where the latest sessions are stored
+alias claude-monitor='CLAUDE_CONFIG_DIR="/Users/mary/.claude-personal" command claude-code-monitor'
+
 # --- Git ---
 alias lg='gitui'
 alias ld='lazydocker'
