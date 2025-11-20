@@ -203,11 +203,11 @@ if [[ "$RUN_RIGHT_CMDS" == "1" ]]; then
 
   sleep "${d1}"
   "$TMUX_BIN" respawn-pane -k -t "$RT_ID" \
-    zsh -lc "\"$WATCH_BIN\" -n 10 ccusage daily --since \"$SINCE_DATE\" --no-color" || true
+    bash -c "CLAUDE_CONFIG_DIR='/Users/mary/.claude,/Users/mary/.claude-personal' \"$WATCH_BIN\" -n 10 ccusage daily --since \"$SINCE_DATE\" --no-color" || true
 
   sleep "${d2}"
   "$TMUX_BIN" respawn-pane -k -t "$RM_ID" \
-    zsh -lc "claude-monitor --plan \"$CLAUDE_PLAN\"" || true
+    bash -c "CLAUDE_CONFIG_DIR='/Users/mary/.claude-personal' claude-code-monitor --plan \"$CLAUDE_PLAN\"" || true
 
   sleep "${d3}"
   "$TMUX_BIN" respawn-pane -k -t "$BRL_ID" \

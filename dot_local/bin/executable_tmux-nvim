@@ -120,9 +120,8 @@ if [[ -n "$RTOP" ]]; then
   tmux select-pane -t "$RTOP" -T "claude"
 fi
 
-# Note: claude-monitor is a shell alias with CLAUDE_CONFIG_DIR set,
-# so it must be invoked via login shell to ensure aliases are loaded
-tmux respawn-pane -k -t "$LBOT" "zsh -lc 'claude-monitor --plan ${CLAUDE_PLAN} || echo \"[warn] claude-monitor failed\"; exec zsh'"
+# Note: claude-monitor needs CLAUDE_CONFIG_DIR set to access the correct data directory
+tmux respawn-pane -k -t "$LBOT" "bash -c 'CLAUDE_CONFIG_DIR=/Users/mary/.claude-personal claude-code-monitor --plan ${CLAUDE_PLAN} || echo \"[warn] claude-monitor failed\"; exec zsh'"
 
 tmux respawn-pane -k -t "$RBL" "zsh -lc '
   DIR=\"$LEFT_DIR\"
