@@ -65,7 +65,7 @@
   "tab_size": 2,
   "hard_tabs": false,
   "preferred_line_length": 200,
-  "soft_wrap": "preferred_line_length",
+  "soft_wrap": "none",
   "indent_guides": {
     "enabled": true,
     "line_width": 1,
@@ -210,7 +210,7 @@
     "Markdown": {
       "tab_size": 2,
       "format_on_save": "on",
-      "soft_wrap": "preferred_line_length",
+      "soft_wrap": "none",
       "preferred_line_length": 80
     },
     "YAML": {
@@ -342,6 +342,17 @@
     "show_type_hints": true,
     "show_parameter_hints": true,
     "show_other_hints": true
+  },
+  // ===========================================================================
+  // External Agents (ACP - Agent Client Protocol)
+  // ===========================================================================
+  "agent_servers": {
+    "gemini": {
+      "type": "builtin",
+      "env": {
+        "GEMINI_SANDBOX": "true"
+      }
+    }
   }
   // ===========================================================================
   // Extensions (Auto-install on first launch)
