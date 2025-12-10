@@ -13,7 +13,7 @@
 //
 // Environment variables:
 //   LEFT_DIR - directory to open (default: $HOME/Documents)
-//   CLAUDE_PLAN - claude-monitor plan (default: max5)
+//   CLAUDE_PLAN - claude-monitor plan (default: max20)
 //
 // Usage:
 //   LEFT_DIR=/path/to/work zellij --layout work
@@ -51,7 +51,7 @@ layout {
                 // Middle right: claude-monitor (33%)
                 pane name="claude" size="33%" {
                     command "claude-monitor"
-                    args "--plan" "max5"
+                    args "--plan" "max20"
                 }
 
                 // Bottom right: monitoring tools (25%, split)

@@ -8,7 +8,7 @@
 // Environment variables:
 //   LEFT_DIR - directory to open (default: $HOME/Documents)
 //   TOP_PANES - 1 or 2 (default: 1) - whether to include claude pane
-//   CLAUDE_PLAN - claude-monitor plan (default: max5)
+//   CLAUDE_PLAN - claude-monitor plan (default: max20)
 //
 // Usage:
 //   LEFT_DIR=/path/to/project zellij --layout nvim
@@ -48,7 +48,7 @@ layout {
             // Left: claude-monitor (40%)
             pane name="claude-monitor" size="40%" {
                 command "claude-monitor"
-                args "--plan" "max5"
+                args "--plan" "max20"
             }
 
             // Middle: gitui (40%)

@@ -7,7 +7,7 @@
 # Environment variables:
 #   SESSION_DEFAULT - session name (default: desk)
 #   LEFT_DIR - directory to open (default: $HOME/Documents)
-#   CLAUDE_PLAN - claude-monitor plan (default: max5)
+#   CLAUDE_PLAN - claude-monitor plan (default: max20)
 #   FORCE - force kill existing window (default: 0)
 #
 # Usage:
@@ -26,9 +26,9 @@ get_multiplexer() {
 
   local chezmoi_config="${HOME}/.config/chezmoi/chezmoi.toml"
   if [[ -f "$chezmoi_config" ]]; then
-    local mux=$(grep -A 5 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | \
-                grep 'multiplexer' | \
-                sed 's/.*"\(.*\)".*/\1/')
+    local mux=$(grep -A 5 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null |
+      grep 'multiplexer' |
+      sed 's/.*"\(.*\)".*/\1/')
     if [[ -n "$mux" ]]; then
       echo "$mux"
       return 0
@@ -42,39 +42,39 @@ get_multiplexer() {
 DETECTED_MUX=$(get_multiplexer)
 
 case "$DETECTED_MUX" in
-  tmux)
-    exec tmux-nu "$@"
-    ;;
-  zellij)
-    SESSION_NAME="${1:-}"
-    LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
-    CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
+tmux)
+  exec tmux-nu "$@"
+  ;;
+zellij)
+  SESSION_NAME="${1:-}"
+  LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
+  CLAUDE_PLAN="${CLAUDE_PLAN:-max20}"
 
-    export LEFT_DIR
-    export CLAUDE_PLAN
+  export LEFT_DIR
+  export CLAUDE_PLAN
 
-    if [[ -n "${ZELLIJ:-}" ]]; then
-      # Inside zellij - create new tab
-      if [[ -n "$SESSION_NAME" ]]; then
-        zellij action new-tab --layout nu --name "$SESSION_NAME"
+  if [[ -n "${ZELLIJ:-}" ]]; then
+    # Inside zellij - create new tab
+    if [[ -n "$SESSION_NAME" ]]; then
+      zellij action new-tab --layout nu --name "$SESSION_NAME"
+    else
+      zellij action new-tab --layout nu
+    fi
+  else
+    # Outside zellij - attach or create session
+    if [[ -n "$SESSION_NAME" ]]; then
+      if zellij list-sessions 2>/dev/null | grep -q "^${SESSION_NAME}$"; then
+        zellij attach "$SESSION_NAME"
       else
-        zellij action new-tab --layout nu
+        zellij --session "$SESSION_NAME" --layout nu
       fi
     else
-      # Outside zellij - attach or create session
-      if [[ -n "$SESSION_NAME" ]]; then
-        if zellij list-sessions 2>/dev/null | grep -q "^${SESSION_NAME}$"; then
-          zellij attach "$SESSION_NAME"
-        else
-          zellij --session "$SESSION_NAME" --layout nu
-        fi
-      else
-        zellij --layout nu
-      fi
+      zellij --layout nu
     fi
-    ;;
-  *)
-    echo "Unknown multiplexer: $DETECTED_MUX" >&2
-    exit 1
-    ;;
+  fi
+  ;;
+*)
+  echo "Unknown multiplexer: $DETECTED_MUX" >&2
+  exit 1
+  ;;
 esac

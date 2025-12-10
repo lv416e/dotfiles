@@ -9,7 +9,7 @@
 #   SESSION_DEFAULT - session name (default: desk)
 #   LEFT_DIR - directory to open (default: $HOME/Documents)
 #   TOP_PANES - 1 or 2 (default: 1) - affects layout choice
-#   CLAUDE_PLAN - claude-monitor plan (default: max5)
+#   CLAUDE_PLAN - claude-monitor plan (default: max20)
 #   FORCE - force kill existing window (default: 0)
 #
 # Usage:
@@ -30,9 +30,9 @@ get_multiplexer() {
   # Read from chezmoi config
   local chezmoi_config="${HOME}/.config/chezmoi/chezmoi.toml"
   if [[ -f "$chezmoi_config" ]]; then
-    local mux=$(grep -A 5 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null | \
-                grep 'multiplexer' | \
-                sed 's/.*"\(.*\)".*/\1/')
+    local mux=$(grep -A 5 '^\[data\.zsh\]' "$chezmoi_config" 2>/dev/null |
+      grep 'multiplexer' |
+      sed 's/.*"\(.*\)".*/\1/')
     if [[ -n "$mux" ]]; then
       echo "$mux"
       return 0
@@ -47,54 +47,54 @@ get_multiplexer() {
 DETECTED_MUX=$(get_multiplexer)
 
 case "$DETECTED_MUX" in
-  tmux)
-    # Use existing tmux-nvim script
-    exec tmux-nvim "$@"
-    ;;
-  zellij)
-    # Zellij implementation
-    SESSION_NAME="${1:-}"
-    LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
-    TOP_PANES="${TOP_PANES:-1}"
-    CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
+tmux)
+  # Use existing tmux-nvim script
+  exec tmux-nvim "$@"
+  ;;
+zellij)
+  # Zellij implementation
+  SESSION_NAME="${1:-}"
+  LEFT_DIR="${LEFT_DIR:-$HOME/Documents}"
+  TOP_PANES="${TOP_PANES:-1}"
+  CLAUDE_PLAN="${CLAUDE_PLAN:-max20}"
 
-    # Choose layout based on TOP_PANES
-    if [[ "$TOP_PANES" == "2" ]]; then
-      LAYOUT="nvim-dual"
+  # Choose layout based on TOP_PANES
+  if [[ "$TOP_PANES" == "2" ]]; then
+    LAYOUT="nvim-dual"
+  else
+    LAYOUT="nvim"
+  fi
+
+  # Export environment variables for layout
+  export LEFT_DIR
+  export CLAUDE_PLAN
+
+  # Check if inside zellij
+  if [[ -n "${ZELLIJ:-}" ]]; then
+    # Inside zellij - create new tab with layout
+    if [[ -n "$SESSION_NAME" ]]; then
+      zellij action new-tab --layout "$LAYOUT" --name "$SESSION_NAME"
     else
-      LAYOUT="nvim"
+      zellij action new-tab --layout "$LAYOUT"
     fi
-
-    # Export environment variables for layout
-    export LEFT_DIR
-    export CLAUDE_PLAN
-
-    # Check if inside zellij
-    if [[ -n "${ZELLIJ:-}" ]]; then
-      # Inside zellij - create new tab with layout
-      if [[ -n "$SESSION_NAME" ]]; then
-        zellij action new-tab --layout "$LAYOUT" --name "$SESSION_NAME"
+  else
+    # Outside zellij - attach or create session
+    if [[ -n "$SESSION_NAME" ]]; then
+      # Try to attach to existing session, or create new one
+      if zellij list-sessions 2>/dev/null | grep -q "^${SESSION_NAME}$"; then
+        zellij attach "$SESSION_NAME"
       else
-        zellij action new-tab --layout "$LAYOUT"
+        zellij --session "$SESSION_NAME" --layout "$LAYOUT"
       fi
     else
-      # Outside zellij - attach or create session
-      if [[ -n "$SESSION_NAME" ]]; then
-        # Try to attach to existing session, or create new one
-        if zellij list-sessions 2>/dev/null | grep -q "^${SESSION_NAME}$"; then
-          zellij attach "$SESSION_NAME"
-        else
-          zellij --session "$SESSION_NAME" --layout "$LAYOUT"
-        fi
-      else
-        # No session name - just start with layout
-        zellij --layout "$LAYOUT"
-      fi
+      # No session name - just start with layout
+      zellij --layout "$LAYOUT"
     fi
-    ;;
-  *)
-    echo "Unknown multiplexer: $DETECTED_MUX" >&2
-    echo "Supported: tmux, zellij" >&2
-    exit 1
-    ;;
+  fi
+  ;;
+*)
+  echo "Unknown multiplexer: $DETECTED_MUX" >&2
+  echo "Supported: tmux, zellij" >&2
+  exit 1
+  ;;
 esac

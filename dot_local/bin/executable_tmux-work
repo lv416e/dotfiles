@@ -30,7 +30,7 @@
 # Environment:
 #   SESSION_DEFAULT        : tmux session name when creating a new session (default: desk)
 #   LEFT_DIR               : working directory for the left column (default: $HOME/Documents)
-#   CLAUDE_PLAN            : plan passed to claude-monitor (default: max5)
+#   CLAUDE_PLAN            : plan passed to claude-monitor (default: max20)
 #   FORCE                  : if 1, kill an existing window with the same name and recreate (default: 0)
 #   ALLOW_DUPLICATE        : if 1 and a name is provided, allow duplicates (default: 0; 1 when name omitted)
 #
@@ -62,7 +62,7 @@ fi
 # ---------- config ----------
 SESSION_DEFAULT="${SESSION_DEFAULT:-desk}"
 FORCE="${FORCE:-0}"
-CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
+CLAUDE_PLAN="${CLAUDE_PLAN:-max20}"
 
 BOTTOM_ROW_PCT="${BOTTOM_ROW_PCT:-25}"
 RIGHT_COL_PCT="${RIGHT_COL_PCT:-52}"

@@ -94,7 +94,7 @@ LEFT_DIR=/path/to/project mux-nvim
 # Number of top panes: 1 or 2 (default: 1)
 TOP_PANES=2 mux-nvim my-project
 
-# Claude monitor plan (default: max5)
+# Claude monitor plan (default: max20)
 CLAUDE_PLAN=max20 mux-nvim
 
 # Session name (default: desk for tmux, auto for zellij)

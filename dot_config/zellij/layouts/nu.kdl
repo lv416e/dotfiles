@@ -7,7 +7,7 @@
 //
 // Environment variables:
 //   LEFT_DIR - directory to open (default: $HOME/Documents)
-//   CLAUDE_PLAN - claude-monitor plan (default: max5)
+//   CLAUDE_PLAN - claude-monitor plan (default: max20)
 //
 // Usage:
 //   LEFT_DIR=/path/to/project zellij --layout nu
@@ -44,7 +44,7 @@ layout {
             // Left: claude-monitor (50%)
             pane name="claude-monitor" size="50%" {
                 command "bash"
-                args "-lc" "if command -v claude-monitor >/dev/null 2>&1; then claude-monitor --plan ${CLAUDE_PLAN:-max5}; else if command -v nu >/dev/null 2>&1; then cd \"${LEFT_DIR:-$HOME/Documents}\" && exec nu; else echo '[warn] claude-monitor not found'; exec zsh; fi; fi"
+                args "-lc" "if command -v claude-monitor >/dev/null 2>&1; then claude-monitor --plan ${CLAUDE_PLAN:-max20}; else if command -v nu >/dev/null 2>&1; then cd \"${LEFT_DIR:-$HOME/Documents}\" && exec nu; else echo '[warn] claude-monitor not found'; exec zsh; fi; fi"
             }
 
             // Middle: btm/htop (25%)
