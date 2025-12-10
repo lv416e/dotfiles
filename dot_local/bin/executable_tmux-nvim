@@ -16,7 +16,7 @@ BOTTOM_PCT_DEFAULT=25
 # Right bottom split
 RIGHT_BOTTOM_SPLIT="${RIGHT_BOTTOM_SPLIT:-40}"
 
-CLAUDE_PLAN="${CLAUDE_PLAN:-max5}"
+CLAUDE_PLAN="${CLAUDE_PLAN:-max20}"
 FORCE="${FORCE:-0}"
 
 ANIMALS=(
@@ -120,8 +120,8 @@ if [[ -n "$RTOP" ]]; then
   tmux select-pane -t "$RTOP" -T "claude"
 fi
 
-# Note: claude-monitor needs CLAUDE_CONFIG_DIR set to access the correct data directory
-tmux respawn-pane -k -t "$LBOT" "bash -c 'export CLAUDE_CONFIG_DIR=/Users/mary/.claude-personal && claude-code-monitor --plan ${CLAUDE_PLAN} || echo \"[warn] claude-monitor failed\"; exec zsh'"
+# Note: claude-monitor uses default ~/.claude directory
+tmux respawn-pane -k -t "$LBOT" "bash -c 'claude-code-monitor --plan ${CLAUDE_PLAN} || echo \"[warn] claude-monitor failed\"; exec zsh'"
 
 tmux respawn-pane -k -t "$RBL" "zsh -lc '
   DIR=\"$LEFT_DIR\"

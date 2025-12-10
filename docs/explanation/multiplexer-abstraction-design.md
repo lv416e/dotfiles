@@ -95,13 +95,13 @@ LEFT_DIR=/path/to/project mux-nvim
 TOP_PANES=2 mux-nvim my-project
 
 # Claude monitor plan (default: max5)
-CLAUDE_PLAN=max10 mux-nvim
+CLAUDE_PLAN=max20 mux-nvim
 
 # Session name (default: desk for tmux, auto for zellij)
 SESSION_DEFAULT=work mux-nvim
 
 # Combined example
-LEFT_DIR=~/code/myapp TOP_PANES=2 CLAUDE_PLAN=max10 mux-nvim myapp
+LEFT_DIR=~/code/myapp TOP_PANES=2 CLAUDE_PLAN=max20 mux-nvim myapp
 ```
 
 ## Workspace Layouts

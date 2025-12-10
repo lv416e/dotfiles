@@ -346,14 +346,10 @@ claude-switch() {
 # Alias for checking current profile
 alias claude-current='mise claude-current'
 
-# Usage tracking aliases for MAX and API accounts
-# ccusage: Aggregates historical data from both directories
-alias ccusage='CLAUDE_CONFIG_DIR="{{ .chezmoi.homeDir }}/.claude,{{ .chezmoi.homeDir }}/.claude-personal" command ccusage'
-
-# claude-monitor: Points to latest session data in ~/.claude-personal
-# Note: claude-code-monitor doesn't support multiple directories (unlike ccusage),
-#       so we explicitly point to where the latest sessions are stored
-alias claude-monitor='CLAUDE_CONFIG_DIR="{{ .chezmoi.homeDir }}/.claude-personal" command claude-code-monitor'
+# Usage tracking aliases
+# Using default ~/.claude directory
+alias ccusage='command ccusage'
+alias claude-monitor='command claude-code-monitor'
 
 # ============================================================================
 # Codex Profile Management
