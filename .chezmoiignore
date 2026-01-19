@@ -20,6 +20,14 @@ script/setup
 .zshenv.local
 
 # =============================================================================
+# 1Password-dependent files (skip if op CLI not available)
+# =============================================================================
+{{- if not (lookPath "op") }}
+.config/claude/.env.api
+.config/codex/.env.api
+{{- end }}
+
+# =============================================================================
 # Raycast - Exclude heavy/frequently-changing files
 # =============================================================================
 # Only manage scripts/ directory; config is synced via Raycast Cloud
