@@ -451,3 +451,8 @@ alias codex-current='mise codex-current'
 {{- if or (env "GITHUB_TOKEN") .github_token }}
 export GITHUB_TOKEN="{{ or (env "GITHUB_TOKEN") .github_token }}"
 {{- end }}
+
+# ============================================================================
+# LM Studio CLI
+# ============================================================================
+export PATH="$PATH:/Users/mary/.lmstudio/bin"
