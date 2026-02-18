@@ -62,5 +62,11 @@
     dlog = -c diff.external=difft log -p --ext-diff
     dft = difftool
 {{- end }}
+[credential "https://github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
 [coderabbit]
 	machineId = cli/8b1b06dea5764664823944f98576d42e
