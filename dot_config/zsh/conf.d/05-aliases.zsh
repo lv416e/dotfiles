@@ -80,6 +80,9 @@ alias szsh='source ~/.zshrc'
 alias cdot='chezmoi cd'
 alias adot='chezmoi apply'
 
+# --- Gemini CLI ---
+alias gemini='env -u DEBUG gemini'
+
 # --- Claude Code ---
 alias ai='claude'
 alias ppq='promptq'
