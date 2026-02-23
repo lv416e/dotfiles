@@ -32,7 +32,6 @@ alias eeg='eza -aahl --icons --git --sort=type'
 # --- Modern CLI tools ---
 alias cat='bat --paging=never'
 alias less='bat'
-alias grep='rg -S'
 alias -g G='| rg -S'
 alias top='btm'
 alias bottom='btm'
