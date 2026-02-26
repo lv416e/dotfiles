@@ -32,6 +32,7 @@ _setup_dev_paths() {
   # Cargo bin already added in .zshenv via '. "$HOME/.cargo/env"'
   _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin"
   _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/llvm/bin"
+  _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/libpq/bin"  # psql, pg_dump (keg-only)
 
   # Alacritty custom scripts (toggle_opacity, etc.)
   _add_to_path_append "{{ .chezmoi.homeDir }}/.config/alacritty/bin"
