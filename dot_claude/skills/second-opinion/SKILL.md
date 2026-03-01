@@ -39,9 +39,10 @@ tool actions its extensions request without prompting.
 ## Quick Reference
 
 ```
-# Codex (headless exec with structured JSON output)
-codex exec --sandbox read-only --ephemeral \
-  --output-schema codex-review-schema.json \
+# Codex (headless exec with plain text output)
+codex exec --model gpt-5.3-codex \
+  -c model_reasoning_effort='"xhigh"' \
+  --sandbox read-only --ephemeral \
   -o "$output_file" - < "$prompt_file"
 
 # Gemini (code review extension)
@@ -177,15 +178,16 @@ structured output schema.
 
 Summary:
 - Uses `codex exec` (not `codex review`) for headless operation
-- Model: `gpt-5.3-codex`, reasoning: `xhigh`
+- Model: `gpt-5.3-codex` via `--model`, reasoning via `-c model_reasoning_effort='"xhigh"'`
+- `--reasoning` is NOT a valid `codex exec` flag — use `-c` config override instead
+- Do NOT use `--output-schema` — broken due to Codex CLI schema wrapping bug
 - Uses OpenAI's published code review prompt (fine-tuned into the model)
 - Diff is generated manually and piped via stdin with the prompt
-- `--output-schema` produces structured JSON findings
-- `-o` captures only the final message (no thinking/exec noise)
+- `-o` captures only the final message as plain text (no thinking/exec noise)
 - All three scopes (uncommitted, branch, commit) support project
   context and focus instructions (no limitations)
 - Falls back to `gpt-5.2-codex` on auth errors
-- Output is clean JSON — parse and present findings by priority
+- Output is plain text — present findings directly
 - Set `timeout: 600000` on the Bash call
 
 ## Gemini Invocation
@@ -242,6 +244,8 @@ Summarize where the two reviews agree and differ.
 | Gemini `code-review` extension missing | Tell user: `gemini extensions install https://github.com/gemini-cli-extensions/code-review` |
 | Gemini `gemini-cli-security` extension missing | Tell user: `gemini extensions install https://github.com/gemini-cli-extensions/security` |
 | Model auth error (Codex) | Retry with `gpt-5.2-codex` |
+| `unexpected argument '--reasoning'` (Codex) | Use `-c model_reasoning_effort='"xhigh"'` instead of `--reasoning` |
+| `additionalProperties is required` (Codex) | Do NOT use `--output-schema` — Codex CLI schema wrapping is broken. Use plain `-o` instead |
 | Empty diff | Tell user there are no changes to review |
 | Timeout | Inform user and suggest narrowing the diff scope |
 | Tool partially unavailable | Run only the available tool, note the skip |

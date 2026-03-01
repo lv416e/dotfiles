@@ -3,15 +3,14 @@
 ## Default Configuration
 
 - Model: `gpt-5.3-codex`
-- Reasoning effort: `xhigh`
+- Reasoning effort: `xhigh` (set via `-c` config override, not a CLI flag)
 
 ## Approach
 
 Use `codex exec` in headless mode with the published code review
-prompt, structured JSON output, and `-o` (`--output-last-message`)
-to capture only the final review. This avoids the verbose
-`[thinking]` and `[exec]` blocks that `codex review` dumps to
-stdout.
+prompt and `-o` (`--output-last-message`) to capture only the final
+review as plain text. This avoids the verbose `[thinking]` and
+`[exec]` blocks that `codex review` dumps to stdout.
 
 ## Review Prompt
 
@@ -86,55 +85,43 @@ been staged would be silently excluded. Generate the full diff:
 
 ```bash
 codex exec \
-  -c model='"gpt-5.3-codex"' \
+  --model gpt-5.3-codex \
   -c model_reasoning_effort='"xhigh"' \
   --sandbox read-only \
   --ephemeral \
-  --output-schema {baseDir}/references/codex-review-schema.json \
   -o "$output_file" \
   - < "$prompt_file" \
   > /dev/null 2>"$stderr_log"
 ```
+
+**Important `codex exec` flag notes:**
+- Use `--model` (or `-m`) to set the model. Do NOT use `-c model=`.
+- `--reasoning` is NOT a valid `codex exec` flag. Use `-c model_reasoning_effort='"xhigh"'` instead.
+- Do NOT use `--output-schema`. While it exists in the CLI, the Codex CLI's
+  schema-wrapping logic triggers `additionalProperties is required` errors
+  from OpenAI's Structured Output validation even with a correct schema.
+  Plain text output via `-o` is reliable and sufficient.
 
 Then read `$output_file` with the Read tool. If empty or missing,
 read `$stderr_log` to diagnose the failure.
 
 ## Output Format
 
-The output is structured JSON matching `codex-review-schema.json`:
-
-```json
-{
-  "findings": [
-    {
-      "title": "Short description (max 80 chars)",
-      "body": "Detailed explanation",
-      "confidence_score": 0.95,
-      "priority": 1,
-      "code_location": {
-        "file_path": "src/main.rs",
-        "line_range": { "start": 42, "end": 48 }
-      }
-    }
-  ],
-  "overall_correctness": "patch is correct",
-  "overall_explanation": "Summary of the review",
-  "overall_confidence_score": 0.9
-}
-```
-
-Priority levels: 0 = informational, 1 = low, 2 = medium, 3 = high.
+Output is free-form text (the review prompt structures the model's
+response with findings, file citations, and an overall verdict).
 
 ### Presenting Results
 
-Parse the JSON and present findings grouped by priority (highest
-first). For each finding, show:
+Read `$output_file` with the Read tool. The model typically
+structures its response with:
 
-- **Title** with file:line reference
-- **Body** explanation
-- **Confidence** as a percentage
+- **Findings** grouped by severity (critical/important/minor)
+  with file:line references
+- **Overall verdict** ("patch is correct" / "patch is incorrect")
+  with confidence score
 
-End with the overall verdict and confidence.
+Present the output directly, organized by severity. Add file:line
+links where the model provides them.
 
 If the output file is empty or missing, read `$stderr_log` to
 diagnose the failure.
@@ -151,6 +138,8 @@ when using Codex with a ChatGPT account"), retry with
 |-------|--------|
 | `codex: command not found` | Tell user: `npm i -g @openai/codex` |
 | Model auth error | Retry with `gpt-5.2-codex` |
+| `unexpected argument '--reasoning'` | Use `-c model_reasoning_effort='"xhigh"'` instead — `--reasoning` is not a valid `codex exec` flag |
+| `additionalProperties is required` | Do NOT use `--output-schema` — the Codex CLI's schema wrapping is broken. Use plain `-o` instead |
 | Timeout | Suggest narrowing the diff scope |
 | `EPERM` / sandbox errors | Expected — `codex exec` runs sandboxed. Ignore these. |
 | Empty/missing output file | Read `$stderr_log` to diagnose the failure |

@@ -24,31 +24,17 @@
             "minimum": 0,
             "maximum": 3
           },
-          "code_location": {
-            "type": "object",
-            "properties": {
-              "file_path": {
-                "type": "string"
-              },
-              "line_range": {
-                "type": "object",
-                "properties": {
-                  "start": {
-                    "type": "integer"
-                  },
-                  "end": {
-                    "type": "integer"
-                  }
-                },
-                "required": ["start", "end"],
-                "additionalProperties": false
-              }
-            },
-            "required": ["file_path"],
-            "additionalProperties": false
+          "file_path": {
+            "type": "string"
+          },
+          "line_start": {
+            "type": "integer"
+          },
+          "line_end": {
+            "type": "integer"
           }
         },
-        "required": ["title", "body", "priority"],
+        "required": ["title", "body", "confidence_score", "priority", "file_path", "line_start", "line_end"],
         "additionalProperties": false
       }
     },
@@ -64,6 +50,6 @@
       "maximum": 1
     }
   },
-  "required": ["findings", "overall_correctness", "overall_confidence_score"],
+  "required": ["findings", "overall_correctness", "overall_explanation", "overall_confidence_score"],
   "additionalProperties": false
 }
