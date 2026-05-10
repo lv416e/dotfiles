@@ -1,0 +1,293 @@
+[
+  // ===========================================================================
+  // Zed Tasks - Global
+  // ===========================================================================
+  // Docs: https://zed.dev/docs/tasks
+  //
+  // Conventions:
+  // - Mise wrappers: invoke existing mise tasks (see ~/.config/mise/config.toml)
+  // - File-context: use $ZED_FILE / $ZED_RELATIVE_FILE / $ZED_WORKTREE_ROOT
+  // - Naming: "<category>: <action>" — easy fuzzy match in `task: spawn` modal
+  // ===========================================================================
+
+  // -------------------------------------------------------------------------
+  // Dotfiles (mise wrappers)
+  // -------------------------------------------------------------------------
+  {
+    "label": "dotfiles: apply",
+    "command": "mise",
+    "args": ["run", "dot-apply"],
+    "reveal": "always"
+  },
+  {
+    "label": "dotfiles: diff",
+    "command": "mise",
+    "args": ["run", "dot-diff"],
+    "reveal": "always"
+  },
+  {
+    "label": "dotfiles: status",
+    "command": "mise",
+    "args": ["run", "dot-status"],
+    "reveal": "always"
+  },
+  {
+    "label": "dotfiles: backup (push)",
+    "command": "mise",
+    "args": ["run", "dot-backup"],
+    "reveal": "always"
+  },
+
+  // -------------------------------------------------------------------------
+  // System
+  // -------------------------------------------------------------------------
+  {
+    "label": "sys: update",
+    "command": "mise",
+    "args": ["run", "sys-update"],
+    "reveal": "always"
+  },
+  {
+    "label": "sys: health",
+    "command": "mise",
+    "args": ["run", "sys-health"],
+    "reveal": "always"
+  },
+  {
+    "label": "sys: outdated",
+    "command": "mise",
+    "args": ["run", "sys-outdated"],
+    "reveal": "always"
+  },
+  {
+    "label": "sys: clean",
+    "command": "mise",
+    "args": ["run", "sys-clean"],
+    "reveal": "always"
+  },
+  {
+    "label": "sys: doctor",
+    "command": "mise",
+    "args": ["run", "sys-check"],
+    "reveal": "always"
+  },
+  {
+    "label": "sys: upgrade-all (brew + mise)",
+    "command": "mise",
+    "args": ["run", "sys-upgrade-all"],
+    "reveal": "always"
+  },
+
+  // -------------------------------------------------------------------------
+  // Workflows
+  // -------------------------------------------------------------------------
+  {
+    "label": "workflow: sync",
+    "command": "mise",
+    "args": ["run", "workflow-sync"],
+    "reveal": "always"
+  },
+  {
+    "label": "workflow: fresh",
+    "command": "mise",
+    "args": ["run", "workflow-fresh"],
+    "reveal": "always"
+  },
+
+  // -------------------------------------------------------------------------
+  // AI Profile Switching
+  // -------------------------------------------------------------------------
+  {
+    "label": "claude: switch → API",
+    "command": "mise",
+    "args": ["run", "claude-switch", "API"],
+    "reveal": "always"
+  },
+  {
+    "label": "claude: switch → MAX",
+    "command": "mise",
+    "args": ["run", "claude-switch", "MAX"],
+    "reveal": "always"
+  },
+  {
+    "label": "claude: current profile",
+    "command": "mise",
+    "args": ["run", "claude-current"],
+    "reveal": "always"
+  },
+  {
+    "label": "codex: switch → API",
+    "command": "mise",
+    "args": ["run", "codex-switch", "API"],
+    "reveal": "always"
+  },
+  {
+    "label": "codex: switch → MAX",
+    "command": "mise",
+    "args": ["run", "codex-switch", "MAX"],
+    "reveal": "always"
+  },
+  {
+    "label": "codex: current profile",
+    "command": "mise",
+    "args": ["run", "codex-current"],
+    "reveal": "always"
+  },
+
+  // -------------------------------------------------------------------------
+  // Python (uv-centric: pytest/mypy/python via `uv run` for venv resolution.
+  // ruff is invoked bare since it's installed globally via mise.)
+  // -------------------------------------------------------------------------
+  {
+    "label": "python: run current file",
+    "command": "uv",
+    "args": ["run", "python", "$ZED_FILE"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "python: pytest current file",
+    "command": "uv",
+    "args": ["run", "pytest", "-xvs", "$ZED_RELATIVE_FILE"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "tags": ["python-test"]
+  },
+  {
+    "label": "python: pytest project",
+    "command": "uv",
+    "args": ["run", "pytest", "-xvs"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "python: ruff check (file)",
+    "command": "ruff",
+    "args": ["check", "$ZED_RELATIVE_FILE"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "python: ruff fix (file)",
+    "command": "ruff",
+    "args": ["check", "--fix", "$ZED_RELATIVE_FILE"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "python: ruff check (project)",
+    "command": "ruff",
+    "args": ["check", "."],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "python: mypy current file",
+    "command": "uv",
+    "args": ["run", "mypy", "$ZED_RELATIVE_FILE"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "python: mypy project",
+    "command": "uv",
+    "args": ["run", "mypy", "."],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+
+  // -------------------------------------------------------------------------
+  // Go
+  // -------------------------------------------------------------------------
+  {
+    "label": "go: test package",
+    "command": "go",
+    "args": ["test", "-v", "./..."],
+    "cwd": "$ZED_DIRNAME",
+    "tags": ["go-test"]
+  },
+  {
+    "label": "go: test project",
+    "command": "go",
+    "args": ["test", "-v", "./..."],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "go: run current file",
+    "command": "go",
+    "args": ["run", "$ZED_FILE"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "go: vet",
+    "command": "go",
+    "args": ["vet", "./..."],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+
+  // -------------------------------------------------------------------------
+  // Rust
+  // -------------------------------------------------------------------------
+  {
+    "label": "rust: cargo test",
+    "command": "cargo",
+    "args": ["test"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "rust: cargo clippy",
+    "command": "cargo",
+    "args": ["clippy", "--all-targets", "--", "-D", "warnings"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "rust: cargo build",
+    "command": "cargo",
+    "args": ["build"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "rust: cargo run",
+    "command": "cargo",
+    "args": ["run"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+
+  // -------------------------------------------------------------------------
+  // Node / TypeScript
+  // -------------------------------------------------------------------------
+  {
+    "label": "node: run current file",
+    "command": "node",
+    "args": ["$ZED_FILE"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "ts: tsc --noEmit",
+    "command": "npx",
+    "args": ["tsc", "--noEmit"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+
+  // -------------------------------------------------------------------------
+  // Shell
+  // -------------------------------------------------------------------------
+  {
+    "label": "shell: shfmt (write)",
+    "command": "shfmt",
+    "args": ["-i", "2", "-w", "$ZED_FILE"]
+  },
+  {
+    "label": "shell: shellcheck",
+    "command": "shellcheck",
+    "args": ["$ZED_FILE"]
+  },
+
+  // -------------------------------------------------------------------------
+  // Git / Chezmoi
+  // -------------------------------------------------------------------------
+  {
+    "label": "chezmoi: apply --dry-run",
+    "command": "chezmoi",
+    "args": ["apply", "--dry-run", "--verbose"],
+    "reveal": "always"
+  },
+  {
+    "label": "chezmoi: re-add current file",
+    "command": "chezmoi",
+    "args": ["re-add", "$ZED_FILE"],
+    "reveal": "always"
+  }
+]

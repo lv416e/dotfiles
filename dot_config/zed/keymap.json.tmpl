@@ -116,6 +116,23 @@
   },
 
   // ===========================================================================
+  // Agent Panel & Tasks (Zed v1.0)
+  // ===========================================================================
+
+  {
+    "context": "Workspace",
+    "bindings": {
+      // Agent panel
+      "space a a": "agent::ToggleFocus",
+      "space a n": "agent::NewThread",
+
+      // Tasks
+      "space r r": "task::Spawn",
+      "space r l": "task::Rerun"
+    }
+  },
+
+  // ===========================================================================
   // Git Integration (matching vim-fugitive patterns)
   // ===========================================================================
 
