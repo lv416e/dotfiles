@@ -3,308 +3,44 @@ hs.hotkey.bind({ "cmd" }, "u", function()
   hs.execute("toggle_opacity", true)
 end)
 
--- ====================== TERMINAL SWITCHER ======================
--- Toggle terminal with option + space
--- Uncomment one of the following to switch between terminals:
+-- ====================== APP TOGGLER ======================
+-- Option + <key> toggles an app: launch it if not running, hide it if it is
+-- already frontmost, otherwise bring it to focus.
+--
+-- The previous implementation pulled the app's window onto the *current* Space
+-- via hs.spaces.moveWindowToSpace(). That call uses a private SkyLight API
+-- (driving Mission Control through the Dock) which broke in macOS 15 and can
+-- wedge WindowServer on macOS 26, freezing all Space switching until a
+-- WindowServer restart. It is removed here: the focus branch now uses the
+-- public app:activate(true), which switches to the Space the app lives on
+-- instead of moving its window across Spaces. To keep a specific app on the
+-- current desktop, set it to "All Desktops" in its Dock Options instead.
 
--- -- ALACRITTY (Active)
--- hs.hotkey.bind({ "⌥" }, "space", function()
---   local appName = "alacritty"
---   local app = hs.application.find(appName)
---   local spaces = require("hs.spaces")
-
---   function MoveActiveScreen(app)
---     local window = app:focusedWindow()
---     local focused = spaces.focusedSpace()
---     spaces.moveWindowToSpace(window:id(), focused)
---     window:focus()
---   end
-
---   print(app)
---   if app == nil then
---     hs.application.launchOrFocus("Alacritty.app")
---   elseif app ~= nil and app:isFrontmost() then
---     app:hide()
---   else
---     MoveActiveScreen(app)
---   end
--- end)
-
--- -- KITTY(Inactive)
--- hs.hotkey.bind({ "⌥" }, "space", function()
---   local appName = "kitty"
---   local app = hs.application.find(appName)
---   local spaces = require("hs.spaces")
-
---   function MoveActiveScreen(app)
---     local window = app:focusedWindow()
---     local focused = spaces.focusedSpace()
---     spaces.moveWindowToSpace(window:id(), focused)
---     window:focus()
---   end
-
---   print(app)
---   if app == nil then
---     hs.application.launchOrFocus("kitty.app")
---   elseif app ~= nil and app:isFrontmost() then
---     app:hide()
---   else
---     MoveActiveScreen(app)
---   end
--- end)
-
--- -- GHOSTTY (Inactive)
-hs.hotkey.bind({ "⌥" }, "space", function()
-  local appName = "ghostty"
+local function toggleApp(appName, launchTarget)
   local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
   if app == nil then
-    hs.application.launchOrFocus("Ghostty.app")
-  elseif app ~= nil and app:isFrontmost() then
+    hs.application.launchOrFocus(launchTarget or appName)
+  elseif app:isFrontmost() then
     app:hide()
   else
-    MoveActiveScreen(app)
+    app:activate(true)
   end
-end)
+end
 
--- -- toggle Warp windows
--- hs.hotkey.bind({ "⌥" }, "W", function()
---   local appName = "Warp"
---   local app = hs.application.find(appName)
---   local spaces = require("hs.spaces")
+-- Terminal on option+space. To switch terminal, change the appName/target here.
+hs.hotkey.bind({ "⌥" }, "space", function() toggleApp("ghostty", "Ghostty.app") end)
 
---   function MoveActiveScreen(app)
---     local window = app:focusedWindow()
---     local focused = spaces.focusedSpace()
---     spaces.moveWindowToSpace(window:id(), focused)
---     window:focus()
---   end
-
---   print(app)
---   if app == nil then
---     hs.application.launchOrFocus("Warp.app")
---   elseif app ~= nil and app:isFrontmost() then
---     app:hide()
---   else
---     MoveActiveScreen(app)
---   end
--- end)
-
--- toggle Slack windows
-hs.hotkey.bind({ "⌥" }, "S", function()
-  local appName = "Slack"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus("Slack.app")
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
-
--- toggle Vivaldi windows
-hs.hotkey.bind({ "⌥" }, "V", function()
-  local appName = "Vivaldi"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus("Vivaldi.app")
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
-
--- toggle PyCharm windows
-hs.hotkey.bind({ "⌥" }, "P", function()
-  local appName = "PyCharm"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus("/Users/ryosukematsushima/Applications/PyCharm Professional Edition.app")
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
-
--- toggle DataGrip windows
-hs.hotkey.bind({ "⌥" }, "D", function()
-  local appName = "DataGrip"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus("/Users/ryosukematsushima/Applications/DataSpell.app")
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
-
--- toggle Obsidian windows
-hs.hotkey.bind({ "⌥" }, "O", function()
-  local appName = "Obsidian"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus("Obsidian.app")
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
-
--- toggle Finder windows
-hs.hotkey.bind({ "⌥" }, "F", function()
-  local appName = "Finder"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus(appName)
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
-
--- toggle Notion windows
-hs.hotkey.bind({ "⌥" }, "N", function()
-  local appName = "Notion"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus("Notion.app")
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
-
--- toggle Cursor windows
-hs.hotkey.bind({ "⌥" }, "C", function()
-  local appName = "Cursor"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus("Cursor.app")
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
-
--- toggle IntelliJ IDEA windows
-hs.hotkey.bind({ "⌥" }, "I", function()
-  local appName = "IntelliJ"
-  local app = hs.application.find(appName)
-  local spaces = require("hs.spaces")
-
-  function MoveActiveScreen(app)
-    local window = app:focusedWindow()
-    local focused = spaces.focusedSpace()
-    spaces.moveWindowToSpace(window:id(), focused)
-    window:focus()
-  end
-
-  print(app)
-  if app == nil then
-    hs.application.launchOrFocus("/Users/ryosukematsushima/Applications/IntelliJ IDEA Ultimate.app")
-  elseif app ~= nil and app:isFrontmost() then
-    app:hide()
-  else
-    MoveActiveScreen(app)
-  end
-end)
+hs.hotkey.bind({ "⌥" }, "S", function() toggleApp("Slack", "Slack.app") end)
+hs.hotkey.bind({ "⌥" }, "V", function() toggleApp("Vivaldi", "Vivaldi.app") end)
+hs.hotkey.bind({ "⌥" }, "P",
+  function() toggleApp("PyCharm", "/Users/ryosukematsushima/Applications/PyCharm Professional Edition.app") end)
+hs.hotkey.bind({ "⌥" }, "D", function() toggleApp("DataGrip", "/Users/ryosukematsushima/Applications/DataSpell.app") end)
+hs.hotkey.bind({ "⌥" }, "O", function() toggleApp("Obsidian", "Obsidian.app") end)
+hs.hotkey.bind({ "⌥" }, "F", function() toggleApp("Finder", "Finder") end)
+hs.hotkey.bind({ "⌥" }, "N", function() toggleApp("Notion", "Notion.app") end)
+hs.hotkey.bind({ "⌥" }, "C", function() toggleApp("Cursor", "Cursor.app") end)
+hs.hotkey.bind({ "⌥" }, "I",
+  function() toggleApp("IntelliJ", "/Users/ryosukematsushima/Applications/IntelliJ IDEA Ultimate.app") end)
 
 --------------------------------------------------------------------------------
 -- Conditional Menubar Items (Bartender Triggers alternative)
