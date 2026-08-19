@@ -45,6 +45,13 @@ brew "jj"              # Jujutsu VCS - modern Git alternative with undo and bran
 brew "gum"             # Modern CLI styling for promptq (charmbracelet/gum)
 brew "gping"           # Modern ping visualization with graphs
 brew "grex"            # Generate regex from examples
+brew "ast-grep"        # Structural search and rewrite over a syntax tree, not lines. Fills a real
+                       # gap: ripgrep matches lines and sd rewrites by regex, so neither can
+                       # express "this call shape" or "this JSX attribute" without false hits.
+                       # Ships as both `ast-grep` and `sg`.
+brew "jnv"             # Interactive jq filter builder: type the expression and see the result
+                       # update live. Sits between jq (correct but blind) and jless (browse only,
+                       # and dormant since 2023).
 brew "gron"            # Dormant upstream (last release 2022-04) but deliberately kept: the
                        # jgrep() helper in dot_config/zsh/conf.d/06-functions.zsh relies on
                        # the gron / `gron -u` flatten-and-rebuild round trip, which jq, fx
