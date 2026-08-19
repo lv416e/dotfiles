@@ -7,8 +7,12 @@
 # Profile identifier
 CODEX_PROFILE=MAX
 
-# Config directory (keeps personal and work accounts completely separated)
-CODEX_HOME={{ .chezmoi.homeDir }}/.codex-personal
+# Config directory. Both profiles share ~/.codex: that is where the real config
+# lives (config.toml, MCP servers, auth, session history). The per-account dirs
+# ~/.codex-personal / ~/.codex-work were never created, so pointing CODEX_HOME at
+# them made codex start with an empty config. Profiles only toggle the API key,
+# matching how CLAUDE_CONFIG_DIR is handled on the claude side.
+CODEX_HOME={{ .chezmoi.homeDir }}/.codex
 
 # Explicitly unset API keys to prevent accidental usage
 # (These will be unset when this profile is active)

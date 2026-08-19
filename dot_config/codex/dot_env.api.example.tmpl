@@ -14,5 +14,9 @@ OPENAI_API_KEY=YOUR_API_KEY_HERE
 # Profile identifier
 CODEX_PROFILE=API
 
-# Config directory (keeps work and personal accounts completely separated)
-CODEX_HOME={{ .chezmoi.homeDir }}/.codex-work
+# Config directory. Both profiles share ~/.codex: that is where the real config
+# lives (config.toml, MCP servers, auth, session history). The per-account dirs
+# ~/.codex-personal / ~/.codex-work were never created, so pointing CODEX_HOME at
+# them made codex start with an empty config. Profiles only toggle the API key,
+# matching how CLAUDE_CONFIG_DIR is handled on the claude side.
+CODEX_HOME={{ .chezmoi.homeDir }}/.codex
