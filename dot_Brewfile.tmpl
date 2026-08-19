@@ -145,4 +145,8 @@ cask "zotero"
 cask "vivaldi"
 cask "cmux"            # AI coding agent terminal (Ghostty-based)
 cask "antigravity-cli" # Google Antigravity CLI - terminal AI coding agent (Gemini CLI successor)
+cask "codex"           # OpenAI Codex CLI. Not via mise: its npm backend unpacks into a
+                       # pnpm-compatible store, so codex's install-method detection reported
+                       # "pnpm" and both `codex update` and the startup update prompt shelled
+                       # out to `pnpm add -g @openai/codex`, failing with ENOENT.
 {{- end }}

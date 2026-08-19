@@ -20,7 +20,11 @@ rust = "stable"                                     # Rust stable (managed by mi
 # shells, IDEs). Installed via the official native installer at ~/.local/bin/claude.
 # "npm:@anthropic-ai/claude-code" = "latest"
 # "npm:@google/gemini-cli" = "latest"               # Gemini CLI (sunset 2026-06-18, replaced by antigravity-cli in Brewfile)
-"npm:@openai/codex" = "latest"                      # OpenAI Codex CLI
+# Codex CLI: NOT managed by mise. The npm backend unpacks packages into a
+# pnpm-compatible store, so codex detects "pnpm" as its install method and both
+# `codex update` and the startup update prompt run `pnpm add -g @openai/codex`,
+# which fails with ENOENT. Installed as a Homebrew cask (see dot_Brewfile.tmpl).
+# "npm:@openai/codex" = "latest"
 "npm:@github/copilot" = "latest"                    # GitHub Copilot CLI (2025 official version)
 "npm:@slidev/cli" = "latest"                        # Slidev presentation tool
 "npm:git-open" = "latest"                           # Open GitHub repo from terminal
@@ -675,7 +679,7 @@ case "$profile" in
     # Perform login
     if [ -n "${OPENAI_API_KEY:-}" ]; then
       echo "🔐 Logging in with API key..."
-      if printf "%s" "$OPENAI_API_KEY" | mise exec -- codex login --with-api-key 2>&1; then
+      if printf "%s" "$OPENAI_API_KEY" | codex login --with-api-key 2>&1; then
         echo "✅ Logged in successfully"
       else
         echo "⚠️  Login failed"
@@ -688,7 +692,7 @@ case "$profile" in
     echo "   Option 2: Run in current shell:"
     echo "             source ~/.config/codex/.env"
     echo ""
-    echo "   Then verify with: mise exec -- codex login status"
+    echo "   Then verify with: codex login status"
     ;;
 
   MAX|max)
@@ -891,7 +895,7 @@ if [ -f "$CFG/.env.api" ]; then
 
   # Login with API key
   if [ -n "${OPENAI_API_KEY:-}" ]; then
-    if printf "%s" "$OPENAI_API_KEY" | mise exec -- codex login --with-api-key 2>&1; then
+    if printf "%s" "$OPENAI_API_KEY" | codex login --with-api-key 2>&1; then
       echo "✅ Logged in to work account (.codex-work) using API key"
     else
       echo "⚠️  API key login failed. You may need to login manually:"

@@ -290,7 +290,7 @@ codex-switch() {
       # Perform login
       if [ -n "${OPENAI_API_KEY:-}" ]; then
         echo "🔐 Logging in with API key..."
-        if printf "%s" "$OPENAI_API_KEY" | mise exec -- codex login --with-api-key 2>&1; then
+        if printf "%s" "$OPENAI_API_KEY" | codex login --with-api-key 2>&1; then
           echo "✅ Logged in successfully"
         else
           echo "⚠️  Login failed"
@@ -334,20 +334,6 @@ codex-switch() {
 
 # Alias for checking current Codex profile
 alias codex-current='mise codex-current'
-
-# Redirect `codex update` to mise.
-# Codex is installed via mise's npm backend, whose pnpm-compatible installer
-# leaves a `node_modules/.modules.yaml` marker. Codex's own package manager
-# detection reads that marker, assumes a pnpm-managed install, and shells out
-# to `pnpm add -g @openai/codex`, which fails with ENOENT when pnpm is absent.
-codex() {
-  if [ "$1" = "update" ]; then
-    echo "codex is managed by mise; running: mise upgrade npm:@openai/codex" >&2
-    mise upgrade "npm:@openai/codex"
-    return $?
-  fi
-  command codex "$@"
-}
 
 # --- Helper function: Add to PATH only if not present ---
 _add_to_path_prepend() {
