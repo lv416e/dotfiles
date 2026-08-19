@@ -30,12 +30,13 @@ fi
 {{- end }}
 
 # --- Prompt ---
-# Default is starship, not p10k. Powerlevel10k's own README now states "THE PROJECT HAS VERY
-# LIMITED SUPPORT", "NO NEW FEATURES ARE IN THE WORKS", "MOST BUGS WILL GO UNFIXED" and "HELP
-# REQUESTS WILL BE IGNORED"; its last release was v1.20.0 in 2024-01. starship is actively
-# released (v1.26.0, 2026-06). The p10k path below is kept intact and reachable, so
-# `switch-prompt p10k` (or PROMPT_THEME=p10k) still works exactly as before.
-export PROMPT_THEME="${PROMPT_THEME:-starship}"
+# Default stays p10k. Powerlevel10k's README does declare limited support and no new features,
+# but it is not broken: it is fast, this repo's .p10k.zsh is tuned, and instant prompt plus the
+# P9K_SSH bypass below are real optimisations. That is a future maintenance risk, not a present
+# problem, so it is not grounds for changing the daily driver. starship is fully wired up as the
+# alternative - `switch-prompt starship`, or PROMPT_THEME=starship - and can take over once its
+# config in dot_config/starship.toml has been grown to match.
+export PROMPT_THEME="${PROMPT_THEME:-p10k}"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
   # Bypass expensive SSH detection by setting P9K_SSH before theme loads

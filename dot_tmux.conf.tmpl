@@ -30,6 +30,35 @@ set -g @jump-key '/'
 bind \\ split-window -h -c "~/Documents"
 bind - split-window -v -c "~/Documents"
 
+# ----------------------------------------------------------------------------
+# Floating panes (tmux 3.7, 2026-06)
+# ----------------------------------------------------------------------------
+# A floating pane hovers above the tiled layout instead of taking space from it.
+# Unlike display-popup it is NOT modal: it is a real pane, so it accepts escape
+# sequences, keeps running when focus moves elsewhere, and shows up in list-panes.
+# `new-pane` always creates one - that is the command's whole purpose - and tmux
+# 3.7 already binds it bare to `prefix *` (a small pane at a cascading offset).
+#
+# The binding below adds a centred, generously sized scratch float. Note there is
+# no -X C / -Y C centring shorthand on new-pane (that is display-popup syntax and
+# new-pane rejects it with "size or position invalid"), so the offset is computed:
+# a pane sized N% needs a margin of (100 - N) / 2 percent on each side. With
+# N = 70 that is 15, which is the 15 in both expressions. Change one, change both.
+bind g new-pane -x 70% -y 70% \
+  -X '#{e|/:#{e|*:#{window_width},15},100}' \
+  -Y '#{e|/:#{e|*:#{window_height},15},100}' \
+  -c "#{pane_current_path}"
+#
+# Caveat in 3.7: a floating pane can only be MOVED and RESIZED with the mouse.
+
+# Line numbers in copy mode (tmux 3.7). `hybrid` shows the cursor line as an
+# absolute number and every other line relative to it, which is what makes
+# vi-style counts (12k, 5j) usable while scrolling back.
+set -g copy-mode-line-numbers hybrid
+
+# Not enabled: `focus-follows-mouse on` (also 3.7). It changes pane focus on mere
+# hover, which fights the explicit prefix+hjkl navigation configured below.
+
 set -g display-panes-time 2000
 set -g default-terminal "tmux-256color"
 set -ag terminal-overrides ",xterm-256color:RGB"

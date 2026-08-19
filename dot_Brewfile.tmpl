@@ -141,13 +141,13 @@ cask "kitty"           # GPU-accelerated terminal (secondary)
 cask "ghostty"         # Fast, native, GPU-accelerated terminal (Zig-based). The primary terminal:
                        # dot_hammerspoon/init.lua binds Alt-Space to it and dot_config/ghostty/
                        # carries the full config. 1.3.0 shipped 2026-03 on a 6-month cadence.
-cask "wezterm"         # Lua-configurable terminal with SSH integration. NOT unmaintained - the
-                       # repo is busy (100+ commits in the last 180 days, 21 of them from wez
-                       # himself) - but TAGGED RELEASES have stalled: the newest is still
-                       # 20240203-110809 from 2024-02-03, which is what this stable cask installs.
-                       # So this line pins a 2.5-year-old build of an actively developed program.
-                       # For current builds the upstream macOS install page offers a second cask,
-                       # `wezterm@nightly`. Nothing in this repo configures wezterm either way.
+cask "wezterm@nightly" # Lua-configurable terminal with SSH integration. Deliberately the NIGHTLY
+                       # cask, not `wezterm`. Upstream is not unmaintained - 100+ commits in the
+                       # last 180 days, 21 of them from wez himself - but TAGGED RELEASES have
+                       # stalled: the newest is still 20240203-110809 from 2024-02-03, which is
+                       # all the stable cask can install. Nightly is therefore the only channel
+                       # carrying two and a half years of merged work. Trade-off accepted: builds
+                       # are untagged and can regress. Nothing in this repo configures wezterm.
 cask "orbstack"        # Fast, lightweight Docker Desktop alternative
 cask "arc"             # In upstream maintenance mode since 2025-05: security and Chromium
                        # updates only, no new features. The Browser Company moved to Dia.
