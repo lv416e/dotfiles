@@ -44,7 +44,12 @@ bind - split-window -v -c "~/Documents"
 # new-pane rejects it with "size or position invalid"), so the offset is computed:
 # a pane sized N% needs a margin of (100 - N) / 2 percent on each side. With
 # N = 70 that is 15, which is the 15 in both expressions. Change one, change both.
-bind g new-pane -x 70% -y 70% \
+#
+# Bound to F (Float), deliberately NOT g. With prefix C-g, tmux-sensible binds
+# `prefix g` to last-window ("prefix without ctrl"), and it guards that with
+# key_binding_not_set. Since tpm loads at the bottom of this file, a `bind g` up
+# here wins the race and silently costs us C-g g for window switching.
+bind F new-pane -x 70% -y 70% \
   -X '#{e|/:#{e|*:#{window_width},15},100}' \
   -Y '#{e|/:#{e|*:#{window_height},15},100}' \
   -c "#{pane_current_path}"
