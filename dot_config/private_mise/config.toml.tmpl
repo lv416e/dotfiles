@@ -6,10 +6,11 @@
 [tools]
 # Language runtimes
 node = "lts"                                        # Node.js LTS version
-python = "3.13"                                     # Python 3.13 (stable)
+python = "3.14"                                     # Python 3.14 (stable)
 go = "latest"                                       # Latest Go version
-ruby = "3.3"                                        # Ruby 3.3
-java = "temurin-11"                                 # Java 11 (Temurin LTS, supported until 2029)
+ruby = "3.4"                                        # Ruby 3.4. Ruby 4.0 is out but its headline
+                                                    # feature (ZJIT) is not production-ready until 4.1.
+java = "temurin-25"                                 # Java 25 (current Temurin LTS). 26 exists but is non-LTS.
 rust = "stable"                                     # Rust stable (managed by mise instead of rustup)
 
 # JavaScript package managers (core backends, not the npm backend)
