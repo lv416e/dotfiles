@@ -11,7 +11,7 @@ brew "bottom"
 brew "ccache"
 # brew "cheat"         # Replaced by navi
 brew "chezmoi"
-brew "choose"          # Modern cut/awk alternative (intuitive syntax)
+# choose removed: deprecated upstream (unmaintained); cut/sd cover the same job.
 brew "cmake"
 brew "conan"
 brew "cppcheck"
@@ -37,7 +37,7 @@ brew "gping"           # Modern ping visualization with graphs
 brew "grex"            # Generate regex from examples
 brew "gron"
 brew "harfbuzz"
-brew "httpie"
+# httpie removed: xh reimplements httpie's syntax in Rust: ~30% faster, HTTP/2/3, single static binary.
 brew "jq"
 brew "jless"           # JSON viewer with syntax highlighting and folding
 brew "just"
@@ -58,7 +58,9 @@ brew "perl"
 brew "procs"
 brew "python@3.13"
 brew "ripgrep"
-brew "rustup"          # Rust toolchain installer (used by mise)
+brew "rustup"          # Kept only for `rustup component add rust-analyzer`: rust-analyzer is a
+                       # rustup component, not a cargo-installable binary. The toolchain itself
+                       # is mise-managed (rust = "stable"), so rustc resolves through mise.
 brew "sd"
 brew "shfmt"           # Shell script formatter (mvdan/sh)
 brew "silicon"         # Create beautiful code screenshot images (Rust-based)
@@ -69,7 +71,7 @@ brew "zellij"          # Modern tmux alternative (Rust-based, with built-in UI)
 brew "tty-clock"
 brew "universal-ctags"
 brew "uv"
-brew "watch"
+# watch removed: viddy supersedes it (pager, time-travel through past runs).
 brew "watchexec"       # Modern file watcher with smart defaults (Rust-based)
 brew "yazi"            # Blazing fast terminal file manager with async I/O (Rust-based)
 brew "yarn"
@@ -100,7 +102,8 @@ brew "poppler"         # PDF rendering library (includes pdftoppm for PDF-to-ima
 brew "cloudflared"     # Cloudflare Tunnel client
 brew "lefthook"        # Fast Git hooks manager (replaces mise-managed version)
 brew "gitleaks"        # Detect secrets in Git repos
-brew "pre-commit"      # Git pre-commit hook framework
+brew "pre-commit"      # For external repos that ship .pre-commit-config.yaml. This repo's own
+                       # hooks run through lefthook, so the two do not overlap in practice.
 
 {{- if eq .chezmoi.os "darwin" }}
 # macOS-only packages and casks
@@ -121,7 +124,7 @@ cask "dash"            # API documentation browser
 cask "font-hackgen-nerd"
 cask "hammerspoon"
 cask "jetbrains-toolbox"
-cask "jordanbaird-ice"
+cask "bartender"       # Menu bar icon organiser (replaces jordanbaird-ice; kept one of the two)
 cask "messenger"
 cask "notion"
 cask "notion-calendar"
@@ -145,6 +148,15 @@ cask "zotero"
 cask "vivaldi"
 cask "cmux"            # AI coding agent terminal (Ghostty-based)
 cask "antigravity-cli" # Google Antigravity CLI - terminal AI coding agent (Gemini CLI successor)
+
+# Installed by hand before now, folded back into the declaration so a fresh
+# machine restores them. See docs/README.md for the tracking policy.
+cask "chatgpt"         # ChatGPT desktop app
+cask "google-chrome"   # Chrome (DevTools parity, extension testing)
+cask "helium-browser"  # De-googled Chromium fork; uBlock Origin built in, no Widevine DRM
+cask "libreoffice"     # Office suite for xlsx/docx/pptx round-trips
+cask "notion-mail"     # Notion mail client
+cask "raindropio"      # Bookmark manager
 cask "codex"           # OpenAI Codex CLI. Not via mise: its npm backend unpacks into a
                        # pnpm-compatible store, so codex's install-method detection reported
                        # "pnpm" and both `codex update` and the startup update prompt shelled
