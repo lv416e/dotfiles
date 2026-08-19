@@ -36,12 +36,19 @@ brew "difftastic"      # Structural diff tool - syntax-aware diffs ignoring form
 brew "glib"
 brew "git-lfs"
 brew "glow"
-brew "go"
+brew "go"              # Kept despite mise go = "latest", same reasoning as node below: this is a
+                       # BUILD dependency of 21 installed formulae (act, chezmoi, gh, gitleaks,
+                       # lefthook, yq, ...). Homebrew resolves build deps against its own formulae,
+                       # never against mise, so a source build would pull it back anyway. mise
+                       # still wins in PATH, so this copy is invisible day to day.
 brew "jj"              # Jujutsu VCS - modern Git alternative with undo and branchless workflow
 brew "gum"             # Modern CLI styling for promptq (charmbracelet/gum)
 brew "gping"           # Modern ping visualization with graphs
 brew "grex"            # Generate regex from examples
-brew "gron"
+brew "gron"            # Dormant upstream (last release 2022-04) but deliberately kept: the
+                       # jgrep() helper in dot_config/zsh/conf.d/06-functions.zsh relies on
+                       # the gron / `gron -u` flatten-and-rebuild round trip, which jq, fx
+                       # and jless cannot reproduce. Feature-complete, no replacement needed.
 brew "harfbuzz"
 # httpie removed: xh reimplements httpie's syntax in Rust: ~30% faster, HTTP/2/3, single static binary.
 brew "jq"
@@ -52,24 +59,28 @@ brew "libpq"              # PostgreSQL client tools (psql, pg_dump) without full
 brew "libidn2"
 brew "little-cms2"
 brew "llvm"
-brew "node"
+brew "node"            # Kept despite mise node = "lts": marp-cli depends on this formula.
+                       # mise still wins in PATH, so this copy is only a build dependency.
 brew "marp-cli"
 brew "mise"
 brew "neovim"
 brew "helix"           # Modern modal editor with built-in LSP/tree-sitter (Kakoune-inspired)
 brew "ninja"
 brew "nghttp2"
-brew "openjdk"
 brew "perl"
 brew "procs"
-brew "python@3.13"
 brew "ripgrep"
 brew "rustup"          # Kept only for `rustup component add rust-analyzer`: rust-analyzer is a
                        # rustup component, not a cargo-installable binary. The toolchain itself
                        # is mise-managed (rust = "stable"), so rustc resolves through mise.
 brew "sd"
 brew "shfmt"           # Shell script formatter (mvdan/sh)
-brew "silicon"         # Create beautiful code screenshot images (Rust-based)
+brew "silicon"         # Code screenshot images. Upstream is dormant (last release 2024-09),
+                       # as is the michaelrommel/nvim-silicon plugin that drives it
+                       # (2025-01). Kept anyway: charmbracelet/freeze is the live
+                       # alternative but ships no editor plugin, so switching would mean
+                       # losing the tuned <leader>cs binding in both nvim distros for no
+                       # functional gain. Revisit if silicon actually breaks.
 brew "starship"
 brew "suite-sparse"
 brew "tmux"
@@ -80,7 +91,6 @@ brew "uv"
 # watch removed: viddy supersedes it (pager, time-travel through past runs).
 brew "watchexec"       # Modern file watcher with smart defaults (Rust-based)
 brew "yazi"            # Blazing fast terminal file manager with async I/O (Rust-based)
-brew "yarn"
 brew "zlib"
 brew "zoxide"
 brew "zsh-completions"
@@ -92,7 +102,10 @@ brew "tokei"           # Code statistics
 brew "hyperfine"       # Benchmarking tool
 brew "bandwhich"       # Network bandwidth monitor
 brew "doggo"           # DNS client (dig alternative)
-brew "gitui"           # Blazing fast Git TUI (replacement for lazygit)
+brew "gitui"           # Blazing fast Git TUI (aliased to `lg`). The relative standing has
+                       # flipped since this line was written: lazygit ships monthly
+                       # (v0.64.1, 2026-08) while gitui releases a few times a year
+                       # (v0.28.1, 2026-03). Kept on preference, not on momentum.
 brew "atuin"           # Magical shell history sync & search
 brew "lazydocker"      # Docker TUI manager
 brew "viddy"           # Modern watch command with time machine
@@ -117,11 +130,24 @@ brew "pre-commit"      # For external repos that ship .pre-commit-config.yaml. T
 # macOS-only packages and casks
 brew "trash"           # Move files to trash instead of rm (macOS only)
 # macOS-only casks (GUI applications, fonts, etc.)
-cask "alacritty"       # GPU-accelerated terminal. Homebrew marks the cask deprecated for
-                       # fails_gatekeeper_check; ghostty / wezterm / kitty are also managed here.
-cask "kitty"           # GPU-accelerated terminal (alternative to alacritty)
-cask "ghostty"         # Fast, native, GPU-accelerated terminal (Zig-based, experimental)
-cask "wezterm"         # Lua-configurable terminal with SSH integration
+# alacritty removed: the cask is disabled on 2026-09-01 (fails_gatekeeper_check - the app is not
+#   signed with an Apple certificate), and ghostty is now the daily driver. NOTE for the record:
+#   alacritty upstream is NOT dead - v0.17.0 shipped 2026-04 and commits land weekly. Only the
+#   Homebrew distribution channel is going away. Removed here because ghostty and kitty already
+#   cover the job, not because the project ended. Removed alongside it, since they existed only
+#   to serve it: dot_config/alacritty/ (config + themes), the toggle_opacity script, its PATH
+#   entries in 04-env / zshrc-monolithic / dot_zshrc, and the Cmd+U Hammerspoon binding.
+cask "kitty"           # GPU-accelerated terminal (secondary)
+cask "ghostty"         # Fast, native, GPU-accelerated terminal (Zig-based). The primary terminal:
+                       # dot_hammerspoon/init.lua binds Alt-Space to it and dot_config/ghostty/
+                       # carries the full config. 1.3.0 shipped 2026-03 on a 6-month cadence.
+cask "wezterm"         # Lua-configurable terminal with SSH integration. NOT unmaintained - the
+                       # repo is busy (100+ commits in the last 180 days, 21 of them from wez
+                       # himself) - but TAGGED RELEASES have stalled: the newest is still
+                       # 20240203-110809 from 2024-02-03, which is what this stable cask installs.
+                       # So this line pins a 2.5-year-old build of an actively developed program.
+                       # For current builds the upstream macOS install page offers a second cask,
+                       # `wezterm@nightly`. Nothing in this repo configures wezterm either way.
 cask "orbstack"        # Fast, lightweight Docker Desktop alternative
 cask "arc"             # In upstream maintenance mode since 2025-05: security and Chromium
                        # updates only, no new features. The Browser Company moved to Dia.

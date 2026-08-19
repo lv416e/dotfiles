@@ -30,7 +30,12 @@ fi
 {{- end }}
 
 # --- Prompt ---
-export PROMPT_THEME="${PROMPT_THEME:-p10k}"
+# Default is starship, not p10k. Powerlevel10k's own README now states "THE PROJECT HAS VERY
+# LIMITED SUPPORT", "NO NEW FEATURES ARE IN THE WORKS", "MOST BUGS WILL GO UNFIXED" and "HELP
+# REQUESTS WILL BE IGNORED"; its last release was v1.20.0 in 2024-01. starship is actively
+# released (v1.26.0, 2026-06). The p10k path below is kept intact and reachable, so
+# `switch-prompt p10k` (or PROMPT_THEME=p10k) still works exactly as before.
+export PROMPT_THEME="${PROMPT_THEME:-starship}"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
   # Bypass expensive SSH detection by setting P9K_SSH before theme loads
@@ -43,8 +48,10 @@ if [[ "$PROMPT_THEME" == "p10k" ]]; then
 fi
 
 if [[ "$PROMPT_THEME" == "starship" ]]; then
-  eval "$(starship init zsh)"
+  # Export before init: `starship init` reads STARSHIP_CONFIG, so setting it afterwards had no
+  # effect on the first initialization.
   export STARSHIP_CONFIG=~/.config/starship.toml
+  eval "$(starship init zsh)"
 elif [[ "$PROMPT_THEME" == "p10k" ]]; then
   source ~/powerlevel10k/powerlevel10k.zsh-theme
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -145,9 +152,9 @@ _setup_cpp_env() {
 # Defer C++ environment setup - will be loaded after prompt
 zsh-defer _setup_cpp_env
 
-# --- Alacritty + Hammerspoon ---
-DOTDIR='{{ .chezmoi.homeDir }}/dotfiles'
-export PATH=$PATH:$DOTDIR/.config/alacritty/bin
+# Alacritty removed - the PATH entry that used to live here pointed at
+# $HOME/dotfiles/.config/alacritty/bin, a directory that does not exist on this machine
+# (the chezmoi source is at ~/.local/share/chezmoi), so it was already a no-op.
 
 # ============================================================================
 # Aliases
@@ -222,7 +229,9 @@ alias cdot='chezmoi cd'
 alias adot='chezmoi apply'
 
 # --- Gemini CLI ---
-alias gemini='env -u DEBUG gemini'
+# Removed: Gemini CLI was sunset 2026-06-18 and the binary no longer exists, so this alias
+# shadowed nothing. Its successor is Antigravity CLI, installed as the antigravity-cli cask
+# and invoked as `agy` - it needs no DEBUG scrubbing, so no replacement alias is defined.
 
 # --- Claude Code ---
 alias ai='claude'

@@ -48,7 +48,12 @@ fi
 {{- end }}
 
 # --- Prompt ---
-export PROMPT_THEME="${PROMPT_THEME:-p10k}"
+# Default is starship, not p10k. Powerlevel10k's own README now states "THE PROJECT HAS VERY
+# LIMITED SUPPORT", "NO NEW FEATURES ARE IN THE WORKS", "MOST BUGS WILL GO UNFIXED" and "HELP
+# REQUESTS WILL BE IGNORED"; its last release was v1.20.0 in 2024-01. starship is actively
+# released (v1.26.0, 2026-06). The p10k path below is kept intact and reachable, so
+# `switch-prompt p10k` (or PROMPT_THEME=p10k) still works exactly as before.
+export PROMPT_THEME="${PROMPT_THEME:-starship}"
 
 if [[ "$PROMPT_THEME" == "p10k" ]]; then
   # Bypass P10k SSH detection for local sessions (saves 12-20ms)
@@ -64,8 +69,10 @@ if [[ "$PROMPT_THEME" == "p10k" ]]; then
 fi
 
 if [[ "$PROMPT_THEME" == "starship" ]]; then
-  eval "$(starship init zsh)"
+  # Export before init: `starship init` reads STARSHIP_CONFIG, so setting it afterwards had no
+  # effect on the first initialization.
   export STARSHIP_CONFIG=~/.config/starship.toml
+  eval "$(starship init zsh)"
 elif [[ "$PROMPT_THEME" == "p10k" ]]; then
   source ~/powerlevel10k/powerlevel10k.zsh-theme
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -352,9 +359,6 @@ _setup_dev_paths() {
   _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin"
   _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/llvm/bin"
   _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/libpq/bin"  # psql, pg_dump (keg-only)
-
-  # Alacritty custom scripts (toggle_opacity, etc.)
-  _add_to_path_append "{{ .chezmoi.homeDir }}/.config/alacritty/bin"
 }
 zsh-defer _setup_dev_paths
 
@@ -718,7 +722,6 @@ switch-multiplexer() {
   echo "🔄 Applying terminal emulator configs..."
 
   # Apply terminal emulator configurations
-  chezmoi apply ~/.config/alacritty/alacritty.toml > /dev/null 2>&1
   chezmoi apply ~/.config/kitty/kitty.conf > /dev/null 2>&1
   chezmoi apply ~/.config/ghostty/config > /dev/null 2>&1
 

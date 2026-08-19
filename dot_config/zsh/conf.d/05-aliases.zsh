@@ -80,7 +80,9 @@ alias cdot='chezmoi cd'
 alias adot='chezmoi apply'
 
 # --- Gemini CLI ---
-alias gemini='env -u DEBUG gemini'
+# Removed: Gemini CLI was sunset 2026-06-18 and the binary no longer exists, so this alias
+# shadowed nothing. Its successor is Antigravity CLI, installed as the antigravity-cli cask
+# and invoked as `agy` - it needs no DEBUG scrubbing, so no replacement alias is defined.
 
 # --- Claude Code ---
 alias ai='claude'

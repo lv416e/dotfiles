@@ -69,7 +69,10 @@ awscli = "latest"                                   # AWS Command Line Interface
 #       See: dot_Brewfile.tmpl
 
 # Terminal multiplexer tools
-"go:github.com/dphaener/zellijinator" = "latest"    # Zellij session manager (tmuxp/tmuxinator alternative)
+"go:github.com/dphaener/zellijinator" = "latest"    # Zellij session manager (tmuxp/tmuxinator alternative).
+                                                    # Bus factor 1: 0 stars, last push 2025-07. Nothing in this
+                                                    # repo calls it yet (only dot_zellijinator/example.yaml).
+                                                    # If it breaks, tmuxp or a native zellij layout replaces it.
 
 # =============================================================================
 # LSP Servers - Language Server Protocol for all development languages
@@ -77,8 +80,21 @@ awscli = "latest"                                   # AWS Command Line Interface
 
 # --- TypeScript/JavaScript ---
 "npm:typescript-language-server" = "latest"         # TypeScript/JavaScript LSP
-"npm:typescript" = "latest"                         # TypeScript compiler (required by ts-language-server)
-
+"npm:typescript" = "6"                              # PINNED to 6.x, do not float to "latest".
+                                                    # This global install exists for exactly one reason: it
+                                                    # is the tsserver that zed and helix point `tsserver.path`
+                                                    # at, so that .ts/.tsx files OUTSIDE a project (no local
+                                                    # node_modules) still get a language server. TypeScript 7
+                                                    # (Go rewrite, GA 2026-07-08) ships only lib/tsc.js and no
+                                                    # lib/tsserver.js at all, so 7.x cannot serve that role.
+                                                    # TS 7 also has no stable programmatic API until 7.1, so
+                                                    # typescript-eslint, ts-jest, ts-morph and the Vue/Svelte/
+                                                    # Astro template checkers cannot run on it either.
+                                                    # Projects with their own typescript in node_modules are
+                                                    # unaffected and keep using their pinned version.
+                                                    # Revisit when 7.1 lands: TS 7 has a built-in language
+                                                    # server (`tsc --lsp --stdio`, verified working) that
+                                                    # replaces typescript-language-server outright.
 # --- Python ---
 ty = "latest"                                       # Astral type checker + LSP (Rust). Replaces pyright,
                                                      # which zed had disabled anyway (see zed settings:
@@ -131,8 +147,8 @@ CACHE_DIR = "~/.cache"
 DOTFILES_DIR = "~/.local/share/chezmoi"
 # Fix GO111MODULE=off error when checking Go tool versions
 GO111MODULE = "on"
-# Gemini CLI: Enable sandbox mode by default
-GEMINI_SANDBOX = "true"
+# GEMINI_SANDBOX removed: Gemini CLI was sunset 2026-06-18 and the binary is gone.
+# Antigravity CLI (`agy`, Brewfile cask) does not read this variable.
 
 # =============================================================================
 # Task Runner - Development Workflow Automation

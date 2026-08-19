@@ -33,9 +33,6 @@ _setup_dev_paths() {
   _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/gnu-time/libexec/gnubin"
   _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/llvm/bin"
   _add_to_path_prepend "${HOMEBREW_PREFIX}/opt/libpq/bin"  # psql, pg_dump (keg-only)
-
-  # Alacritty custom scripts (toggle_opacity, etc.)
-  _add_to_path_append "{{ .chezmoi.homeDir }}/.config/alacritty/bin"
 }
 zsh-defer _setup_dev_paths
 
@@ -270,7 +267,6 @@ switch-multiplexer() {
   echo "🔄 Applying terminal emulator configs..."
 
   # Apply terminal emulator configurations
-  chezmoi apply ~/.config/alacritty/alacritty.toml > /dev/null 2>&1
   chezmoi apply ~/.config/kitty/kitty.conf > /dev/null 2>&1
   chezmoi apply ~/.config/ghostty/config > /dev/null 2>&1
 

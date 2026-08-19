@@ -18,6 +18,15 @@ formatter = { command = "sh", args = ["-c", "mise exec -- prettier --parser type
 [language-server.typescript-language-server]
 command = "sh"
 args = ["-c", "mise exec -- typescript-language-server --stdio"]
+# tsserver.path is required for .ts/.tsx files opened OUTSIDE a project. mise's npm backend
+# installs every package into its own isolated prefix, so the language server cannot resolve a
+# global `typescript` on its own and fails initialize with "Could not find a valid TypeScript
+# installation". The path goes through two symlinks mise maintains (the `6` version alias and
+# node_modules/typescript), so it survives patch upgrades. Projects with their own
+# node_modules/typescript ignore this and win. See dot_config/private_mise/config.toml.tmpl
+# for why the global typescript is pinned to 6.x.
+[language-server.typescript-language-server.config.tsserver]
+path = "{{ .chezmoi.homeDir }}/.local/share/mise/installs/npm-typescript/6/node_modules/typescript/lib/tsserver.js"
 
 [[language]]
 name = "javascript"

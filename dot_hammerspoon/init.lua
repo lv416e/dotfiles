@@ -1,7 +1,8 @@
--- toggle Alacritty opacity
-hs.hotkey.bind({ "cmd" }, "u", function()
-  hs.execute("toggle_opacity", true)
-end)
+-- Cmd+U used to toggle Alacritty's opacity by calling the toggle_opacity script, which
+-- rewrote ~/.config/alacritty/alacritty.toml in place. Alacritty, that config and the script
+-- are all gone, so the binding is removed rather than left to fail silently. Ghostty sets
+-- background-opacity statically in dot_config/ghostty/config.tmpl; if a live toggle is wanted
+-- there it needs a new implementation (Ghostty has no config-reload-on-write equivalent).
 
 -- ====================== APP TOGGLER ======================
 -- Option + <key> toggles an app: launch it if not running, hide it if it is
