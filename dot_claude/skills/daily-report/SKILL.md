@@ -24,6 +24,7 @@ description: GitHub、Google Calendar、Gmail、Notion、ローカル Git の日
 | Google Calendar | `mcp__claude_ai_Google_Calendar__*` | 会社 + 個人のイベント |
 | Gmail | `mcp__claude_ai_Gmail__*` | 会社メールのサマリ |
 | Notion | `mcp__claude_ai_Notion__*` | ワークスペース更新ページ |
+| Slack | `mcp__claude_ai_Slack__*` | 自分の発言・議論スレッド |
 | ローカル Git | `git log` | 未 push コミットの走査 |
 
 ## Workflow
@@ -95,7 +96,21 @@ gh search prs --author=$USER --closed=$DATE --json title,url,state,repository,cr
 - 内容の要点を 3〜5 行で要約（MTG ノートなら議題の背景・決定事項・次アクション、Research ノートなら目的・主要定義・結論）
 - コンテンツが動画のみ・空の場合は「ビジュアル資料のみ」と記載しファイル名を列挙する
 
-#### 1e. ローカル Git
+#### 1e. Slack
+
+`slack_search_public_and_private` で対象日に自分が発言したメッセージを全チャンネル横断で取得する。自分の Slack user_id は `U09NMREFEH1`。
+
+- `query`: `from:<@U09NMREFEH1> on:$DATE`
+- `channel_types`: `public_channel,private_channel,mpim,im`（全チャンネル横断）
+- `sort`: `timestamp`, `sort_dir`: `asc`
+- `limit`: 20（足りなければ `cursor` でページング）
+- `include_bots`: false
+
+ヒットしたメッセージはチャンネル別にまとめる。
+
+**スレッド要約**: 議論性のあるスレッド（自分の発言にスレッド返信が付いている、検索結果で `is:thread` 相当のもの）は `slack_read_thread`（`channel` + `thread_ts`）でスレッド全体を取得し、相手の返信・決定事項・次アクションを 2〜3 行で要約する。リアクション代わりの単発の短い発言はスレッド展開せず 1 行で記載する。
+
+#### 1f. ローカル Git
 
 `ghq` 配下のリポジトリから未 push コミットを走査:
 
@@ -127,7 +142,7 @@ gh issue view $NUMBER --repo $REPO --json title,body,labels \
 
 ### Step 3: Daily Note の読み込みと更新
 
-1. Daily Note のパスを決定: `/Users/mary/ghq/github.com/lv416e/vault-of-obsidian/Daily Note/$DATE.md`
+1. Daily Note のパスを決定（**Vault ルートからの相対パス**。ローカル/クラウドどちらでも作業ディレクトリ＝Vault ルート前提）: `01_Daily/<YYYY>/<YYYY-MM>/$DATE.md`（例: `2026-06-30` → `01_Daily/2026/2026-06/2026-06-30.md`）。年・月のディレクトリが無ければ作成する
 2. ファイルを Read して既存の内容を確認する
 3. `## Memo` セクション内のプレースホルダー（`### Topic 1` / `#### sub topic 1`）を各セクションに置き換える
 4. 既にセクションが書かれている場合は、内容を更新する
@@ -143,6 +158,7 @@ Daily Note 書き出し後、`mcp__memory__create_entities` で当日のサマ�
   - `Calendar`: 主要イベントの時刻とタイトル（簡潔に）
   - `PR Merged` / `PR Open` / `PR Closed`: 番号とタイトル
   - `Issue Open` / `Issue Close`: 番号とタイトル
+  - `Slack`: 主要な議論テーマ・決定事項（あれば簡潔に）
   - `主な作業テーマ`: その日の作業を 1 行で要約
 
 既にエンティティが存在する場合は `mcp__memory__add_observations` で不足分を追記する。
@@ -156,8 +172,9 @@ Daily Note 書き出し後、`mcp__memory__create_entities` で当日のサマ�
 1. `### Calendar`
 2. `### GitHub Activity`
 3. `### Email Summary`
-4. `### Notion Updates`
-5. `### Local Git`
+4. `### Slack Activity`
+5. `### Notion Updates`
+6. `### Local Git`
 
 ---
 
@@ -243,6 +260,31 @@ Daily Note 書き出し後、`mcp__memory__create_entities` で当日のサマ�
 - カレンダー招待の自動返信（承諾/辞退）は除外する
 - 送信者名 + 件名の要約を 1 行で記述する
 - メールが無い、またはカレンダー通知のみの場合はセクションごと省略する
+
+---
+
+### Slack Activity フォーマット
+
+```markdown
+### Slack Activity
+
+#### #channel-name
+- **HH:MM** 自分の発言の要約
+- 🧵 議題: 〇〇 — △△さんが□□と回答 → 次アクション: ☓☓
+
+#### DM: 相手名
+- **HH:MM** やり取りの要約
+```
+
+#### Slack 記述ルール
+
+- 自分が発言したメッセージを**チャンネル別**にまとめ、各チャンネル内は時系列順にする
+- DM・グループ DM は `DM: 相手名` の見出しにする
+- 議論スレッドは `🧵` を付け、相手の返信・決定事項・次アクションまで要約する
+- リアクション代わりの単発発言は 1 行で簡潔に要約する
+- bot の自動投稿・join/leave 通知は除外する
+- 時刻は `Asia/Tokyo` で表記する
+- 発言が無い場合はセクションごと省略する
 
 ---
 

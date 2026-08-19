@@ -13,7 +13,12 @@ java = "temurin-11"                                 # Java 11 (Temurin LTS, supp
 rust = "stable"                                     # Rust stable (managed by mise instead of rustup)
 
 # npm global packages
-"npm:@anthropic-ai/claude-code" = "latest"          # Claude Code CLI
+# Claude Code: NOT managed by mise. The mise npm backend links packages itself and
+# skips both the platform-specific optional dep (@anthropic-ai/claude-code-darwin-arm64)
+# and the postinstall step, so the resulting `claude` is a stub that dies with
+# "native binary not installed" whenever mise shims win in PATH (Zellij, non-interactive
+# shells, IDEs). Installed via the official native installer at ~/.local/bin/claude.
+# "npm:@anthropic-ai/claude-code" = "latest"
 # "npm:@google/gemini-cli" = "latest"               # Gemini CLI (sunset 2026-06-18, replaced by antigravity-cli in Brewfile)
 "npm:@openai/codex" = "latest"                      # OpenAI Codex CLI
 "npm:@github/copilot" = "latest"                    # GitHub Copilot CLI (2025 official version)
@@ -22,6 +27,13 @@ rust = "stable"                                     # Rust stable (managed by mi
 "npm:ccusage" = "latest"                            # Claude Code usage tracker
 "npm:pm2" = "latest"                                # Production process manager for Node.js
 "npm:gsd-pi" = "latest"                             # GSD2: meta-prompting & spec-driven dev system for AI agents
+
+# MCP servers (installed persistently so Codex does not pay npx resolution cost at startup)
+"npm:@upstash/context7-mcp" = "latest"              # Context7 MCP: library documentation lookup
+"npm:deepwiki-mcp" = "latest"                       # DeepWiki MCP: repository wiki lookup
+"npm:@modelcontextprotocol/server-memory" = "latest"              # MCP knowledge-graph memory
+"npm:@modelcontextprotocol/server-sequential-thinking" = "latest" # MCP sequential thinking
+"npm:@modelcontextprotocol/server-github" = "latest"              # MCP GitHub API
 
 # Python tools (pipx/uvx)
 "pipx:claude-monitor" = "latest"                    # Claude Code usage monitor
