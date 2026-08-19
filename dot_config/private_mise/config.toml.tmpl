@@ -12,6 +12,10 @@ ruby = "3.3"                                        # Ruby 3.3
 java = "temurin-11"                                 # Java 11 (Temurin LTS, supported until 2029)
 rust = "stable"                                     # Rust stable (managed by mise instead of rustup)
 
+# JavaScript package managers (core backends, not the npm backend)
+pnpm = "latest"                                     # Preferred package manager for JS/TS projects
+bun = "latest"                                      # Fast all-in-one runtime/bundler; also a quick script runner
+
 # npm global packages
 # Claude Code: NOT managed by mise. The mise npm backend links packages itself and
 # skips both the platform-specific optional dep (@anthropic-ai/claude-code-darwin-arm64)
@@ -75,7 +79,12 @@ awscli = "latest"                                   # AWS Command Line Interface
 "npm:typescript" = "latest"                         # TypeScript compiler (required by ts-language-server)
 
 # --- Python ---
-"npm:pyright" = "latest"                            # Python LSP (fast, type-aware)
+ty = "latest"                                       # Astral type checker + LSP (Rust). Replaces pyright,
+                                                     # which zed had disabled anyway (see zed settings:
+                                                     # language_servers = ["ruff", "!pyright", ...]).
+                                                     # NOT a mypy replacement: ty has no plugin system, and
+                                                     # upcycle-studio relies on plugins = ["pydantic.mypy"],
+                                                     # so project-level type checking stays on `uv run mypy`.
 
 # --- Go ---
 "go:golang.org/x/tools/gopls" = "latest"            # Official Go LSP
@@ -95,12 +104,15 @@ awscli = "latest"                                   # AWS Command Line Interface
 # Code Formatters & Linters
 # =============================================================================
 
+biome = "latest"                                     # Rust formatter+linter+import sorter (one binary, one config).
+                                                     # Kept alongside prettier: existing projects still pin prettier,
+                                                     # so migrate per-project rather than all at once.
 "npm:prettier" = "latest"                           # Multi-language formatter
 "npm:@fsouza/prettierd" = "latest"                  # Faster prettier daemon
 "cargo:stylua" = "latest"                           # Lua formatter
 # Note: shfmt moved to Brewfile for better compatibility (bottled, no Go compilation)
 "pipx:ruff" = "latest"                              # Fast Python linter/formatter
-"pipx:black" = "latest"                             # Python code formatter
+# black removed: `ruff format` provides the same black-compatible formatting.
 
 # Cloud / deployment CLI
 "npm:vercel" = "latest"                             # Vercel CLI

@@ -268,9 +268,13 @@
     "Python": {
       "tab_size": 4,
       "format_on_save": "on",
-      // ruff only — disable pyright/basedpyright (they conflict with ruff/mypy
-      // workflow and produce noisy warnings without project pyrightconfig).
+      // ty (primary, ships with Zed since 2026 — no extension needed) + ruff for
+      // lint/format. pyright/basedpyright stay off: they conflicted with the
+      // ruff/mypy workflow and were noisy without a project pyrightconfig.
+      // Project-level type checking still runs `uv run mypy` via tasks.json,
+      // because ty has no plugin system and upcycle-studio needs pydantic.mypy.
       "language_servers": [
+        "ty",
         "ruff",
         "!pyright",
         "!basedpyright",
