@@ -14,6 +14,12 @@ brew "chezmoi"
 # choose removed: deprecated upstream (unmaintained); cut/sd cover the same job.
 brew "cmake"
 brew "conan"
+# Native geometry stack behind upcycle-ai's CAD work. Its mypy overrides name
+# OCC.* (pythonocc / OpenCASCADE), open3d.*, and trimesh.*, so these are build
+# dependencies of that pipeline, not leftovers.
+brew "opencascade"     # CAD/CAM/CAE kernel behind pythonocc (OCC)
+brew "cgal"            # Computational Geometry Algorithms Library
+brew "embree"          # High-performance ray tracing kernels
 brew "cppcheck"
 brew "curl"
 brew "docker"
@@ -99,6 +105,8 @@ brew "pueue"           # Task queue manager for long-running commands
 brew "ouch"            # Universal compression/decompression tool
 brew "viu"             # Terminal image viewer
 brew "poppler"         # PDF rendering library (includes pdftoppm for PDF-to-image conversion)
+brew "sox"             # Audio format conversion and resampling
+brew "herdr"           # Terminal-resident agent multiplexer
 brew "cloudflared"     # Cloudflare Tunnel client
 brew "lefthook"        # Fast Git hooks manager (replaces mise-managed version)
 brew "gitleaks"        # Detect secrets in Git repos
@@ -109,13 +117,16 @@ brew "pre-commit"      # For external repos that ship .pre-commit-config.yaml. T
 # macOS-only packages and casks
 brew "trash"           # Move files to trash instead of rm (macOS only)
 # macOS-only casks (GUI applications, fonts, etc.)
-cask "alacritty"       # GPU-accelerated terminal (deprecated 2026-09-01, but still usable)
+cask "alacritty"       # GPU-accelerated terminal. Homebrew marks the cask deprecated for
+                       # fails_gatekeeper_check; ghostty / wezterm / kitty are also managed here.
 cask "kitty"           # GPU-accelerated terminal (alternative to alacritty)
 cask "ghostty"         # Fast, native, GPU-accelerated terminal (Zig-based, experimental)
 cask "wezterm"         # Lua-configurable terminal with SSH integration
 cask "orbstack"        # Fast, lightweight Docker Desktop alternative
-cask "arc"
-cask "chromedriver"
+cask "arc"             # In upstream maintenance mode since 2025-05: security and Chromium
+                       # updates only, no new features. The Browser Company moved to Dia.
+# chromedriver removed: deprecated upstream (fails_gatekeeper_check). Playwright
+# and friends ship their own browser binaries.
 cask "claude"
 cask "cursor"
 cask "1password"       # 1Password app (optional, enables biometric auth for CLI)
@@ -125,7 +136,7 @@ cask "font-hackgen-nerd"
 cask "hammerspoon"
 cask "jetbrains-toolbox"
 cask "bartender"       # Menu bar icon organiser (replaces jordanbaird-ice; kept one of the two)
-cask "messenger"
+# messenger removed: discontinued upstream.
 cask "notion"
 cask "notion-calendar"
 cask "obsidian"
