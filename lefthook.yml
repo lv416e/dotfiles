@@ -72,6 +72,42 @@ pre-commit:
         fi
 
     # --------------------------------------------------------------------------
+    # GitHub Actions - Syntax (actionlint) and security (zizmor)
+    # --------------------------------------------------------------------------
+    # CI runs actionlint and ghalint already, but only after a push. These run the
+    # same checks locally so a broken or unsafe workflow never leaves the machine.
+    # zizmor is the piece CI lacks: it covers expression injection, unpinned
+    # actions, over-broad permissions and dangerous triggers.
+    actionlint:
+      glob: ".github/workflows/*.{yml,yaml}"
+      run: actionlint -color {staged_files}
+
+    zizmor:
+      glob: ".github/workflows/*.{yml,yaml}"
+      # Gate at `high`, which is clean today, so the hook only fires on a genuine new
+      # security problem. Deliberately NOT `medium`: the workflows currently carry 15
+      # medium findings, all of them the same rule (ref-version-mismatch - the `# v3`
+      # comment beside a SHA pin no longer matches the tag that SHA resolves to). The
+      # pins themselves are correct, so that is documentation drift, not a hole, and
+      # gating on it would block every workflow commit for no defect. zizmor classes
+      # its own fixes for these as unsafe, so they need a deliberate pass:
+      #   zizmor --min-severity medium --fix=all .github/workflows/*.yml
+      run: zizmor --min-severity high {staged_files}
+
+    # --------------------------------------------------------------------------
+    # TOML - Format check (taplo)
+    # --------------------------------------------------------------------------
+    taplo:
+      glob: "*.toml"
+      # `lint`, deliberately not `fmt --check`. Measured: 4 of the 9 plain TOML files
+      # here (.chezmoiexternal, .gitleaks, helix/config, nvim-lazyvim/stylua) differ
+      # from taplo's formatting opinion, so a format gate would block commits over
+      # style with no defect behind it. `lint` catches the real problems - duplicate
+      # keys, type errors, schema violations - and all 9 files pass it today.
+      # Formatting stays available on demand via `taplo fmt`.
+      run: taplo lint {staged_files}
+
+    # --------------------------------------------------------------------------
     # Chezmoi Configuration Check - Validate .chezmoi.toml.tmpl
     # --------------------------------------------------------------------------
     check-chezmoi-config:
@@ -106,6 +142,20 @@ pre-push:
       skip:
         - ref: main
         - ref: master
+
+    # --------------------------------------------------------------------------
+    # Link Check - Verify documentation links before publishing
+    # --------------------------------------------------------------------------
+    # Pre-push rather than pre-commit: this hits the network, so it is too slow and
+    # too flaky to gate every commit. Replaces the orphaned
+    # .github/markdown-link-check-config.json, which nothing referenced.
+    lychee:
+      run: |
+        echo "🔗 Checking documentation links..."
+        lychee --no-progress --cache --max-cache-age 1d README.md 'docs/**/*.md' || {
+          echo "⚠️  Some links failed. Re-run manually: lychee README.md 'docs/**/*.md'"
+          exit 1
+        }
 
 # =============================================================================
 # Skip Configuration

@@ -173,3 +173,17 @@ formatter = { command = "prettier", args = ["--parser", "yaml"] }
 name = "bash"
 auto-format = true
 formatter = { command = "shfmt", args = ["-i", "2"] }
+
+# =============================================================================
+# TOML
+# =============================================================================
+[[language]]
+name = "toml"
+language-servers = ["taplo"]
+auto-format = false          # 4 of the 9 plain TOML files here differ from taplo's
+                             # formatting opinion with no defect behind the difference,
+                             # so formatting stays manual (`taplo fmt <file>`).
+
+[language-server.taplo]
+command = "taplo"
+args = ["lsp", "stdio"]

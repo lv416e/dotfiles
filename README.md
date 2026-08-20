@@ -16,7 +16,7 @@ To use this repository as a template:
 1. Fork this repository to your GitHub account
 2. Update step 3 below: Replace `lv416e/dotfiles` with `YOUR_USERNAME/dotfiles`
 3. Follow the installation steps below - you'll be prompted for your configuration
-4. See [Fork Guide](FORK.md) for detailed instructions
+4. See [Fork Guide](docs/FORK.md) for detailed instructions
 
 ## Installation
 
@@ -81,7 +81,7 @@ mise install
 mise trust
 ```
 
-See [New Machine Setup Guide](docs/getting-started/new-machine-setup.md) for detailed instructions and troubleshooting.
+See [New Machine Setup Guide](docs/getting-started/machine-setup-macos.md) for detailed instructions and troubleshooting.
 
 ## Usage
 
@@ -152,12 +152,12 @@ See [New Machine Setup Guide](docs/getting-started/new-machine-setup.md) for det
 
 ## Documentation
 
-- [New Machine Setup Guide](docs/getting-started/new-machine-setup.md) - Complete setup guide
-- [Fork Guide](FORK.md) - Fork and customize instructions
-- [Secrets Management](docs/guides/secrets-management.md) - 1Password and age encryption
-- [Pre-Commit Hooks](docs/explanation/pre-commit-hooks.md) - Git hooks with lefthook and gitleaks
-- [Zsh Config Switching](docs/guides/zsh-config-switching.md) - Modular vs monolithic
-- [Multiplexer Abstraction](docs/explanation/multiplexer-abstraction.md) - Unified tmux/zellij interface
-- [Keybindings Reference](docs/reference/keybindings.md) - Quick reference for tmux/zellij
-- [Modern Tools](docs/guides/modern-tools.md) - jj, WezTerm, Zellij guides
-- [Mise Tasks](docs/reference/mise-tasks.md) - Task runner documentation
+- [New Machine Setup Guide](docs/getting-started/machine-setup-macos.md) - Complete setup guide
+- [Fork Guide](docs/FORK.md) - Fork and customize instructions
+- [Secrets Management](docs/guides/secrets-management-overview.md) - 1Password and age encryption
+- [Pre-Commit Hooks](docs/explanation/pre-commit-hooks-rationale.md) - Git hooks with lefthook and gitleaks
+- [Zsh Config Switching](docs/guides/zsh-configuration-switching.md) - Modular vs monolithic
+- [Multiplexer Abstraction](docs/explanation/multiplexer-abstraction-design.md) - Unified tmux/zellij interface
+- [Keybindings Reference](docs/reference/keybindings-reference.md) - Quick reference for tmux/zellij
+- [Modern Tools](docs/reference/tools-evaluation-criteria.md) - jj, WezTerm, Zellij guides
+- [Mise Tasks](docs/reference/mise-tasks-reference.md) - Task runner documentation

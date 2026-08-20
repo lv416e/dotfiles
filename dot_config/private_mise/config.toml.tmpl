@@ -46,6 +46,12 @@ bun = "latest"                                      # Fast all-in-one runtime/bu
 
 # Python tools (pipx/uvx)
 "pipx:claude-monitor" = "latest"                    # Claude Code usage monitor
+"pipx:marimo" = "latest"                            # Reactive Python notebook. Stored as plain .py,
+                                                    # so git diffs are readable - unlike Jupyter's
+                                                    # JSON. Cells re-run when their dependencies
+                                                    # change, which suits the pythonocc / open3d /
+                                                    # trimesh iteration in upcycle-ai. Not in brew
+                                                    # core; pipx is the right backend for it.
 
 # Infrastructure
 terraform = "latest"                                # HashiCorp Terraform
@@ -116,6 +122,10 @@ ty = "latest"                                       # Astral type checker + LSP 
 
 # --- HTML/CSS/JSON/ESLint ---
 "npm:vscode-langservers-extracted" = "latest"       # HTML, CSS, JSON, ESLint LSP servers
+
+# --- TOML ---
+# taplo provides the TOML language server. Installed via Homebrew rather than mise
+# so the formatter, linter and LSP are one binary - see dot_Brewfile.tmpl.
 
 # =============================================================================
 # Code Formatters & Linters

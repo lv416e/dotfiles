@@ -125,6 +125,24 @@ brew "navi"            # Interactive cheatsheet tool
 brew "xh"              # Fast HTTPie alternative
 brew "tealdeer"        # Fast tldr client (Rust implementation)
 brew "act"             # Run GitHub Actions locally
+brew "actionlint"      # Workflow syntax linter, with shellcheck reaching into `run:` blocks.
+                       # CI already installs it ad hoc in .github/workflows/lint.yml; having it
+                       # locally is what lets lefthook catch the same errors before the push.
+brew "zizmor"          # Actions SECURITY linter: expression injection, unpinned actions, overly
+                       # broad permissions, dangerous triggers (23 rules). Distinct from the
+                       # actionlint + ghalint pair already in CI, which cover syntax and policy.
+brew "lychee"          # Link checker (Rust: parallel, cached, retries). Adopted to give
+                       # .github/markdown-link-check-config.json a successor - that config was
+                       # orphaned, nothing in the repo referenced it.
+brew "git-cliff"       # CHANGELOG from conventional commits. This repo's history is strictly
+                       # conventional, so it produces useful output with no back-fitting.
+brew "taplo"           # TOML formatter + linter + LSP + schema validation. There is a lot of TOML
+                       # here (mise, starship, atuin, fnox, gitleaks, sheldon) and no TOML entry in
+                       # the LSP list. Caveat: the original author has stepped back; the project is
+                       # mid-transition to an org with multiple maintainers.
+brew "duckdb"          # Analytical SQL directly over local CSV/Parquet/JSON.
+brew "harlequin"       # Terminal SQL IDE over duckdb, Postgres, BigQuery: catalog browser, query
+                       # history, result grid. libpq only ever provided bare psql.
 brew "age"             # Modern file encryption tool (for chezmoi secrets)
 brew "pueue"           # Task queue manager for long-running commands
 brew "ouch"            # Universal compression/decompression tool
