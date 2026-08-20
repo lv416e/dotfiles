@@ -337,7 +337,7 @@ jobs:
 - [Lefthook Documentation](https://github.com/evilmartians/lefthook/blob/master/docs/usage.md)
 - [Gitleaks Documentation](https://github.com/gitleaks/gitleaks#readme)
 - [Gitleaks Configuration](https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml)
-- [chezmoi Security Best Practices](https://www.chezmoi.io/user-guide/frequently-asked-questions/security/)
+- [chezmoi encryption guide](https://www.chezmoi.io/user-guide/encryption/)
 
 ## FAQ
 

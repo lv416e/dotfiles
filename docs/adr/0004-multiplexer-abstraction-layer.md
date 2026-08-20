@@ -223,4 +223,4 @@ Real-world usage demonstrates the value:
 
 - [tmux documentation](https://github.com/tmux/tmux/wiki)
 - [Zellij documentation](https://zellij.dev/)
-- [Multiplexer comparison analysis](https://jdhao.github.io/2021/01/04/tmux_vs_zellij/)
+- [Multiplexer comparison analysis](../reference/terminal-multiplexers-comparison.md)

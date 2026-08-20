@@ -259,8 +259,8 @@ A: Yes! Most features work on Linux. Some macOS-specific tools will be skipped a
 
 **Q: Where can I get help?**
 A:
-- Check [New Machine Setup Guide](docs/getting-started/new-machine-setup.md)
-- Review [Troubleshooting section](docs/getting-started/new-machine-setup.md#troubleshooting)
+- Check [New Machine Setup Guide](getting-started/machine-setup-macos.md)
+- Review [Troubleshooting section](getting-started/machine-setup-macos.md#troubleshooting)
 - Open an issue on GitHub
 
 ## What's Next?

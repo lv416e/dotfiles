@@ -163,9 +163,14 @@ pre-push:
     # .github/markdown-link-check-config.json, which nothing referenced.
     lychee:
       run: |
-        echo "🔗 Checking documentation links..."
-        lychee --no-progress --cache --max-cache-age 1d README.md 'docs/**/*.md' || {
-          echo "⚠️  Some links failed. Re-run manually: lychee README.md 'docs/**/*.md'"
+        echo "🔗 Checking internal documentation links..."
+        # --offline: only relative/file links are checked, so this gate is deterministic
+        # and needs no network. External URLs die for reasons outside this repo - a
+        # third-party blog disappearing should never block a push. Sweep those on
+        # purpose instead, and expect to find some:
+        #   lychee README.md 'docs/**/*.md'
+        lychee --offline --no-progress README.md 'docs/**/*.md' || {
+          echo "⚠️  Broken internal links. Re-run: lychee --offline README.md 'docs/**/*.md'"
           exit 1
         }
 

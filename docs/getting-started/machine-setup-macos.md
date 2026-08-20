@@ -32,7 +32,7 @@ mise secrets-verify
 
 During step 3, you'll answer questions about your preferences. **No manual file editing required!**
 
-See [Fork Guide](../../FORK.md) for detailed walkthrough.
+See [Fork Guide](../FORK.md) for detailed walkthrough.
 
 ## Prerequisites
 

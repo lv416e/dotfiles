@@ -135,4 +135,4 @@ Monitoring:
 
 - [Jujutsu Documentation](https://github.com/martinvonz/jj)
 - [Jujutsu vs Git comparison](https://v5.chriskrycho.com/essays/jj-init/)
-- [Colocated repositories guide](https://martinvonz.github.io/jj/latest/working-with-git/)
+- [Git compatibility guide](https://jj-vcs.github.io/jj/latest/git-compatibility/)
