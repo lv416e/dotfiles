@@ -2,11 +2,8 @@
   "mcpServers": {
     "context7": {
       "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ],
+      "command": "context7-mcp",
+      "args": [],
       "env": {}
     },
     "deepwiki": {
@@ -15,29 +12,20 @@
     },
     "github": {
       "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
+      "command": "mcp-server-github",
+      "args": [],
       "env": {}
     },
     "sequential-thinking": {
       "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
+      "command": "mcp-server-sequential-thinking",
+      "args": [],
       "env": {}
     },
     "memory": {
       "type": "stdio",
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-memory"
-      ],
+      "command": "mcp-server-memory",
+      "args": [],
       "env": {}
     }
   }

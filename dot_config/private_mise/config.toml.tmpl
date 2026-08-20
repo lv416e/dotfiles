@@ -37,7 +37,12 @@ bun = "latest"                                      # Fast all-in-one runtime/bu
 "npm:pm2" = "latest"                                # Production process manager for Node.js
 "npm:gsd-pi" = "latest"                             # GSD2: meta-prompting & spec-driven dev system for AI agents
 
-# MCP servers (installed persistently so Codex does not pay npx resolution cost at startup)
+# MCP servers, installed persistently so nothing pays npx registry resolution at startup.
+# .mcp.json must invoke these by BINARY NAME, not via npx, or this whole section is dead
+# weight - which is exactly what had happened until 2026-08-20. Measured: 643ms per server
+# through `npx -y`, 154ms invoking the binary directly. Binary names, which do not match
+# the package names: context7-mcp, mcp-server-github, mcp-server-memory,
+# mcp-server-sequential-thinking.
 "npm:@upstash/context7-mcp" = "latest"              # Context7 MCP: library documentation lookup
 "npm:deepwiki-mcp" = "latest"                       # DeepWiki MCP: repository wiki lookup
 "npm:@modelcontextprotocol/server-memory" = "latest"              # MCP knowledge-graph memory
