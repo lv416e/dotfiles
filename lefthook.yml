@@ -84,14 +84,12 @@ pre-commit:
 
     zizmor:
       glob: ".github/workflows/*.{yml,yaml}"
-      # Gate at `high`, which is clean today, so the hook only fires on a genuine new
-      # security problem. Deliberately NOT `medium`: the workflows currently carry 15
-      # medium findings, all of them the same rule (ref-version-mismatch - the `# v3`
-      # comment beside a SHA pin no longer matches the tag that SHA resolves to). The
-      # pins themselves are correct, so that is documentation drift, not a hole, and
-      # gating on it would block every workflow commit for no defect. zizmor classes
-      # its own fixes for these as unsafe, so they need a deliberate pass:
-      #   zizmor --min-severity medium --fix=all .github/workflows/*.yml
+      # Gate at `high`, which is clean. 3 medium findings remain, all ref-version-mismatch
+      # on actions whose pinned SHA zizmor cannot map to a tag (markdown-link-check,
+      # gitleaks-action, dependency-review-action). The other 12 were fixed with
+      # `--fix=all`, which - verified by diffing a copy first - only rewrites the version
+      # COMMENT (`# v4` -> `# v4.3.0`) and never touches the SHA, so CI behaviour is
+      # unchanged. zizmor calls that unsafe because the comment's meaning changes.
       run: zizmor --min-severity high {staged_files}
 
     # --------------------------------------------------------------------------
