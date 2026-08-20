@@ -45,6 +45,23 @@ brew "jj"              # Jujutsu VCS - modern Git alternative with undo and bran
 brew "gum"             # Modern CLI styling for promptq (charmbracelet/gum)
 brew "gping"           # Modern ping visualization with graphs
 brew "grex"            # Generate regex from examples
+brew "samply"          # Sampling CPU profiler (`samply record <cmd>`), opens the Firefox
+                       # Profiler UI. Not a duplicate of hyperfine: hyperfine measures how
+                       # long something takes, samply shows where the time goes. Earns its
+                       # place against the native side of this setup - rust, llvm,
+                       # opencascade, cgal, embree.
+brew "d2"              # Diagram-as-code with selectable layout engines (dagre/ELK/TALA),
+                       # nested containers and themes. For architecture diagrams that must
+                       # stay readable as they grow. Needs a build step to SVG/PNG.
+brew "mermaid-cli"     # Diagram-as-code that GitHub renders natively from ```mermaid fences,
+                       # so the CLI is only for producing standalone SVG/PNG. Complements d2
+                       # rather than competing: mermaid for diagrams read on GitHub, d2 when
+                       # the layout gets too complex for it.
+                       # Requires a browser. Rather than let puppeteer download its own
+                       # chrome-headless-shell (~150MB on top of this formula's 334MB), it is
+                       # pointed at the already-installed google-chrome cask via
+                       # dot_config/mermaid/puppeteer-config.json. Use:
+                       #   mmdc -i in.mmd -o out.svg -p ~/.config/mermaid/puppeteer-config.json
 brew "repomix"         # Packs a whole repo into one AI-friendly file. The blunt-instrument
                        # counterpart to codegraph: no index, no server, just "here is
                        # everything" for a small repo or a one-off question.
