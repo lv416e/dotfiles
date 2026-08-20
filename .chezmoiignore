@@ -4,7 +4,11 @@
 # GitHub Codespaces bootstrap script (executed by GitHub, not managed by chezmoi)
 docs
 README.md
+# Repository-level tool config, not dotfiles. Without these, chezmoi would
+# helpfully create ~/lefthook.yml, ~/_typos.toml and ~/cliff.toml.
 lefthook.yml
+_typos.toml
+cliff.toml
 install
 install.sh
 bootstrap
