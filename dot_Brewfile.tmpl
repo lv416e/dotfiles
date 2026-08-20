@@ -49,6 +49,11 @@ brew "ast-grep"        # Structural search and rewrite over a syntax tree, not l
                        # gap: ripgrep matches lines and sd rewrites by regex, so neither can
                        # express "this call shape" or "this JSX attribute" without false hits.
                        # Ships as both `ast-grep` and `sg`.
+brew "carapace"        # TRIAL. Completion engine for ~1000 CLIs that ship no zsh completion.
+                       # Wired deferred + disk-cached in dot_config/zsh/conf.d/03-tools.zsh
+                       # because generating its init costs ~17ms and sourcing a cache ~4ms.
+brew "posting"         # HTTP client TUI: saved requests, collections, environments, scripting.
+                       # Complements xh rather than replacing it - xh stays the one-shot tool.
 brew "jnv"             # Interactive jq filter builder: type the expression and see the result
                        # update live. Sits between jq (correct but blind) and jless (browse only,
                        # and dormant since 2023).

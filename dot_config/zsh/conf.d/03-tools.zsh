@@ -38,6 +38,26 @@ zsh-defer -c 'eval "$(atuin init zsh)"'
 # Note: mise shims are already loaded above for immediate PATH access
 zsh-defer -c 'eval "$(mise activate zsh)"'
 
+# --- carapace (deferred, cached) --- TRIAL, see docs/README.md before keeping ---
+# Multi-shell completion engine covering ~1000 CLIs that ship no zsh completion.
+# Two constraints drive this shape:
+#   1. It calls compdef, so it MUST run after compinit. zsh-defer is FIFO and
+#      _load_completion is deferred above, so ordering is satisfied by position.
+#   2. Generating the init script costs ~17ms; sourcing a cached copy costs ~4ms.
+#      So it is cached to disk the same way sheldon is in 02-plugins.zsh, and
+#      regenerated only when the carapace binary is newer than the cache.
+_load_carapace() {
+  command -v carapace >/dev/null 2>&1 || return
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/carapace/init.zsh"
+  local bin; bin="$(command -v carapace)"
+  if [[ ! -s "$cache" ]] || [[ "$bin" -nt "$cache" ]]; then
+    mkdir -p "${cache:h}"
+    carapace _carapace zsh > "$cache" 2>/dev/null || { rm -f "$cache"; return; }
+  fi
+  [[ -s "$cache" ]] && source "$cache"
+}
+zsh-defer _load_carapace
+
 # --- FZF key bindings ---
 if [[ -f "${HOMEBREW_PREFIX}/opt/fzf/shell/key-bindings.zsh" ]]; then
   zsh-defer -c 'export FZF_DEFAULT_COMMAND="fd --type f --hidden --follow --exclude .git"
