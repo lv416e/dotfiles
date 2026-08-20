@@ -45,6 +45,18 @@ brew "jj"              # Jujutsu VCS - modern Git alternative with undo and bran
 brew "gum"             # Modern CLI styling for promptq (charmbracelet/gum)
 brew "gping"           # Modern ping visualization with graphs
 brew "grex"            # Generate regex from examples
+brew "repomix"         # Packs a whole repo into one AI-friendly file. The blunt-instrument
+                       # counterpart to codegraph: no index, no server, just "here is
+                       # everything" for a small repo or a one-off question.
+brew "typos-cli"       # Source-code spell checker. Gated in lefthook, which is only viable
+                       # because _typos.toml excludes the vendored trees - unconfigured it
+                       # reports 265 findings, nearly all false positives upstream.
+brew "ollama"          # Local LLM runtime, CLI and OpenAI-compatible API first. NOT redundant
+                       # with the lm-studio cask: that app has never been launched on this
+                       # machine, so `lms bootstrap` refuses to run ("Cannot find LM Studio
+                       # installation ... run it at least once") and ~/.lmstudio/ does not
+                       # exist. No brew service is started here; run `ollama serve` or
+                       # `brew services start ollama` deliberately.
 brew "ast-grep"        # Structural search and rewrite over a syntax tree, not lines. Fills a real
                        # gap: ripgrep matches lines and sd rewrites by regex, so neither can
                        # express "this call shape" or "this JSX attribute" without false hits.

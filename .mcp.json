@@ -27,6 +27,14 @@
       "command": "mcp-server-memory",
       "args": [],
       "env": {}
+    },
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": [
+        "serve",
+        "--mcp"
+      ]
     }
   }
 }

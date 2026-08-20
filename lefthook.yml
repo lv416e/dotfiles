@@ -108,6 +108,18 @@ pre-commit:
       run: taplo lint {staged_files}
 
     # --------------------------------------------------------------------------
+    # Spelling (typos)
+    # --------------------------------------------------------------------------
+    # Gating on this is only viable because _typos.toml excludes the vendored trees.
+    # Unconfigured it reports 265 findings, almost all false positives in upstream
+    # copies (dot_claude/skills, hs.spaces, the nvim templates) plus proper nouns
+    # like Noice and Hashi. With the config the repo's own files report zero, so a
+    # hook failure now means a real new typo.
+    typos:
+      glob: "*"
+      run: typos {staged_files}
+
+    # --------------------------------------------------------------------------
     # Chezmoi Configuration Check - Validate .chezmoi.toml.tmpl
     # --------------------------------------------------------------------------
     check-chezmoi-config:
