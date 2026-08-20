@@ -524,6 +524,6 @@ export GITHUB_TOKEN="{{ or (env "GITHUB_TOKEN") .github_token }}"
 # zprof | head -40
 
 # Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/mary/.lmstudio/bin"
+export PATH="$PATH:{{ .chezmoi.homeDir }}/.lmstudio/bin"
 # End of LM Studio CLI section
 

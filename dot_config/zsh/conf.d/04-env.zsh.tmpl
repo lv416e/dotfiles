@@ -452,4 +452,4 @@ export GITHUB_TOKEN="{{ or (env "GITHUB_TOKEN") .github_token }}"
 # ============================================================================
 # LM Studio CLI
 # ============================================================================
-export PATH="$PATH:/Users/mary/.lmstudio/bin"
+export PATH="$PATH:{{ .chezmoi.homeDir }}/.lmstudio/bin"

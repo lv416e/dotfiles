@@ -33,15 +33,21 @@ hs.hotkey.bind({ "⌥" }, "space", function() toggleApp("ghostty", "Ghostty.app"
 
 hs.hotkey.bind({ "⌥" }, "S", function() toggleApp("Slack", "Slack.app") end)
 hs.hotkey.bind({ "⌥" }, "V", function() toggleApp("Vivaldi", "Vivaldi.app") end)
-hs.hotkey.bind({ "⌥" }, "P",
-  function() toggleApp("PyCharm", "/Users/ryosukematsushima/Applications/PyCharm Professional Edition.app") end)
-hs.hotkey.bind({ "⌥" }, "D", function() toggleApp("DataGrip", "/Users/ryosukematsushima/Applications/DataSpell.app") end)
+-- JetBrains IDEs are addressed by name, not by path. An absolute path was wrong
+-- twice over here: it carried another machine's username (/Users/ryosukematsushima),
+-- so all three bindings resolved to nothing on this machine, and it pinned a
+-- JetBrains Toolbox install directory that Toolbox relocates between versions.
+-- hs.application.launchOrFocus resolves a bare name through LaunchServices, which
+-- needs no path and keeps working wherever Toolbox puts the app. None of these are
+-- installed right now (only jetbrains-toolbox is), so the bindings are inert until
+-- one is - which is the point of leaving them declared.
+hs.hotkey.bind({ "⌥" }, "P", function() toggleApp("PyCharm") end)
+hs.hotkey.bind({ "⌥" }, "D", function() toggleApp("DataGrip") end)
 hs.hotkey.bind({ "⌥" }, "O", function() toggleApp("Obsidian", "Obsidian.app") end)
 hs.hotkey.bind({ "⌥" }, "F", function() toggleApp("Finder", "Finder") end)
 hs.hotkey.bind({ "⌥" }, "N", function() toggleApp("Notion", "Notion.app") end)
 hs.hotkey.bind({ "⌥" }, "C", function() toggleApp("Cursor", "Cursor.app") end)
-hs.hotkey.bind({ "⌥" }, "I",
-  function() toggleApp("IntelliJ", "/Users/ryosukematsushima/Applications/IntelliJ IDEA Ultimate.app") end)
+hs.hotkey.bind({ "⌥" }, "I", function() toggleApp("IntelliJ IDEA") end)
 
 --------------------------------------------------------------------------------
 -- Conditional Menubar Items (Bartender Triggers alternative)
