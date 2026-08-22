@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# =============================================================================
+# launchd Agent Setup Script
+# =============================================================================
+# Registers (or re-registers) the user LaunchAgents managed by chezmoi.
+#
+# Writing the plist into ~/Library/LaunchAgents is not enough — launchd only
+# picks up a new or changed job when it is bootstrapped. This script reloads
+# each agent whenever its plist changes.
+#
+# Execution: run_onchange_after (runs after dotfiles are applied)
+# Depends on: dot_local/bin/executable_disk-cache-gc
+#
+# References:
+# - ADR-0010: disk cache garbage collection
+#
+# Hash: {{ include "Library/LaunchAgents/com.github.lv416e.disk-cache-gc.plist.tmpl" | sha256sum }}
+
+{{- if eq .chezmoi.os "darwin" }}
+
+set -uo pipefail
+
+AGENTS=(
+    "com.github.lv416e.disk-cache-gc"
+)
+
+LAUNCH_AGENTS_DIR="{{ .chezmoi.homeDir }}/Library/LaunchAgents"
+DOMAIN="gui/$(id -u)"
+
+echo "🚀 Registering launchd agents..."
+
+for label in "${AGENTS[@]}"; do
+    plist="$LAUNCH_AGENTS_DIR/$label.plist"
+
+    if [ ! -f "$plist" ]; then
+        echo "   ⏭  $label: plist not found at $plist, skipping"
+        continue
+    fi
+
+    # Reject a malformed plist before handing it to launchd
+    if ! plutil -lint "$plist" > /dev/null 2>&1; then
+        echo "   ❌ $label: plist is malformed, skipping"
+        plutil -lint "$plist" || true
+        continue
+    fi
+
+    # bootout is expected to fail when the job was never loaded
+    launchctl bootout "$DOMAIN/$label" > /dev/null 2>&1 || true
+
+    if launchctl bootstrap "$DOMAIN" "$plist" > /dev/null 2>&1; then
+        echo "   ✅ $label: loaded"
+    else
+        echo "   ⚠️  $label: bootstrap failed"
+        echo "      Try manually: launchctl bootstrap $DOMAIN $plist"
+    fi
+done
+
+echo ""
+echo "💡 Usage:"
+echo "   • Status:    launchctl print $DOMAIN/com.github.lv416e.disk-cache-gc | head -20"
+echo "   • Run now:   launchctl kickstart -k $DOMAIN/com.github.lv416e.disk-cache-gc"
+echo "   • Logs:      tail -f ~/Library/Logs/disk-cache-gc.log"
+echo "   • Manual:    disk-cache-gc --dry-run"
+echo "   • Unload:    launchctl bootout $DOMAIN/com.github.lv416e.disk-cache-gc"
+
+{{- else }}
+
+echo "⏭  Skipping launchd setup (macOS only)"
+
+{{- end }}

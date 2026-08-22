@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Daily deep clean of tool caches (uv, Homebrew).
+
+  Deliberately NOT responsible for the wallpaper renderer cache: reading
+  another app's ~/Library/Containers/<id>/Data requires Full Disk Access,
+  which a LaunchAgent does not have. That cap is driven from the shell
+  instead (conf.d/09-disk-cache-gc.zsh). See ADR-0010.
+
+  StartInterval rather than StartCalendarInterval: launchd runs a missed
+  interval job shortly after wake, so the job still fires on a laptop that
+  sleeps through any given wall-clock time.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.github.lv416e.disk-cache-gc</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{ .chezmoi.homeDir }}/.local/bin/disk-cache-gc</string>
+        <string>--deep</string>
+    </array>
+
+    <!-- launchd gives a bare PATH; uv and brew live outside it -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+{{- if eq .chezmoi.arch "arm64" }}
+        <string>{{ .chezmoi.homeDir }}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+{{- else }}
+        <string>{{ .chezmoi.homeDir }}/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+{{- end }}
+    </dict>
+
+    <!-- Once a day; these caches grow slowly and pruning them is not cheap -->
+    <key>StartInterval</key>
+    <integer>86400</integer>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>LowPriorityIO</key>
+    <true/>
+
+    <key>Nice</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/disk-cache-gc.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/disk-cache-gc.log</string>
+</dict>
+</plist>

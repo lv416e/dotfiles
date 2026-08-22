@@ -1,0 +1,205 @@
+#!/bin/bash
+# Cap runaway caches that macOS never prunes on its own
+# Usage: disk-cache-gc [--deep] [--dry-run] [--throttle SECONDS] [--quiet]
+#
+# The motivating case: com.apple.wallpaper.agent caches a full-resolution,
+# *uncompressed* BMP (~30MB at 4K) for every wallpaper it renders and never
+# evicts them. With a rotating wallpaper source such as the Unsplash app this
+# grows by ~9GB/day and will happily fill the whole disk. Apple exposes no
+# size limit for it, so we enforce one ourselves.
+#
+# Each directory is pruned to a byte budget, deleting oldest-first, so the
+# wallpapers actually in use survive and everything else goes.
+#
+# TCC NOTE: reading another app's ~/Library/Containers/<id>/Data requires the
+# calling process to hold Full Disk Access. A plain LaunchAgent does not, and
+# gets EPERM. A terminal normally does, which is why the wallpaper cap is
+# driven from the shell (conf.d/09-disk-cache-gc.zsh) and the LaunchAgent only
+# handles the caches that need no special access. See ADR-0010.
+
+set -uo pipefail
+
+DEEP=0
+DRY_RUN=0
+QUIET=0
+THROTTLE=0
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --deep) DEEP=1 ;;
+        --dry-run) DRY_RUN=1 ;;
+        --quiet) QUIET=1 ;;
+        --throttle)
+            shift
+            THROTTLE="${1:-0}"
+            ;;
+        -h | --help)
+            sed -n '2,4p' "$0" | sed 's/^# \{0,1\}//'
+            exit 0
+            ;;
+        *)
+            echo "❌ Unknown option: $1" >&2
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+# Budgets in MiB. Override from the environment to tune per machine.
+WALLPAPER_BUDGET_MB="${DISK_CACHE_GC_WALLPAPER_MB:-512}"
+
+STAMP="${XDG_CACHE_HOME:-$HOME/.cache}/disk-cache-gc.stamp"
+
+say() { [ "$QUIET" -eq 1 ] || echo "$@"; }
+
+# =============================================================================
+# Throttle: bail out if we ran recently
+# =============================================================================
+# Lets the shell hook call this on every new shell without doing real work.
+if [ "$THROTTLE" -gt 0 ] && [ -f "$STAMP" ]; then
+    last=$(stat -f '%m' "$STAMP" 2>/dev/null || echo 0)
+    now=$(date +%s)
+    if [ $((now - last)) -lt "$THROTTLE" ]; then
+        say "⏭  disk-cache-gc: ran $((now - last))s ago, skipping"
+        exit 0
+    fi
+fi
+
+total_freed=0
+tcc_blocked=0
+
+human() {
+    local bytes="${1:-0}"
+    if [ "$bytes" -ge 1073741824 ]; then
+        awk -v b="$bytes" 'BEGIN { printf "%.1fGB", b / 1073741824 }'
+    elif [ "$bytes" -ge 1048576 ]; then
+        awk -v b="$bytes" 'BEGIN { printf "%.0fMB", b / 1048576 }'
+    else
+        printf '%dKB' $((bytes / 1024))
+    fi
+}
+
+avail() {
+    df -k /System/Volumes/Data 2>/dev/null | awk 'NR==2 {print $4 * 1024}'
+}
+
+# =============================================================================
+# prune_to_budget <dir> <budget_mib> <label>
+# =============================================================================
+# Walks the directory newest-first and deletes every file past the budget.
+# Uses mtime so recently rendered (i.e. currently displayed) assets are kept.
+prune_to_budget() {
+    local dir="$1" budget_mb="$2" label="$3"
+    local budget_bytes=$((budget_mb * 1024 * 1024))
+
+    if [ ! -d "$dir" ]; then
+        say "   ⏭  $label: not present, skipping"
+        return 0
+    fi
+
+    # Distinguish "empty" from "TCC denied" — both look like zero files
+    if ! ls "$dir" > /dev/null 2>&1; then
+        tcc_blocked=1
+        say "   🔒 $label: permission denied (needs Full Disk Access)"
+        return 0
+    fi
+
+    local running=0 kept=0 deleted=0 freed=0
+
+    # stat -f '%m %z %N' => mtime, size, path (BSD stat, macOS)
+    while IFS=' ' read -r _mtime size path; do
+        [ -n "${size:-}" ] || continue
+        running=$((running + size))
+
+        if [ "$running" -le "$budget_bytes" ]; then
+            kept=$((kept + 1))
+            continue
+        fi
+
+        if [ "$DRY_RUN" -eq 1 ]; then
+            deleted=$((deleted + 1))
+            freed=$((freed + size))
+        elif rm -f "$path" 2>/dev/null; then
+            deleted=$((deleted + 1))
+            freed=$((freed + size))
+        fi
+    done < <(find "$dir" -type f -exec stat -f '%m %z %N' {} + 2>/dev/null | sort -rn)
+
+    total_freed=$((total_freed + freed))
+
+    say "$(printf '   %s %s: kept %d, removed %d (%s)' \
+        "$([ "$deleted" -gt 0 ] && echo "🧹" || echo "✅")" \
+        "$label" "$kept" "$deleted" "$(human "$freed")")"
+}
+
+before=$(avail)
+
+say "🧽 Capping runaway caches$([ "$DRY_RUN" -eq 1 ] && echo " (dry run)")..."
+say "   Free before: $(human "${before:-0}")"
+say ""
+
+# =============================================================================
+# macOS wallpaper renderer cache  (requires Full Disk Access)
+# =============================================================================
+prune_to_budget \
+    "$HOME/Library/Containers/com.apple.wallpaper.agent/Data/Library/Caches/com.apple.wallpaper.caches" \
+    "$WALLPAPER_BUDGET_MB" \
+    "wallpaper renders"
+
+# =============================================================================
+# Deep clean: tool caches that safely regenerate but are slow to rebuild
+# =============================================================================
+if [ "$DEEP" -eq 1 ]; then
+    say ""
+    say "🔍 Deep clean..."
+
+    if command -v uv > /dev/null 2>&1; then
+        if [ "$DRY_RUN" -eq 1 ]; then
+            say "   ⏭  uv: would run 'uv cache prune'"
+        # Any concurrent uv process holds the cache lock for its whole life, and
+        # long-lived `uv tool uvx` servers (e.g. serena MCP) can hold it for
+        # days. Don't block a timer job waiting for a lock that may never free.
+        elif UV_LOCK_TIMEOUT=15 uv cache prune > /dev/null 2>&1; then
+            say "   🧹 uv: cache pruned"
+        else
+            say "   ⏭  uv: lock held by a running uv process, skipped"
+        fi
+    fi
+
+    if command -v brew > /dev/null 2>&1; then
+        if [ "$DRY_RUN" -eq 1 ]; then
+            say "   ⏭  brew: would run 'brew cleanup --prune=all'"
+        elif brew cleanup --prune=all > /dev/null 2>&1; then
+            say "   🧹 brew: old versions and downloads removed"
+        else
+            say "   ⚠️  brew: cleanup failed, continuing"
+        fi
+    fi
+fi
+
+after=$(avail)
+
+say ""
+say "✅ Done."
+say "   Reclaimed (this run): $(human "$total_freed")"
+say "   Free after: $(human "${after:-0}")"
+
+if [ "$tcc_blocked" -eq 1 ]; then
+    say ""
+    say "🔒 Some caches were unreadable. To let this run unattended, grant"
+    say "   Full Disk Access to the calling process in:"
+    say "   System Settings → Privacy & Security → Full Disk Access"
+fi
+
+# Warn loudly while there is still time to act
+if [ -n "${after:-}" ] && [ "$after" -lt 10737418240 ]; then
+    say ""
+    say "⚠️  Under 10GB free. Largest consumers:"
+    du -sh -x "$HOME"/* 2>/dev/null | sort -rh | head -5 | sed 's/^/      /'
+fi
+
+# Record the run only when we actually did the work
+if [ "$DRY_RUN" -eq 0 ]; then
+    mkdir -p "$(dirname "$STAMP")" 2>/dev/null
+    : > "$STAMP"
+fi

@@ -35,6 +35,7 @@ Example: `0001-adopt-jujutsu-alongside-git.md`
 | [0007](0007-difftastic-integration.md) | Difftastic integration | Accepted | 2025-10-26 |
 | [0008](0008-linux-best-effort-support.md) | Linux best-effort support strategy | Accepted | 2025-10-31 |
 | [0009](0009-macos-defaults-automation.md) | macOS defaults automation strategy | Accepted | 2025-11-01 |
+| [0010](0010-disk-cache-garbage-collection.md) | Disk cache garbage collection | Accepted | 2026-08-22 |
 
 ## Process
 
