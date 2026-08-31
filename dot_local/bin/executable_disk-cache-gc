@@ -198,8 +198,12 @@ if [ -n "${after:-}" ] && [ "$after" -lt 10737418240 ]; then
     du -sh -x "$HOME"/* 2>/dev/null | sort -rh | head -5 | sed 's/^/      /'
 fi
 
-# Record the run only when we actually did the work
-if [ "$DRY_RUN" -eq 0 ]; then
+# Record the run only when we actually did the work. A TCC denial means the
+# prune never ran at all, so the stamp must NOT be touched -- otherwise the
+# throttle masks the failure for hours, believing "ran and found nothing to
+# prune" when it really means "never got to look". Skipping the stamp here
+# lets the very next shell (which may have Full Disk Access) retry for free.
+if [ "$DRY_RUN" -eq 0 ] && [ "$tcc_blocked" -eq 0 ]; then
     mkdir -p "$(dirname "$STAMP")" 2>/dev/null
     : > "$STAMP"
 fi
