@@ -14,5 +14,5 @@ CODEX_PROFILE=API
 # lives (config.toml, MCP servers, auth, session history). The per-account dirs
 # ~/.codex-personal / ~/.codex-work were never created, so pointing CODEX_HOME at
 # them made codex start with an empty config. Profiles only toggle the API key,
-# matching how CLAUDE_CONFIG_DIR is handled on the claude side.
+# matching the claude side, which leaves its config dir at the default.
 CODEX_HOME={{ .chezmoi.homeDir }}/.codex

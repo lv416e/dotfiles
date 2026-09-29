@@ -7,8 +7,10 @@
 # Profile identifier
 AI_PROFILE=MAX
 
-# Config directory (using default)
-CLAUDE_CONFIG_DIR={{ .chezmoi.homeDir }}/.claude
+# CLAUDE_CONFIG_DIR: deliberately unset. Setting it, even to the default
+# ~/.claude, makes claude keep its login in a hashed keychain entry
+# ("Claude Code-credentials-<hash>"), so a claude started without it (Orca,
+# launchd, GUI apps) reads the unhashed entry, a different and stale login.
 
 # Explicitly unset API keys to prevent accidental usage
 # (These will be unset when this profile is active)

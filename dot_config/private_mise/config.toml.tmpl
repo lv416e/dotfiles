@@ -643,8 +643,10 @@ ANTHROPIC_API_KEY=$API_KEY
 # Profile identifier
 AI_PROFILE=API
 
-# Config directory (using default)
-CLAUDE_CONFIG_DIR=$HOME/.claude
+# CLAUDE_CONFIG_DIR: deliberately unset. Setting it, even to the default
+# ~/.claude, makes claude keep its login in a hashed keychain entry
+# ("Claude Code-credentials-<hash>"), so a claude started without it (Orca,
+# launchd, GUI apps) reads the unhashed entry, a different and stale login.
 
 # Optional: OpenAI-compatible router (e.g., LiteLLM)
 # Uncomment if using a proxy/router
