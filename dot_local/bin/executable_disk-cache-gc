@@ -83,6 +83,13 @@ avail() {
     df -k /System/Volumes/Data 2>/dev/null | awk 'NR==2 {print $4 * 1024}'
 }
 
+# PIDs currently holding the uv cache lock, for the log line below.
+uv_lock_holders() {
+    local lock="${UV_CACHE_DIR:-$HOME/.cache/uv}/.lock"
+    [ -e "$lock" ] || return 0
+    lsof -t -- "$lock" 2>/dev/null | tr '\n' ' ' | sed 's/ $//'
+}
+
 # =============================================================================
 # prune_to_budget <dir> <budget_mib> <label>
 # =============================================================================
@@ -154,15 +161,26 @@ if [ "$DEEP" -eq 1 ]; then
     say "🔍 Deep clean..."
 
     if command -v uv > /dev/null 2>&1; then
+        # Any concurrent uv process holds the cache lock for its whole life, and
+        # long-lived `uv tool uvx` servers (serena MCP, postgres-mcp) hold it for
+        # days -- one orphaned `uv run` server held it for 19 days straight. So
+        # waiting is futile, and simply skipping was worse: the job logged
+        # "skipped" on every single run while the cache grew to 10GB unchecked.
+        #
+        # Try the clean path briefly, then override the in-use check. That is
+        # safe enough here because `prune` only evicts entries no environment
+        # references, and the blockers are long-since-installed servers that are
+        # running, not resolving. A concurrent `uv sync` is the one case that
+        # could race, and losing a cache entry there costs a re-download.
         if [ "$DRY_RUN" -eq 1 ]; then
             say "   ⏭  uv: would run 'uv cache prune'"
-        # Any concurrent uv process holds the cache lock for its whole life, and
-        # long-lived `uv tool uvx` servers (e.g. serena MCP) can hold it for
-        # days. Don't block a timer job waiting for a lock that may never free.
         elif UV_LOCK_TIMEOUT=15 uv cache prune > /dev/null 2>&1; then
             say "   🧹 uv: cache pruned"
+        elif uv cache prune --force > /dev/null 2>&1; then
+            holders=$(uv_lock_holders)
+            say "   🧹 uv: cache pruned (--force; lock held by PID ${holders:-?})"
         else
-            say "   ⏭  uv: lock held by a running uv process, skipped"
+            say "   ⚠️  uv: prune failed even with --force"
         fi
     fi
 
