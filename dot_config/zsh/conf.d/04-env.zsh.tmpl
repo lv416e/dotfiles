@@ -441,13 +441,12 @@ codex-switch() {
 alias codex-current='mise codex-current'
 
 # ============================================================================
-# GitHub Integration (1Password)
+# GitHub Integration
 # ============================================================================
-# Fallback pattern: env variable → chezmoi data → 1Password
-# GITHUB_TOKEN is used by: gh CLI, git, chezmoi GitHub functions, GitHub Copilot CLI
-{{- if or (env "GITHUB_TOKEN") .github_token }}
-export GITHUB_TOKEN="{{ or (env "GITHUB_TOKEN") .github_token }}"
-{{- end }}
+# GITHUB_TOKEN is deliberately NOT exported here: rendering it would write the
+# PAT in plaintext into the deployed rc file. gh authenticates from the macOS
+# keychain (`gh auth login`). When a tool needs the env var for one command:
+#   GITHUB_TOKEN=$(gh auth token) <command>
 
 # ============================================================================
 # LM Studio CLI

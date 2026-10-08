@@ -119,7 +119,6 @@ encryption = "age"
     name = {{ $gitName | default "DevContainer User" | quote }}
     email = {{ $email | quote }}
     github_user = {{ $githubUser | quote }}
-    github_token = "{{ if $useGithubToken }}{{ or (env "GITHUB_TOKEN") (onepasswordRead (printf "op://%s/%s/credential" $vaultName $githubTokenItem)) "" }}{{ else }}{{ env "GITHUB_TOKEN" }}{{ end }}"
 
 [data.zsh]
     variant = {{ $zshVariant | quote }}
