@@ -144,6 +144,17 @@ if [[ -z "${MISE_SHELL:-}" ]] && command -v mise >/dev/null 2>&1; then
   export MISE_SHELL=zsh
 fi
 
+# --- pnpm global bin (immediate, same reason as the mise shims) ---
+# Taken from what `pnpm setup` appends, so rerunning it finds the block and
+# leaves the rc file alone instead of adding an unmanaged copy.
+# pnpm
+export PNPM_HOME="{{ .chezmoi.homeDir }}/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+esac
+# pnpm end
+
 # --- Deferred tool initialization ---
 zsh-defer -c 'export _ZO_FZF_OPTS="--height 40% --layout=reverse --border --preview \"eza --icons --color=always {2..}\""'
 zsh-defer -c 'eval "$(zoxide init --cmd j zsh)"'

@@ -14,6 +14,13 @@ if [[ -z "${MISE_SHELL:-}" ]] && command -v mise >/dev/null 2>&1; then
   export MISE_SHELL=zsh
 fi
 
+# --- pnpm global bin (immediate, same reason as the mise shims) ---
+export PNPM_HOME="$HOME/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+esac
+
 # --- FZF configuration ---
 # FZF environment variables deferred - set before key bindings load
 # (saves ~1ms at startup)
