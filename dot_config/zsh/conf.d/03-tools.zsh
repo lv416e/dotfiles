@@ -10,7 +10,7 @@
 # Optimization: Direct PATH export if not already loaded by .zprofile (saves ~5ms)
 # .zprofile already sets MISE_SHELL, so this is mostly for non-login shells
 if [[ -z "${MISE_SHELL:-}" ]] && command -v mise >/dev/null 2>&1; then
-  export PATH="{{ .chezmoi.homeDir }}/.local/share/mise/shims:$PATH"
+  export PATH="$HOME/.local/share/mise/shims:$PATH"
   export MISE_SHELL=zsh
 fi
 
