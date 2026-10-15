@@ -1055,6 +1055,16 @@ _register_promptq_completion() {
 zsh-defer _register_promptq_completion
 
 # ============================================================================
+# Disk Cache Garbage Collection
+# ============================================================================
+# Sourced from the modular tree rather than inlined so both variants share one
+# definition. The wallpaper cap only runs from an interactive shell (it needs
+# the terminal's Full Disk Access; see ADR-0010), so a variant that skips this
+# hook leaves the cache uncapped while the LaunchAgent's log still looks
+# healthy.
+zsh-defer -c '[[ -r "${ZDOTDIR:-$HOME/.config/zsh}/conf.d/09-disk-cache-gc.zsh" ]] && source "${ZDOTDIR:-$HOME/.config/zsh}/conf.d/09-disk-cache-gc.zsh"'
+
+# ============================================================================
 # Performance Profiling (uncomment when benchmarking)
 # ============================================================================
 # zprof | head -40
